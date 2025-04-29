@@ -1,0 +1,25 @@
+<div class="history-page">
+  <header class="page-header">
+    <h1>History</h1>
+    <p>Your recently played songs</p>
+
+    <button class="clear-button" *ngIf="recentSongs.length > 0" (click)="clearHistory()">
+      <span class="material-icons">delete</span>
+      Clear History
+    </button>
+  </header>
+
+  <div class="songs-grid" *ngIf="recentSongs.length > 0">
+    <app-song-card
+      *ngFor="let song of recentSongs"
+      [song]="song"
+      (selected)="onSongSelected($event)"
+    ></app-song-card>
+  </div>
+
+  <div class="empty-state" *ngIf="recentSongs.length === 0">
+    <span class="material-icons">history</span>
+    <p>Your history is empty</p>
+    <p class="sub-text">Songs you play will appear here</p>
+  </div>
+</div>

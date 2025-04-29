@@ -1,0 +1,14 @@
+<!-- src/app/pages/home-page/home-page.component.html -->
+<div class="home-container">
+  <h1>Home</h1>
+  <div class="songs-list">
+    <app-song-card
+      *ngFor="let song of songs"
+      [song]="song"
+      (selected)="onSongSelected($event)"
+    ></app-song-card>
+  </div>
+  <div *ngIf="selectedSong">
+    <h2>Selected: {{ selectedSong.title }}</h2>
+  </div>
+</div>

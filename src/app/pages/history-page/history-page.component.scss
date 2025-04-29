@@ -1,0 +1,127 @@
+/* src/app/pages/history-page/history-page.component.scss */
+.history-page {
+  .page-header {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(90deg, #673ab7, #9c27b0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      flex: 1;
+    }
+
+    p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin: 0;
+      width: 100%;
+    }
+
+    .clear-button {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+
+      &:hover {
+        background-color: var(--hover-color);
+        color: var(--text-primary);
+      }
+
+      .material-icons {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .songs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 0;
+    color: var(--text-secondary);
+
+    .material-icons {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin: 0 0 0.5rem;
+    }
+
+    .sub-text {
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+  }
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 768px) {
+  .history-page {
+    .page-header {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+
+      .clear-button {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+
+        .material-icons {
+          font-size: 1rem;
+        }
+      }
+    }
+
+    .songs-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .empty-state {
+      padding: 2rem 0;
+
+      .material-icons {
+        font-size: 3rem;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+
+      .sub-text {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}

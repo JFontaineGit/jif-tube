@@ -1,0 +1,15 @@
+<!-- src/app/components/layout/layout.component.html -->
+<div class="app-container">
+  <app-sidebar></app-sidebar>
+  <div class="main-content">
+    <app-search-button></app-search-button>
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+    <app-player
+      [song]="currentSong"
+      *ngIf="isPlayerVisible"
+      (close)="closePlayer()"
+    ></app-player>
+  </div>
+</div>

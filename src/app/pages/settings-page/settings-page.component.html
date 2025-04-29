@@ -1,0 +1,75 @@
+<!-- src/app/pages/settings-page/settings-page.component.html -->
+<div class="settings-page">
+  <header class="page-header">
+    <h1>Settings</h1>
+    <p>Customize your experience</p>
+  </header>
+
+  <div class="settings-container">
+    <section class="settings-section">
+      <h2>Appearance</h2>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <span class="material-icons">palette</span>
+          <div>
+            <h3>Theme</h3>
+            <p>Choose your preferred theme</p>
+          </div>
+        </div>
+
+        <div class="theme-options">
+          <button
+            *ngFor="let theme of themeOptions"
+            [class.active]="selectedTheme === theme.value"
+            (click)="changeTheme(theme.value)"
+          >
+            <span class="material-icons">{{ theme.icon }}</span>
+            {{ theme.label }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Playback</h2>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <span class="material-icons">play_circle</span>
+          <div>
+            <h3>Autoplay</h3>
+            <p>Automatically play songs when selected</p>
+          </div>
+        </div>
+
+        <div class="setting-control">
+          <label class="toggle">
+            <input type="checkbox" [(ngModel)]="autoplay" (ngModelChange)="toggleAutoplay()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <h2>Data</h2>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <span class="material-icons">delete</span>
+          <div>
+            <h3>Clear Data</h3>
+            <p>Remove all app data including history</p>
+          </div>
+        </div>
+
+        <div class="setting-control">
+          <button class="danger-button" (click)="clearData()">
+            Clear All Data
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

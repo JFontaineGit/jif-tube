@@ -1,0 +1,46 @@
+.home-page {
+  .page-header {
+    margin-bottom: 2rem;
+    
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+      background: linear-gradient(90deg, #9c27b0, #3f51b5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+  }
+  
+  .songs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+// Media query para pantallas pequeñas
+@media (max-width: 768px) {
+  .home-page {
+    .page-header {
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      p {
+        font-size: 0.9rem;
+      }
+    }
+    
+    .songs-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+  }
+}

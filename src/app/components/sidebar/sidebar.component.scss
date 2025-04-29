@@ -1,0 +1,126 @@
+/* src/app/components/sidebar/sidebar.component.scss */
+.sidebar {
+  width: 240px;
+  height: 100vh; /* Ocupa toda la altura de la pantalla */
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  transition: width 0.3s ease;
+  position: fixed; /* Fija la sidebar */
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.logo {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(90deg, #9c27b0, #3f51b5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-menu {
+  flex: 1;
+  padding: 1rem 0;
+}
+
+.nav-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-menu li {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nav-menu li:hover {
+  background-color: var(--hover-color);
+}
+
+.nav-menu li.active {
+  background-color: var(--active-color);
+  color: var(--accent-color);
+  border-left: 3px solid var(--accent-color);
+}
+
+.nav-menu .material-icons {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+}
+
+.nav-menu .nav-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.settings-menu {
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.settings-menu .nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settings-menu .nav-item:hover {
+  background-color: var(--hover-color);
+}
+
+.settings-menu .nav-item.active {
+  background-color: var(--active-color);
+  color: var(--accent-color);
+  border-left: 3px solid var(--accent-color);
+}
+
+.settings-menu .material-icons {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+}
+
+.settings-menu .nav-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .logo h1 {
+    display: none;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .material-icons {
+    margin-right: 0 !important;
+  }
+
+  .nav-menu ul li,
+  .settings-menu .nav-item {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+}

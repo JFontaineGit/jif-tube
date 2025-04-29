@@ -1,0 +1,30 @@
+<!-- src/app/components/sidebar/sidebar.component.html -->
+<aside class="sidebar">
+  <div class="logo">
+    <h1>JifTube</h1>
+  </div>
+  <nav class="nav-menu">
+    <ul>
+      <li
+        *ngFor="let item of navItems"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+      >
+        <span class="material-icons">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+      </li>
+    </ul>
+  </nav>
+  <div class="settings-menu">
+    <div
+      class="nav-item"
+      [routerLink]="settingsItem.route"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: settingsItem.route === '/' }"
+    >
+      <span class="material-icons">{{ settingsItem.icon }}</span>
+      <span class="nav-label">{{ settingsItem.label }}</span>
+    </div>
+  </div>
+</aside>

@@ -1,0 +1,18 @@
+<div class="search-container" [class.open]="isSearchOpen">
+  <button class="search-button" (click)="toggleSearch()">
+    <span class="material-icons">{{ isSearchOpen ? 'close' : 'search' }}</span>
+  </button>
+  
+  <div class="search-input-container" *ngIf="isSearchOpen">
+    <input 
+      type="text" 
+      [(ngModel)]="searchQuery" 
+      placeholder="Search for songs..."
+      (keyup.enter)="search()"
+      autofocus
+    >
+    <button class="search-submit" (click)="search()">
+      <span class="material-icons">search</span>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+<div class="library-page">
+  <header class="page-header">
+    <h1>Library</h1>
+    <p>Browse your music collection</p>
+  </header>
+  
+  <div class="songs-grid">
+    <app-song-card 
+      *ngFor="let song of songs" 
+      [song]="song"
+      (selected)="onSongSelected($event)">
+    </app-song-card>
+  </div>
+</div>

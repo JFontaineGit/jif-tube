@@ -1,0 +1,12 @@
+<div class="song-card" (click)="selectSong()">
+  <div class="thumbnail">
+    <img [src]="song.thumbnailUrl" [alt]="song.title">
+    <div class="play-overlay">
+      <span class="material-icons">play_circle</span>
+    </div>
+  </div>
+  <div class="song-info">
+    <h3 class="song-title">{{ song.title }}</h3>
+    <p class="song-artist">{{ song.artist }}</p>
+  </div>
+</div>
