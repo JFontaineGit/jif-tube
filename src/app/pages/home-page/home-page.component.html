@@ -1,12 +1,16 @@
-<!-- src/app/pages/home-page/home-page.component.html -->
 <div class="home-container">
   <h1>Home</h1>
+  <!-- Componente de búsqueda -->
+  <app-search-button (search)="searchSongs($event)"></app-search-button>
   <div class="songs-list">
     <app-song-card
       *ngFor="let song of songs"
       [song]="song"
       (selected)="onSongSelected($event)"
     ></app-song-card>
+  </div>
+  <div *ngIf="songs.length === 0">
+    <p>Cargando...</p>
   </div>
   <div *ngIf="selectedSong">
     <h2>Selected: {{ selectedSong.title }}</h2>

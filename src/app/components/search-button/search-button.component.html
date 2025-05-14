@@ -8,10 +8,10 @@
       type="text" 
       [(ngModel)]="searchQuery" 
       placeholder="Search for songs..."
-      (keyup.enter)="search()"
+      (keyup.enter)="searchSongs()"
       autofocus
     >
-    <button class="search-submit" (click)="search()">
+    <button class="search-submit" (click)="searchSongs()">
       <span class="material-icons">search</span>
     </button>
   </div>

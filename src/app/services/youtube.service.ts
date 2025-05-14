@@ -10,7 +10,7 @@ import { Song } from '../models/song.model';
 })
 export class YoutubeService {
   private apiUrl = 'https://www.googleapis.com/youtube/v3';
-  private apiKey = 'YOUR_API_KEY'; // Acá va la clave
+  private apiKey = 'AIzaSyDhUFUrs5MbqkG_6RaRIWhIFWcyOEK8qhE'; // Acá va la clave
 
   private mockSongs: Song[] = [
     {
