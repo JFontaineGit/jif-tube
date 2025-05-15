@@ -1,18 +1,57 @@
 <div class="home-container">
-  <h1>Home</h1>
-  <!-- Componente de búsqueda -->
-  <app-search-button (search)="searchSongs($event)"></app-search-button>
-  <div class="songs-list">
-    <app-song-card
-      *ngFor="let song of songs"
-      [song]="song"
-      (selected)="onSongSelected($event)"
-    ></app-song-card>
+  <div class="page-header">
+    <h1>Home</h1>
+    <app-search-button (search)="searchSongs($event)"></app-search-button>
   </div>
-  <div *ngIf="songs.length === 0">
+
+  <!-- Sección: Videos Oficiales -->
+  <section class="songs-section" *ngIf="officialVideos.length > 0">
+    <div class="section-header">
+      <h2 class="section-title">Videos Oficiales</h2>
+      <div class="navigation-buttons">
+        <button class="nav-button prev-button" (click)="scrollLeftVideos()" [disabled]="isAtStartVideos">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button class="nav-button next-button" (click)="scrollRightVideos()" [disabled]="isAtEndVideos">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+    <div class="songs-row" #videosRow>
+      <app-song-card
+        *ngFor="let song of officialVideos"
+        [song]="song"
+        (selected)="onSongSelected($event)"
+      ></app-song-card>
+    </div>
+  </section>
+
+  <!-- Sección: Álbumes Oficiales -->
+  <section class="songs-section" *ngIf="albumTracks.length > 0">
+    <div class="section-header">
+      <h2 class="section-title">Álbumes Oficiales</h2>
+      <div class="navigation-buttons">
+        <button class="nav-button prev-button" (click)="scrollLeftTracks()" [disabled]="isAtStartTracks">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <button class="nav-button next-button" (click)="scrollRightTracks()" [disabled]="isAtEndTracks">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+    <div class="songs-row" #tracksRow>
+      <app-song-card
+        *ngFor="let song of albumTracks"
+        [song]="song"
+        (selected)="onSongSelected($event)"
+      ></app-song-card>
+    </div>
+  </section>
+
+  <div *ngIf="officialVideos.length === 0 && albumTracks.length === 0" class="loading-message">
     <p>Cargando...</p>
   </div>
-  <div *ngIf="selectedSong">
-    <h2>Selected: {{ selectedSong.title }}</h2>
+
+  <div *ngIf="selectedSong" class="selected-song">
   </div>
 </div>

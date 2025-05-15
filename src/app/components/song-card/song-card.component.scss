@@ -1,38 +1,51 @@
+// src/app/components/song-card/song-card.component.scss
 .song-card {
-  background-color: var(--bg-card);
+  width: 200px;
+  background-color: transparent;
   border-radius: 8px;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
   cursor: pointer;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  
+
+  &.official-video {
+    .thumbnail {
+      padding-top: 56.25%; /* Aspecto 16:9 para videos oficiales */
+    }
+  }
+
+  &.album-track {
+    .thumbnail {
+      padding-top: 100%; /* Aspecto 1:1 para tracks de álbum */
+    }
+  }
+
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
     
     .play-overlay {
       opacity: 1;
     }
   }
-  
+
   .thumbnail {
     position: relative;
     width: 100%;
-    padding-top: 56.25%; // 16:9 aspect ratio
     overflow: hidden;
-    
-    img {
+
+    .song-image {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: cover; /* La imagen cubrirá todo el contenedor */
+      object-position: center; /* Centramos la imagen para evitar recortes raros */
+      border-radius: 8px;
       transition: transform 0.3s ease;
     }
-    
+
     .play-overlay {
       position: absolute;
       top: 0;
@@ -45,38 +58,75 @@
       justify-content: center;
       opacity: 0;
       transition: opacity 0.3s ease;
-      
+
       .material-icons {
         font-size: 3rem;
-        color: var(--accent-color);
+        color: #1db954;
       }
     }
   }
-  
+
   .song-info {
-    padding: 1rem;
+    padding: 0.5rem 0;
     flex: 1;
     display: flex;
     flex-direction: column;
-    
+
     .song-title {
-      font-size: 0.9rem;
+      font-size: 16px;
       font-weight: 600;
-      margin: 0 0 0.5rem;
+      color: #fff;
+      margin: 0 0 4px;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      white-space: nowrap;
     }
-    
-    .song-artist {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
+
+    .song-artist,
+    .song-album {
+      font-size: 14px;
+      color: #b3b3b3;
       margin: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .song-album {
+      font-size: 12px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .song-card {
+    width: 160px;
+
+    &.official-video {
+      .thumbnail {
+        padding-top: 56.25%;
+      }
+    }
+
+    &.album-track {
+      .thumbnail {
+        padding-top: 100%;
+      }
+    }
+
+    .song-info {
+      .song-title {
+        font-size: 14px;
+      }
+
+      .song-artist,
+      .song-album {
+        font-size: 12px;
+      }
+
+      .song-album {
+        font-size: 10px;
+      }
     }
   }
 }
