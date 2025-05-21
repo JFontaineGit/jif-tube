@@ -1,0 +1,49 @@
+@use '../_variables.scss' as *;
+
+.player-container {
+  display: flex;
+  flex-direction: column;
+  background-color: $player-bg-color;
+  color: $player-text-color;
+  border-radius: $border-radius;
+  padding: $spacing-md;
+  box-shadow: $box-shadow;
+  width: 100%;
+  max-width: 100%;
+  transition: all 0.3s ease;
+  
+  @media (min-width: $breakpoint-md) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.player-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  
+  @media (min-width: $breakpoint-md) {
+    margin-left: $spacing-md;
+  }
+}
+
+.player-error {
+  border: 1px solid $error-color;
+}
+
+.player-error-message {
+  background-color: rgba($error-color, 0.1);
+  color: $error-color;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

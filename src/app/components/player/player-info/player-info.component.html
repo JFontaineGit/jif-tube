@@ -1,0 +1,22 @@
+<div class="track-info">
+  <div class="track-thumbnail">
+    <img 
+      [src]="trackThumbnail" 
+      [alt]="trackTitle" 
+      class="thumbnail-image"
+      loading="lazy">
+  </div>
+  
+  <div class="track-details">
+    <h2 class="track-title" [title]="trackTitle">{{ trackTitle }}</h2>
+    
+    <div class="track-metadata">
+      <span class="track-artist">{{ trackArtist }}</span>
+      
+      <div class="track-stats" *ngIf="trackViews || trackLikes">
+        <span class="track-views" *ngIf="trackViews">{{ trackViews }}</span>
+        <span class="track-likes" *ngIf="trackLikes">{{ trackLikes }}</span>
+      </div>
+    </div>
+  </div>
+</div>

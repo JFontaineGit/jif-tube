@@ -1,0 +1,29 @@
+<div class="progress-container">
+  <div class="time-display current-time">{{ formattedCurrentTime }}</div>
+  
+  <div 
+    #progressBar
+    class="progress-bar"
+    role="slider"
+    [attr.aria-valuemin]="0"
+    [attr.aria-valuemax]="duration"
+    [attr.aria-valuenow]="currentTime"
+    [attr.aria-valuetext]="formattedCurrentTime"
+    aria-label="Progreso de reproducción">
+    <div 
+      class="progress-background"
+      [class.dragging]="isDragging">
+    </div>
+    <div 
+      class="progress-fill"
+      [style.width.%]="progressPercentage">
+    </div>
+    <div 
+      class="progress-handle"
+      [style.left.%]="progressPercentage"
+      [class.visible]="isDragging">
+    </div>
+  </div>
+  
+  <div class="time-display duration">{{ formattedDuration }}</div>
+</div>

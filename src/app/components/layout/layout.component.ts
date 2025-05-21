@@ -1,13 +1,16 @@
-// src/app/components/layout/layout.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { SearchButtonComponent } from '../search-button/search-button.component';
-import { PlayerComponent } from '../player/player.component';
+import { PlayerComponent } from '../player/player/player.component';
 import { PlayerService } from '../../services/player.service';
 import { Song } from '../../models/song.model';
 
+/**
+ * Componente de diseño principal que organiza la estructura de la aplicación.
+ * Incluye la barra lateral, el botón de búsqueda, el enrutador y el reproductor.
+ */
 @Component({
   selector: 'app-layout',
   standalone: true,
@@ -21,13 +24,19 @@ export class LayoutComponent implements OnInit {
 
   constructor(private playerService: PlayerService) {}
 
+  /**
+   * Inicializa el componente, suscribiéndose a la canción seleccionada.
+   */
   ngOnInit() {
-    this.playerService.selectedSong$.subscribe((song) => {
+    this.playerService.selectedSong$.subscribe((song: Song | null) => {
       this.currentSong = song;
       this.isPlayerVisible = !!song;
     });
   }
 
+  /**
+   * Cierra el reproductor estableciendo la canción seleccionada a null.
+   */
   closePlayer(): void {
     this.playerService.setSelectedSong(null);
   }

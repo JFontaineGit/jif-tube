@@ -1,4 +1,3 @@
-<!-- src/app/components/layout/layout.component.html -->
 <div class="app-container">
   <app-sidebar></app-sidebar>
   <div class="main-content">
@@ -7,7 +6,6 @@
       <router-outlet></router-outlet>
     </main>
     <app-player
-      [song]="currentSong"
       *ngIf="isPlayerVisible"
       (close)="closePlayer()"
     ></app-player>

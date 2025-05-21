@@ -18,11 +18,10 @@ export class LibraryPageComponent implements OnInit {
   selectedSong: Song | null = null;
 
   constructor(private youtubeService: YoutubeService, private playerService: PlayerService) {}
-
+  
+  
   ngOnInit(): void {
-    this.youtubeService.getMockSongs().subscribe((songs) => {
-      this.songs = songs;
-    });
+    
   }
 
   onSongSelected(song: Song): void {
