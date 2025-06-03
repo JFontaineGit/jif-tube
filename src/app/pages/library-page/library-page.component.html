@@ -8,7 +8,14 @@
     <app-song-card 
       *ngFor="let song of songs" 
       [song]="song"
-      (selected)="onSongSelected($event)">
+      (selected)="onSongSelected($event)"
+    >
+      <button class="remove-button" (click)="removeSong(song.id); $event.stopPropagation()">
+        <span class="material-icons">delete</span>
+      </button>
     </app-song-card>
+  </div>
+  <div *ngIf="songs.length === 0" class="empty-message">
+    <p>No tienes canciones guardadas en tu biblioteca.</p>
   </div>
 </div>

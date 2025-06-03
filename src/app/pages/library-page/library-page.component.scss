@@ -1,4 +1,13 @@
+$bg-secondary: rgba(0, 0, 0, 0.7);
+$border-color: rgba(255, 255, 255, 0.1);
+$gradient-start: #3f51b5;
+$gradient-end: #2196f3;
+
 .library-page {
+  padding: 2rem 1.5rem;
+  background: linear-gradient(to bottom, var(--gradient-start, #{$gradient-start}), var(--gradient-end, #{$gradient-end}));
+  min-height: calc(100vh - 4rem); // Ajuste para dejar espacio al player
+
   .page-header {
     margin-bottom: 2rem;
     
@@ -6,7 +15,7 @@
       font-size: 2rem;
       font-weight: 700;
       margin: 0 0 0.5rem;
-      background: linear-gradient(90deg, #3f51b5, #2196f3);
+      background: linear-gradient(90deg, $gradient-start, $gradient-end);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -22,12 +31,39 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 1.5rem;
+
+    app-song-card {
+      position: relative;
+
+      .remove-button {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        cursor: pointer;
+        font-size: 1.2rem;
+
+        &:hover {
+          color: white;
+        }
+      }
+    }
+  }
+
+  .empty-message {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    padding: 2rem;
   }
 }
 
-// Media query para pantallas pequeñas
 @media (max-width: 768px) {
   .library-page {
+    padding: 1rem;
+
     .page-header {
       h1 {
         font-size: 1.5rem;

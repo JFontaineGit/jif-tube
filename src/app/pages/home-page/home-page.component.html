@@ -1,7 +1,7 @@
 <div class="home-container">
   <div class="page-header">
     <h1>Home</h1>
-    <app-search-button (search)="searchSongs($event)"></app-search-button>
+    <app-search-button (search)="onSearch($event)"></app-search-button>
   </div>
 
   <!-- Sección: Videos Oficiales -->
@@ -50,8 +50,5 @@
 
   <div *ngIf="officialVideos.length === 0 && albumTracks.length === 0" class="loading-message">
     <p>Cargando...</p>
-  </div>
-
-  <div *ngIf="selectedSong" class="selected-song">
   </div>
 </div>

@@ -1,4 +1,3 @@
-// src/app/components/home-page/home-page.component.ts
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +6,7 @@ import { PlayerService } from '../../services/player.service';
 import { Song } from '../../models/song.model';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
 import { SearchButtonComponent } from '../../components/search-button/search-button.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home-page',
@@ -34,19 +34,30 @@ export class HomePageComponent implements OnInit, AfterViewInit {
   constructor(
     private youtubeService: YoutubeService,
     private playerService: PlayerService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.searchSongs('popular music');
+    this.searchSongs({ query: 'popular music', tab: 'all' });
   }
 
   ngAfterViewInit(): void {
-    // Inicializamos solo si las secciones están visibles
     this.initializeScrollListeners();
   }
 
-  searchSongs(query: string): void {
+  onSearch(event: { query: string; tab: string }): void {
+    const { query, tab } = event;
+    if (query.trim()) {
+      if (tab === 'library') {
+        this.router.navigate(['/search'], { state: { query, tab } });
+      } else {
+        this.searchSongs(event);
+      }
+    }
+  }
+
+  searchSongs({ query }: { query: string; tab: string }): void {
     if (query.trim()) {
       this.youtubeService.searchVideos(query).subscribe((songs) => {
         this.officialVideos = songs.filter(song => song.type === 'official-video');
@@ -66,7 +77,6 @@ export class HomePageComponent implements OnInit, AfterViewInit {
     this.playerService.setSelectedSong(song);
   }
 
-  // Método para inicializar los listeners de desplazamiento
   private initializeScrollListeners(): void {
     if (this.videosRow?.nativeElement && !this.hasInitializedVideosScroll) {
       this.updateScrollStateVideos();
@@ -87,7 +97,6 @@ export class HomePageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Método para actualizar los estados de ambas secciones
   private updateScrollStates(): void {
     if (this.videosRow?.nativeElement) {
       this.videosRow.nativeElement.scrollLeft = 0;
@@ -99,7 +108,6 @@ export class HomePageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Navegación para Videos Oficiales
   scrollLeftVideos(): void {
     if (this.videosRow?.nativeElement) {
       const scrollAmount = this.videosRow.nativeElement.clientWidth * 0.8;
@@ -126,7 +134,6 @@ export class HomePageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Navegación para Álbumes Oficiales
   scrollLeftTracks(): void {
     if (this.tracksRow?.nativeElement) {
       const scrollAmount = this.tracksRow.nativeElement.clientWidth * 0.8;

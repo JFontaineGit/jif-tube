@@ -1,18 +1,26 @@
-<div class="search-container" [class.open]="isSearchOpen">
-  <button class="search-button" (click)="toggleSearch()">
-    <span class="material-icons">{{ isSearchOpen ? 'close' : 'search' }}</span>
+<div class="search-bar" [class.focused]="isFocused">
+  <input 
+    type="text" 
+    [(ngModel)]="searchQuery" 
+    placeholder="Buscar canciones, álbumes, artistas..."
+    (focus)="onFocus()"
+    (blur)="onBlur()"
+    (keyup.enter)="searchSongs()"
+    #searchInput
+  >
+  <button class="search-submit" (click)="searchSongs()" [disabled]="!searchQuery.trim()">
+    <span class="material-icons">search</span>
   </button>
-  
-  <div class="search-input-container" *ngIf="isSearchOpen">
-    <input 
-      type="text" 
-      [(ngModel)]="searchQuery" 
-      placeholder="Search for songs..."
-      (keyup.enter)="searchSongs()"
-      autofocus
+  <div class="search-tabs" *ngIf="isFocused">
+    <button 
+      *ngFor="let tab of searchTabs" 
+      [class.active]="activeTab === tab.value"
+      (click)="setActiveTab(tab.value)"
     >
-    <button class="search-submit" (click)="searchSongs()">
-      <span class="material-icons">search</span>
+      {{ tab.label }}
     </button>
   </div>
+  <button class="clear-button" (click)="clearSearch()" *ngIf="searchQuery">
+    <span class="material-icons">close</span>
+  </button>
 </div>

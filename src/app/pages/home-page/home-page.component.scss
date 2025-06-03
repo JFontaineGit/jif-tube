@@ -1,129 +1,136 @@
+$gradient-start: #9c27b0;
+$gradient-end: #3f51b5;
+$bg-secondary: rgba(0, 0, 0, 0.7);
+
 .home-container {
-  padding: 20px;
-  background-color: #121212;
-}
+  padding: 2rem 1.5rem;
+  background: linear-gradient(to bottom, var(--gradient-start, #{$gradient-start}), var(--gradient-end, #{$gradient-end}));
+  min-height: calc(100vh - 4rem); // Espacio para el player
 
-.page-header {
-  margin-bottom: 2rem;
-
-  h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0 0 0.5rem;
-    background: linear-gradient(90deg, #9c27b0, #3f51b5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-
-.songs-section {
-  margin-bottom: 2rem;
-
-  .section-header {
+  .page-header {
+    margin-bottom: 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
 
-    .section-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .navigation-buttons {
-      display: flex;
-      gap: 8px;
-
-      .nav-button {
-        background-color: #333;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-
-        &:hover:not(:disabled) {
-          background-color: #555;
-        }
-
-        &:disabled {
-          background-color: #222;
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-
-        .material-icons {
-          font-size: 24px;
-          color: #fff;
-        }
-      }
-    }
-  }
-
-  .songs-row {
-    display: flex;
-    gap: 16px;
-    overflow-x: hidden; /* Ocultamos la barra de desplazamiento */
-    scroll-behavior: smooth; /* Desplazamiento suave */
-  }
-}
-
-.loading-message {
-  color: #fff;
-  text-align: center;
-  margin: 20px 0;
-
-  p {
-    font-size: 16px;
-  }
-}
-
-.selected-song {
-  color: #fff;
-  margin-top: 20px;
-
-  h2 {
-    font-size: 20px;
-    font-weight: 600;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-header {
     h1 {
-      font-size: 1.5rem;
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(90deg, $gradient-start, $gradient-end);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
   }
 
   .songs-section {
+    margin-bottom: 2rem;
+
     .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
       .section-title {
-        font-size: 20px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary, #fff);
       }
 
       .navigation-buttons {
+        display: flex;
+        gap: 0.5rem;
+
         .nav-button {
-          width: 32px;
-          height: 32px;
+          background-color: $bg-secondary;
+          border: none;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+
+          &:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.1);
+          }
+
+          &:disabled {
+            background-color: rgba(0, 0, 0, 0.3);
+            cursor: not-allowed;
+            opacity: 0.5;
+          }
 
           .material-icons {
-            font-size: 20px;
+            font-size: 1.5rem;
+            color: var(--text-primary, #fff);
           }
         }
       }
     }
+
+    .songs-row {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding-bottom: 0.5rem;
+
+      &::-webkit-scrollbar {
+        display: none; // Ocultar la barra de desplazamiento
+      }
+    }
   }
 
-  .loading-message p {
-    font-size: 14px;
-  }
+  .loading-message {
+    color: var(--text-secondary, #b3b3b3);
+    text-align: center;
+    margin: 2rem 0;
 
-  .selected-song h2 {
-    font-size: 18px;
+    p {
+      font-size: 1rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    padding: 1rem;
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .songs-section {
+      .section-header {
+        .section-title {
+          font-size: 1.2rem;
+        }
+
+        .navigation-buttons {
+          .nav-button {
+            width: 32px;
+            height: 32px;
+
+            .material-icons {
+              font-size: 1.2rem;
+            }
+          }
+        }
+      }
+    }
+
+    .loading-message p {
+      font-size: 0.9rem;
+    }
   }
 }

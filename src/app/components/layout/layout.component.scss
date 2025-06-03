@@ -1,44 +1,15 @@
-/* src/app/components/layout/layout.component.scss */
 .app-container {
   display: flex;
   height: 100vh;
-  width: 100%;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  overflow: hidden;
-}
+  background: linear-gradient(to bottom, var(--gradient-start, rgb(30, 41, 59)), var(--gradient-end, #0f172a));
 
-.main-content {
-  flex: 1;
-  margin-left: 240px; /* Igual al ancho de la sidebar */
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
-app-search-button {
-  padding: 1rem;
-  background-color: var(--bg-primary);
-  z-index: 500;
-}
-
-main {
-  flex: 1;
-  overflow-y: auto; /* Habilita el desplazamiento vertical */
-  padding: 1.5rem;
-}
-
-app-player {
-  position: sticky;
-  bottom: 0;
-  z-index: 1000;
-  background-color: var(--bg-primary);
-}
-
-/* Ajuste para pantallas pequeñas */
-@media (max-width: 768px) {
   .main-content {
-    margin-left: 60px; /* Igual al ancho de la sidebar en pantallas pequeñas */
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+
+    main {
+      padding-top: 60px; // Espacio para la barra de búsqueda fija
+    }
   }
 }

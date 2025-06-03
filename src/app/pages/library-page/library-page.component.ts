@@ -1,10 +1,9 @@
-// src/app/pages/library-page/library-page.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { YoutubeService } from '../../services/youtube.service';
-import { PlayerService } from '../../services/player.service';
 import { Song } from '../../models/song.model';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
+import { PlayerService } from '../../services/player.service';
+import { LibraryService } from '../../services/library.service';
 
 @Component({
   selector: 'app-library-page',
@@ -15,17 +14,25 @@ import { SongCardComponent } from '../../components/song-card/song-card.componen
 })
 export class LibraryPageComponent implements OnInit {
   songs: Song[] = [];
-  selectedSong: Song | null = null;
 
-  constructor(private youtubeService: YoutubeService, private playerService: PlayerService) {}
-  
-  
+  constructor(
+    private playerService: PlayerService,
+    private libraryService: LibraryService
+  ) {}
+
   ngOnInit(): void {
-    
+    this.libraryService.getSavedSongs().subscribe(songs => {
+      this.songs = songs;
+    });
   }
 
   onSongSelected(song: Song): void {
-    this.selectedSong = song;
     this.playerService.setSelectedSong(song);
+  }
+
+  removeSong(songId: string): void {
+    this.libraryService.removeSong(songId).subscribe(() => {
+      this.songs = this.songs.filter(song => song.id !== songId);
+    });
   }
 }

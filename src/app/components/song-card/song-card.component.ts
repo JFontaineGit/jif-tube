@@ -1,4 +1,3 @@
-// src/app/components/song-card/song-card.component.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { Song } from '../../models/song.model';
@@ -15,7 +14,7 @@ export class SongCardComponent {
   @Output() selected = new EventEmitter<Song>();
 
   get cardTypeClass(): string {
-    return this.song.type; // Devuelve 'official-video' o 'album-track'
+    return this.song.type || 'album-track'; 
   }
 
   onSelect(): void {

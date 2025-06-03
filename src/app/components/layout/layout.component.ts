@@ -1,16 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { SearchButtonComponent } from '../search-button/search-button.component';
 import { PlayerComponent } from '../player/player/player.component';
 import { PlayerService } from '../../services/player.service';
+import { ThemeService } from '../../services/theme.service';
 import { Song } from '../../models/song.model';
+import { YoutubeService } from '../../services/youtube.service';
+import { LibraryService } from '../../services/library.service';
+import { Router } from '@angular/router';
 
-/**
- * Componente de diseño principal que organiza la estructura de la aplicación.
- * Incluye la barra lateral, el botón de búsqueda, el enrutador y el reproductor.
- */
 @Component({
   selector: 'app-layout',
   standalone: true,
@@ -21,23 +21,53 @@ import { Song } from '../../models/song.model';
 export class LayoutComponent implements OnInit {
   isPlayerVisible = false;
   currentSong: Song | null = null;
+  dominantColor: string = 'rgb(30, 41, 59)';
 
-  constructor(private playerService: PlayerService) {}
+  constructor(
+    private playerService: PlayerService,
+    private themeService: ThemeService,
+    private youtubeService: YoutubeService,
+    private libraryService: LibraryService,
+    private router: Router,
+    private elRef: ElementRef
+  ) {}
 
-  /**
-   * Inicializa el componente, suscribiéndose a la canción seleccionada.
-   */
   ngOnInit() {
     this.playerService.selectedSong$.subscribe((song: Song | null) => {
       this.currentSong = song;
       this.isPlayerVisible = !!song;
+      if (song && song.thumbnailUrl) {
+        this.themeService.updateThemeFromImage(song.thumbnailUrl);
+      }
+    });
+
+    this.themeService.dominantColor$.subscribe(color => {
+      this.dominantColor = color;
+    });
+
+    this.themeService.gradient$.subscribe(({ start, end }) => {
+      const root = this.elRef.nativeElement as HTMLElement;
+      root.style.setProperty('--gradient-start', start);
+      root.style.setProperty('--gradient-end', end);
     });
   }
 
-  /**
-   * Cierra el reproductor estableciendo la canción seleccionada a null.
-   */
   closePlayer(): void {
     this.playerService.setSelectedSong(null);
+  }
+
+  onSearch(event: { query: string; tab: string }): void {
+    const { query, tab } = event;
+    if (query.trim()) {
+      if (tab === 'library') {
+        this.libraryService.searchInLibrary(query).subscribe(songs => {
+          this.router.navigate(['/search'], { state: { query, tab, songs } });
+        });
+      } else {
+        this.youtubeService.searchVideos(query).subscribe(songs => {
+          this.router.navigate(['/search'], { state: { query, tab, songs } });
+        });
+      }
+    }
   }
 }

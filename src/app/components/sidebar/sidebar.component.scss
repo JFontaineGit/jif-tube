@@ -1,14 +1,20 @@
-/* src/app/components/sidebar/sidebar.component.scss */
+$sidebar-width: 240px;
+$sidebar-width-small: 60px;
+$border-color: rgba(255, 255, 255, 0.1);
+$hover-color: rgba(255, 255, 255, 0.1);
+$bg-secondary: rgba(0, 0, 0, 0.5);
+
 .sidebar {
-  width: 240px;
-  height: 100vh; /* Ocupa toda la altura de la pantalla */
-  background-color: var(--bg-secondary);
+  width: $sidebar-width;
+  height: 100vh;
+  background: $bg-secondary;
+  backdrop-filter: blur(10px);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid $border-color;
   transition: width 0.3s ease;
-  position: fixed; /* Fija la sidebar */
+  position: fixed;
   top: 0;
   left: 0;
   z-index: 1000;
@@ -16,7 +22,7 @@
 
 .logo {
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid $border-color;
 }
 
 .logo h1 {
@@ -48,11 +54,11 @@
 }
 
 .nav-menu li:hover {
-  background-color: var(--hover-color);
+  background-color: $hover-color;
 }
 
 .nav-menu li.active {
-  background-color: var(--active-color);
+  background-color: $hover-color;
   color: var(--accent-color);
   border-left: 3px solid var(--accent-color);
 }
@@ -69,7 +75,7 @@
 
 .settings-menu {
   padding: 1rem 0;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid $border-color;
 }
 
 .settings-menu .nav-item {
@@ -81,11 +87,11 @@
 }
 
 .settings-menu .nav-item:hover {
-  background-color: var(--hover-color);
+  background-color: $hover-color;
 }
 
 .settings-menu .nav-item.active {
-  background-color: var(--active-color);
+  background-color: $hover-color;
   color: var(--accent-color);
   border-left: 3px solid var(--accent-color);
 }
@@ -100,10 +106,9 @@
   font-weight: 500;
 }
 
-/* Media query para pantallas pequeñas */
 @media (max-width: 768px) {
   .sidebar {
-    width: 60px;
+    width: $sidebar-width-small;
   }
 
   .logo h1 {
