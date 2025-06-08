@@ -4,7 +4,9 @@
   display: flex;
   align-items: center;
   width: 100%;
-  margin-bottom: $spacing-sm;
+  padding: $spacing-sm;
+  background-color: $player-bg-color;
+  border-radius: $border-radius;
 }
 
 .time-display {
@@ -12,12 +14,12 @@
   color: $player-time-color;
   user-select: none;
   min-width: 40px;
-  
+
   &.current-time {
     text-align: right;
     margin-right: $spacing-sm;
   }
-  
+
   &.duration {
     text-align: left;
     margin-left: $spacing-sm;
@@ -40,7 +42,7 @@
   background-color: $player-progress-bg-color;
   border-radius: 2px;
   transition: height 0.2s ease;
-  
+
   &.dragging {
     height: 6px;
   }
@@ -52,8 +54,8 @@
   background-color: $player-progress-color;
   border-radius: 2px;
   transition: width 0.1s linear;
-  
-  .dragging & {
+
+  &.dragging {
     height: 6px;
     transition: none;
   }
@@ -68,7 +70,7 @@
   transform: translateX(-50%);
   opacity: 0;
   transition: opacity 0.2s ease;
-  
+
   .progress-bar:hover &,
   &.visible {
     opacity: 1;

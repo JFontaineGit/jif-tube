@@ -9,8 +9,7 @@ $border-color: rgba(255, 255, 255, 0.1);
   left: 260px;
   right: 0;
   padding: 0.5rem 1rem;
-  background: $bg-secondary;
-  backdrop-filter: blur(10px);
+  background: transparent; // El gradiente se manejará vía [style.background]
   border-bottom: 1px solid $border-color;
   display: flex;
   align-items: center;
@@ -19,6 +18,7 @@ $border-color: rgba(255, 255, 255, 0.1);
 
   &.focused {
     box-shadow: $shadow;
+    transform: translateY(-2px);
   }
 
   input {
@@ -31,16 +31,21 @@ $border-color: rgba(255, 255, 255, 0.1);
     outline: none;
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.6);
     }
   }
 
   .search-submit {
     background: none;
     border: none;
-    color: white;
+    color: rgba(255, 255, 255, 0.8);
     padding: 0.5rem;
     cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: white;
+    }
 
     &:disabled {
       opacity: 0.5;
@@ -58,13 +63,14 @@ $border-color: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.7);
     padding: 0.5rem;
     cursor: pointer;
-
-    .material-icons {
-      font-size: 1.2rem;
-    }
+    transition: color 0.2s ease;
 
     &:hover {
       color: white;
+    }
+
+    .material-icons {
+      font-size: 1.2rem;
     }
   }
 
@@ -84,18 +90,18 @@ $border-color: rgba(255, 255, 255, 0.1);
       border: none;
       color: rgba(255, 255, 255, 0.7);
       padding: 0.25rem 0.75rem;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
       transition: all 0.2s ease;
 
       &.active {
-        background: $accent-color;
         color: white;
+        font-weight: 500;
       }
 
       &:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.15);
       }
     }
   }

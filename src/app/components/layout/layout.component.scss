@@ -1,15 +1,47 @@
+@use '../player/_variables.scss' as *;
+
 .app-container {
   display: flex;
+  flex-direction: column; // Cambiar a column para apilar main y player
   height: 100vh;
-  background: linear-gradient(to bottom, var(--gradient-start, rgb(30, 41, 59)), var(--gradient-end, #0f172a));
+  width: 100vw;
+  background: linear-gradient(to bottom, var(--gradient-start, rgb(240, 248, 255)), var(--gradient-end, rgb(200, 230, 255)));
+  transition: background 0.5s ease;
+  overflow: hidden; // Evitar scroll innecesario
+
+  app-sidebar {
+    width: 250px; // Valor explícito en lugar de variable no definida
+    flex-shrink: 0;
+    background: var(--bg-secondary, #2c3e50); // Usar variable global con fallback
+  }
 
   .main-content {
-    flex: 1;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    margin-left: 250px; // Ajustar según ancho de la sidebar
+    padding: $spacing-md;
     overflow-y: auto;
-    position: relative;
+    min-width: 0; // Evitar problemas de ancho mínimo
 
     main {
-      padding-top: 60px; // Espacio para la barra de búsqueda fija
+      flex: 1; // Ocupar todo el espacio disponible
+      padding-top: 80px; // Espacio para la barra de búsqueda
+    }
+  }
+
+  .player-container {
+    position: fixed;
+    bottom: 0;
+    left: 250px; // Posicionar después de la sidebar
+    width: calc(100vw - 250px); // Ajustar ancho restando la sidebar
+    background: var(--bg-card, rgba(0, 0, 0, 0.8)); // Usar variable global
+    padding: $spacing-sm;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000; // Asegurar que esté encima del contenido
+
+    app-player {
+      width: 100%; // Asegurar que el player ocupe todo el contenedor
     }
   }
 }

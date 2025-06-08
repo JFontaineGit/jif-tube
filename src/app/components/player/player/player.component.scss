@@ -3,39 +3,43 @@
 .player-container {
   display: flex;
   flex-direction: column;
-  background-color: $player-bg-color;
-  color: $player-text-color;
+  background-color: var(--bg-card, $player-bg-color); // Usa bg-card global con fallback
+  color: var(--text-primary, $player-text-color);
   border-radius: $border-radius;
   padding: $spacing-md;
   box-shadow: $box-shadow;
   width: 100%;
   max-width: 100%;
   transition: all 0.3s ease;
-  
+  margin: 0;
+
   @media (min-width: $breakpoint-md) {
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+  }
+
+  &.player-error {
+    border: 1px solid var(--error-color, $error-color);
   }
 }
 
 .player-main {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  gap: $spacing-sm;
   flex: 1;
   width: 100%;
-  
+
   @media (min-width: $breakpoint-md) {
     margin-left: $spacing-md;
   }
 }
 
-.player-error {
-  border: 1px solid $error-color;
-}
-
 .player-error-message {
-  background-color: rgba($error-color, 0.1);
-  color: $error-color;
+  background-color: rgba(var(--error-color, $error-color), 0.1);
+  color: var(--error-color, $error-color);
   padding: $spacing-sm;
   margin-bottom: $spacing-sm;
   border-radius: $border-radius-sm;
@@ -46,4 +50,18 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Asegúrate de que los subcomponentes (controls, progress) usen estas variables */
+app-player-controls {
+  --control-color: var(--text-primary, $player-control-color);
+  --control-hover-color: var(--text-primary, $player-control-hover-color);
+  --control-hover-bg: var(--hover-color, $player-control-hover-bg);
+  --control-focus-color: var(--accent-color, $player-control-focus-color);
+}
+
+app-player-progress {
+  --progress-bg-color: var(--bg-secondary, $player-progress-bg-color);
+  --progress-color: var(--accent-color, $player-progress-color);
+  --progress-handle-color: var(--text-primary, $player-progress-handle-color);
 }

@@ -1,4 +1,4 @@
-<div class="search-bar" [class.focused]="isFocused">
+<div class="search-bar" [class.focused]="isFocused" [style.background]="gradientStyle">
   <input 
     type="text" 
     [(ngModel)]="searchQuery" 
@@ -16,6 +16,7 @@
       *ngFor="let tab of searchTabs" 
       [class.active]="activeTab === tab.value"
       (click)="setActiveTab(tab.value)"
+      [style.background]="activeTab === tab.value ? dominantColor : 'transparent'"
     >
       {{ tab.label }}
     </button>

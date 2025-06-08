@@ -1,4 +1,3 @@
-/* src/app/pages/settings-page/settings-page.component.scss */
 .settings-page {
   .page-header {
     margin-bottom: 2rem;
@@ -7,14 +6,14 @@
       font-size: 2rem;
       font-weight: 700;
       margin: 0 0 0.5rem;
-      background: linear-gradient(90deg, #607d8b, #78909c);
+      background: linear-gradient(90deg, var(--accent-color, #607d8b), var(--accent-color, #78909c));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     p {
       font-size: 1rem;
-      color: var(--text-secondary);
+      color: var(--text-secondary, rgba(255, 255, 255, 0.6));
       margin: 0;
     }
   }
@@ -31,7 +30,7 @@
       font-weight: 600;
       margin: 0 0 1rem;
       padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
     }
   }
 
@@ -40,7 +39,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem;
-    background-color: var(--bg-card);
+    background-color: var(--bg-card, rgba(0, 0, 0, 0.2));
     border-radius: 8px;
     margin-bottom: 1rem;
 
@@ -51,7 +50,7 @@
 
       .material-icons {
         font-size: 1.5rem;
-        color: var(--accent-color);
+        color: var(--accent-color, #9c27b0);
       }
 
       h3 {
@@ -62,7 +61,7 @@
 
       p {
         font-size: 0.8rem;
-        color: var(--text-secondary);
+        color: var(--text-secondary, rgba(255, 255, 255, 0.6));
         margin: 0;
       }
     }
@@ -78,20 +77,20 @@
       gap: 0.5rem;
       padding: 0.5rem 0.75rem;
       border-radius: 4px;
-      background-color: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
+      background-color: var(--bg-secondary, rgba(0, 0, 0, 0.5));
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+      color: var(--text-primary, #ffffff);
       cursor: pointer;
       transition: all 0.2s ease;
 
       &:hover {
-        background-color: var(--hover-color);
+        background-color: var(--hover-color, rgba(255, 255, 255, 0.1));
       }
 
       &.active {
-        background-color: var(--accent-color);
+        background-color: var(--accent-color, #9c27b0);
         color: white;
-        border-color: var(--accent-color);
+        border-color: var(--accent-color, #9c27b0);
       }
 
       .material-icons {
@@ -112,7 +111,7 @@
       height: 0;
 
       &:checked + .slider {
-        background-color: var(--accent-color);
+        background-color: var(--accent-color, #9c27b0);
       }
 
       &:checked + .slider:before {
@@ -127,7 +126,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: var(--bg-secondary);
+      background-color: var(--bg-secondary, rgba(0, 0, 0, 0.5));
       transition: 0.4s;
       border-radius: 34px;
 
@@ -147,7 +146,7 @@
 
   .danger-button {
     padding: 0.5rem 1rem;
-    background-color: #f44336;
+    background-color: var(--error-color, #f44336);
     color: white;
     border: none;
     border-radius: 4px;
@@ -160,7 +159,6 @@
   }
 }
 
-/* Media query para pantallas pequeñas */
 @media (max-width: 768px) {
   .settings-page {
     .page-header {

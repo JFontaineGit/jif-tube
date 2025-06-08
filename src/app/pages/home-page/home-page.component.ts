@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, Renderer2, RendererFactory2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { YoutubeService } from '../../services/youtube.service';
@@ -7,6 +7,7 @@ import { Song } from '../../models/song.model';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
 import { SearchButtonComponent } from '../../components/search-button/search-button.component';
 import { Router } from '@angular/router';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-home-page',
@@ -30,13 +31,18 @@ export class HomePageComponent implements OnInit, AfterViewInit {
 
   private hasInitializedVideosScroll = false;
   private hasInitializedTracksScroll = false;
+  private renderer: Renderer2;
 
   constructor(
     private youtubeService: YoutubeService,
     private playerService: PlayerService,
     private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private themeService: ThemeService,
+    rendererFactory: RendererFactory2
+  ) {
+    this.renderer = rendererFactory.createRenderer(null, null);
+  }
 
   ngOnInit(): void {
     this.searchSongs({ query: 'popular music', tab: 'all' });
@@ -75,6 +81,10 @@ export class HomePageComponent implements OnInit, AfterViewInit {
   onSongSelected(song: Song): void {
     this.selectedSong = song;
     this.playerService.setSelectedSong(song);
+
+    if (song.thumbnailUrl) {
+      this.themeService.updateThemeFromImage(song.thumbnailUrl, { artist: song.artist, type: song.type });
+    }
   }
 
   private initializeScrollListeners(): void {

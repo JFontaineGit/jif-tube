@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -10,6 +10,7 @@ import { Song } from '../../models/song.model';
 import { YoutubeService } from '../../services/youtube.service';
 import { LibraryService } from '../../services/library.service';
 import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-layout',
@@ -29,27 +30,30 @@ export class LayoutComponent implements OnInit {
     private youtubeService: YoutubeService,
     private libraryService: LibraryService,
     private router: Router,
-    private elRef: ElementRef
+    private elRef: ElementRef,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit() {
-    this.playerService.selectedSong$.subscribe((song: Song | null) => {
-      this.currentSong = song;
-      this.isPlayerVisible = !!song;
-      if (song && song.thumbnailUrl) {
-        this.themeService.updateThemeFromImage(song.thumbnailUrl);
-      }
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      this.playerService.selectedSong$.subscribe((song: Song | null) => {
+        this.currentSong = song;
+        this.isPlayerVisible = !!song;
+        if (song && song.thumbnailUrl) {
+          this.themeService.updateThemeFromImage(song.thumbnailUrl, song);
+        }
+      });
 
-    this.themeService.dominantColor$.subscribe(color => {
-      this.dominantColor = color;
-    });
+      this.themeService.dominantColor$.subscribe(color => {
+        this.dominantColor = color;
+      });
 
-    this.themeService.gradient$.subscribe(({ start, end }) => {
-      const root = this.elRef.nativeElement as HTMLElement;
-      root.style.setProperty('--gradient-start', start);
-      root.style.setProperty('--gradient-end', end);
-    });
+      this.themeService.gradient$.subscribe(({ start, end }) => {
+        const root = this.elRef.nativeElement.ownerDocument.documentElement;
+        root.style.setProperty('--gradient-start', start);
+        root.style.setProperty('--gradient-end', end);
+      });
+    }
   }
 
   closePlayer(): void {

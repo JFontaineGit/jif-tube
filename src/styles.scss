@@ -2,9 +2,10 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: #0f172a;
-  color: white;
+  background: var(--bg-primary, #0f172a);
+  color: var(--text-primary, #ffffff);
   font-family: 'Arial', sans-serif;
+  overflow-x: hidden;
 }
 
 :root {
@@ -13,9 +14,20 @@ html, body {
   --accent-color: #9c27b0;
   --bg-primary: #0f172a;
   --bg-secondary: rgba(0, 0, 0, 0.5);
+  --bg-card: #121212;
   --border-color: rgba(255, 255, 255, 0.1);
   --hover-color: rgba(255, 255, 255, 0.1);
   --active-color: rgba(255, 255, 255, 0.2);
+  --error-color: #f44336;
+  --gradient-start: rgb(240, 248, 255);
+  --gradient-end: rgb(200, 230, 255);
+  --control-color: #ffffff;
+  --control-hover-color: #ffffff;
+  --control-hover-bg: rgba(255, 255, 255, 0.1);
+  --control-focus-color: #1db954;
+  --progress-bg-color: #5e5e5e;
+  --progress-color: #1db954;
+  --progress-handle-color: #ffffff;
 }
 
 * {
@@ -25,4 +37,9 @@ html, body {
 a {
   color: inherit;
   text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+body {
+  transition: background 0.5s ease;
 }

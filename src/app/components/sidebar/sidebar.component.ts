@@ -1,6 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, Renderer2, RendererFactory2 } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ThemeService } from '../../services/theme.service'; 
 
 interface NavItem {
   label: string;
@@ -16,8 +17,8 @@ interface NavItem {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
-export class SidebarComponent {
-  @Input() accentColor: string = 'rgb(156, 39, 176)';
+export class SidebarComponent implements OnInit {
+  @Input() accentColor: string = 'rgb(156, 39, 176)'; // Valor por defecto
 
   navItems: NavItem[] = [
     { label: 'Home', icon: 'home', route: '/', active: true },
@@ -27,7 +28,23 @@ export class SidebarComponent {
 
   settingsItem: NavItem = { label: 'Settings', icon: 'settings', route: '/settings', active: false };
 
-  constructor(private router: Router) {
+  private renderer: Renderer2;
+
+  constructor(
+    private router: Router,
+    private themeService: ThemeService,
+    rendererFactory: RendererFactory2
+  ) {
+    this.renderer = rendererFactory.createRenderer(null, null);
+  }
+
+  ngOnInit() {
+    // Actualizar el accentColor con el dominantColor del ThemeService
+    this.themeService.dominantColor$.subscribe(color => {
+      this.accentColor = color;
+      this.renderer.setStyle(document.documentElement, '--accent-color', color); // Actualiza la variable CSS global
+    });
+
     this.updateActiveItem(this.router.url);
     this.router.events.subscribe((event: any) => {
       if (event.url) {

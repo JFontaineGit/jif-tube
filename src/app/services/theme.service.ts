@@ -1,20 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Renderer2, RendererFactory2, Inject, PLATFORM_ID } from '@angular/core';
 import { BehaviorSubject, map } from 'rxjs';
-import ColorThief from 'color-thief';
+import { FastAverageColor } from 'fast-average-color'; // Importación según documentación
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
-  private colorThief = new ColorThief();
-  private dominantColorSubject = new BehaviorSubject<string>('rgb(30, 41, 59)'); // Color por defecto
+  private dominantColorSubject = new BehaviorSubject<string>('rgb(240, 248, 255)'); // Alice blue por defecto
   dominantColor$ = this.dominantColorSubject.asObservable();
 
-  // Generar un gradiente dinámico basado en el color predominante
   gradient$ = this.dominantColor$.pipe(
     map(color => {
-      const rgb = this.parseRGB(color); // Extraer valores RGB
-      const darkerRgb = this.darkenColor(rgb, 0.5); // Oscurecer el color para el gradiente
+      const rgb = this.parseRGB(color);
+      const darkerRgb = this.darkenColor(rgb, 0.2);
       return {
         start: color,
         end: `rgb(${darkerRgb[0]}, ${darkerRgb[1]}, ${darkerRgb[2]})`,
@@ -22,60 +21,62 @@ export class ThemeService {
     })
   );
 
-  /**
-   * Extrae el color predominante de una imagen y actualiza el tema.
-   * @param imageUrl - URL de la imagen de la carátula.
-   */
-  updateThemeFromImage(imageUrl: string): void {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous'; // Necesario para imágenes de dominios externos
-    img.src = imageUrl;
+  private renderer: Renderer2;
 
-    img.onload = () => {
-      try {
-        const color = this.colorThief.getColor(img);
-        const rgbColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-        this.dominantColorSubject.next(rgbColor);
-      } catch (error) {
-        console.error('Error al extraer el color predominante:', error);
-        this.dominantColorSubject.next('rgb(30, 41, 59)'); // Fallback
-      }
-    };
-
-    img.onerror = () => {
-      console.error('Error al cargar la imagen para extraer el color');
-      this.dominantColorSubject.next('rgb(30, 41, 59)'); // Fallback
-    };
+  constructor(
+    rendererFactory: RendererFactory2,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.renderer = rendererFactory.createRenderer(null, null);
   }
 
-  /**
-   * Obtiene el color predominante actual.
-   * @returns El color predominante en formato RGB.
-   */
+  updateThemeFromImage(imageUrl: string, song?: { artist?: string; type?: string }): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const fac = new FastAverageColor(); // Instancia de la clase según documentación
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = imageUrl;
+
+      img.onload = () => {
+        fac.getColorAsync(img)
+          .then(color => {
+            this.dominantColorSubject.next(color.rgba); // Usamos rgba directamente
+          })
+          .catch(e => {
+            console.error('Error al extraer el color promedio:', e);
+            this.dominantColorSubject.next(this.getFallbackColor(song));
+          });
+      };
+
+      img.onerror = () => {
+        console.error('Error al cargar la imagen:', imageUrl);
+        this.dominantColorSubject.next(this.getFallbackColor(song));
+      };
+    }
+  }
+
   getDominantColor(): string {
     return this.dominantColorSubject.value;
   }
 
-  /**
-   * Parsea un string RGB a un array de números.
-   * @param rgb - Color en formato 'rgb(r, g, b)'.
-   * @returns Array con los valores [r, g, b].
-   */
   private parseRGB(rgb: string): number[] {
-    const match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-    if (match) {
-      return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])];
-    }
-    return [30, 41, 59]; // Fallback
+    const match = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/) || rgb.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+/);
+    return match ? [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])] : [240, 248, 255];
   }
 
-  /**
-   * Oscurece un color RGB en un porcentaje dado.
-   * @param rgb - Array con valores [r, g, b].
-   * @param factor - Factor de oscurecimiento (0 a 1).
-   * @returns Array con los valores oscurecidos [r, g, b].
-   */
   private darkenColor(rgb: number[], factor: number): number[] {
     return rgb.map(value => Math.max(0, Math.round(value * (1 - factor))));
+  }
+
+  private getFallbackColor(song?: { artist?: string; type?: string }): string {
+    if (!song) return 'rgb(240, 248, 255)';
+    const artistLower = song.artist?.toLowerCase();
+    const type = song.type;
+
+    if (artistLower?.includes('pop')) return 'rgb(245, 222, 179)';
+    if (artistLower?.includes('rock')) return 'rgb(211, 211, 211)';
+    if (type === 'official-video') return 'rgb(144, 238, 144)';
+    if (type === 'album-track') return 'rgb(221, 160, 221)';
+    return 'rgb(240, 248, 255)';
   }
 }

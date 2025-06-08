@@ -1,6 +1,7 @@
-import { Component, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ThemeService } from '../../services/theme.service'; // Asegúrate de la ruta correcta
 
 @Component({
   selector: 'app-search-button',
@@ -9,7 +10,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './search-button.component.html',
   styleUrls: ['./search-button.component.scss'],
 })
-export class SearchButtonComponent implements AfterViewInit {
+export class SearchButtonComponent implements OnInit, AfterViewInit {
   @Output() search = new EventEmitter<{ query: string; tab: string }>();
   @ViewChild('searchInput') searchInput!: ElementRef;
 
@@ -23,6 +24,25 @@ export class SearchButtonComponent implements AfterViewInit {
     { label: 'Álbumes', value: 'albums' },
     { label: 'Biblioteca', value: 'library' },
   ];
+
+  gradientStart: string = 'rgb(240, 248, 255)'; // Valor por defecto
+  gradientEnd: string = 'rgb(200, 230, 255)';   // Valor por defecto
+  dominantColor: string = 'rgb(240, 248, 255)'; // Valor por defecto
+
+  constructor(private themeService: ThemeService) {}
+
+  ngOnInit(): void {
+    // Suscribirse al gradiente dinámico
+    this.themeService.gradient$.subscribe(gradient => {
+      this.gradientStart = gradient.start;
+      this.gradientEnd = gradient.end;
+    });
+
+    // Suscribirse al color dominante
+    this.themeService.dominantColor$.subscribe(color => {
+      this.dominantColor = color;
+    });
+  }
 
   ngAfterViewInit(): void {
     this.searchInput.nativeElement.focus();
@@ -50,5 +70,9 @@ export class SearchButtonComponent implements AfterViewInit {
   clearSearch(): void {
     this.searchQuery = '';
     this.searchInput.nativeElement.focus();
+  }
+
+  get gradientStyle(): string {
+    return `linear-gradient(to right, ${this.gradientStart}, ${this.gradientEnd})`;
   }
 }

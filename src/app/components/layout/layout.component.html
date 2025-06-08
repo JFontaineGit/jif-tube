@@ -5,9 +5,8 @@
     <main>
       <router-outlet></router-outlet>
     </main>
-    <app-player
-      *ngIf="isPlayerVisible"
-      (close)="closePlayer()"
-    ></app-player>
+    <div class="player-container" *ngIf="isPlayerVisible">
+      <app-player (close)="closePlayer()"></app-player>
+    </div>
   </div>
 </div>
