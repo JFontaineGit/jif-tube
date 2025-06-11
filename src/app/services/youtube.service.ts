@@ -79,7 +79,8 @@ export class YoutubeService {
               channelTitle.includes('music channel') ||
               channelTitle.includes('shorts') ||
               channelTitle.includes('tiktok') ||
-              channelTitle.includes('reels')
+              channelTitle.includes('reels') ||
+              channelTitle.includes('topic')
             );
           })
           .map(item => ({
@@ -125,7 +126,7 @@ export class YoutubeService {
                 ...song,
                 album: this.extractAlbumFromDetails(details),
                 type: songType,
-                duration: durationInSeconds, // Añadido para compatibilidad con AudioService
+                duration: durationInSeconds, 
               };
             }),
             catchError(error => {

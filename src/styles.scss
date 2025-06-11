@@ -9,26 +9,27 @@ html, body {
 }
 
 :root {
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-primary: #d1d1d1; /* gris claro para buena legibilidad */
+  --text-secondary: rgba(209, 209, 209, 0.6); /* equivalente más oscuro */
   --accent-color: #9c27b0;
   --bg-primary: #0f172a;
-  --bg-secondary: rgba(0, 0, 0, 0.5);
-  --bg-card: #121212;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --hover-color: rgba(255, 255, 255, 0.1);
-  --active-color: rgba(255, 255, 255, 0.2);
+  --bg-secondary: rgba(0, 0, 0, 0.7);
+  --bg-card: #1e2124;
+  --border-color: rgba(66, 69, 73, 0.4);
+  --hover-color: rgba(66, 69, 73, 0.4);
+  --active-color: rgba(66, 69, 73, 0.6);
   --error-color: #f44336;
-  --gradient-start: rgb(240, 248, 255);
-  --gradient-end: rgb(200, 230, 255);
-  --control-color: #ffffff;
-  --control-hover-color: #ffffff;
-  --control-hover-bg: rgba(255, 255, 255, 0.1);
+  --gradient-start: #282b30;
+  --gradient-end: #1e2124;
+  --control-color: #272b30;
+  --control-hover-color: #272b32; /* si querés, también puedo oscurecer este */
+  --control-hover-bg: rgba(66, 69, 73, 0.3);
   --control-focus-color: #1db954;
-  --progress-bg-color: #5e5e5e;
+  --progress-bg-color: #36393e;
   --progress-color: #1db954;
-  --progress-handle-color: #ffffff;
+  --progress-handle-color: #1e2123;
 }
+
 
 * {
   box-sizing: border-box;

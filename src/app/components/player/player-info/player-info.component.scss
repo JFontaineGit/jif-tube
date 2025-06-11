@@ -1,4 +1,5 @@
 @use '../_variables.scss' as *;
+@use 'sass:color';
 
 .track-info {
   display: flex;
@@ -22,7 +23,7 @@
   margin-right: $spacing-md;
   border-radius: $border-radius-sm;
   overflow: hidden;
-  background-color: darken($player-bg-color, 10%);
+  background-color: color.adjust($player-bg-color, $lightness: 10%);
 
   @media (min-width: $breakpoint-md) {
     width: 80px;

@@ -7,7 +7,7 @@ import { isPlatformBrowser } from '@angular/common';
   providedIn: 'root',
 })
 export class ThemeService {
-  private dominantColorSubject = new BehaviorSubject<string>('rgb(240, 248, 255)'); // Alice blue por defecto
+  private dominantColorSubject = new BehaviorSubject<string>('rgb(0,0,1)'); // Alice blue por defecto
   dominantColor$ = this.dominantColorSubject.asObservable();
 
   gradient$ = this.dominantColor$.pipe(
