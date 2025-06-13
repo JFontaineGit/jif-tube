@@ -1,4 +1,6 @@
 import { Component, Input, OnInit, Renderer2, RendererFactory2 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, Inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service'; 
@@ -19,6 +21,7 @@ interface NavItem {
 })
 export class SidebarComponent implements OnInit {
   @Input() accentColor: string = 'rgb(156, 39, 176)'; // Valor por defecto
+  
 
   navItems: NavItem[] = [
     { label: 'Home', icon: 'home', route: '/', active: true },
@@ -29,22 +32,25 @@ export class SidebarComponent implements OnInit {
   settingsItem: NavItem = { label: 'Settings', icon: 'settings', route: '/settings', active: false };
 
   private renderer: Renderer2;
+  private isBrowser: boolean;
 
   constructor(
     private router: Router,
     private themeService: ThemeService,
-    rendererFactory: RendererFactory2
+    rendererFactory: RendererFactory2,
+    @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
+    this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
   ngOnInit() {
-    // Actualizar el accentColor con el dominantColor del ThemeService
     this.themeService.dominantColor$.subscribe(color => {
       this.accentColor = color;
-      this.renderer.setStyle(document.documentElement, '--accent-color', color); // Actualiza la variable CSS global
+      if (this.isBrowser) {
+        this.renderer.setStyle(document.documentElement, '--accent-color', color);
+      }
     });
-
     this.updateActiveItem(this.router.url);
     this.router.events.subscribe((event: any) => {
       if (event.url) {

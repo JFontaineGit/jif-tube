@@ -2,7 +2,7 @@
   <input 
     type="text" 
     [(ngModel)]="searchQuery" 
-    placeholder="Buscar canciones, álbumes, artistas..."
+    placeholder="Buscar música, soundtracks, covers..."
     (focus)="onFocus()"
     (blur)="onBlur()"
     (keyup.enter)="searchSongs()"
@@ -15,8 +15,10 @@
     <button 
       *ngFor="let tab of searchTabs" 
       [class.active]="activeTab === tab.value"
+      [class.disabled]="!tab.enabled"
       (click)="setActiveTab(tab.value)"
-      [style.background]="activeTab === tab.value ? dominantColor : 'transparent'"
+      [style.background]="activeTab === tab.value && tab.enabled ? dominantColor : 'transparent'"
+      [attr.title]="!tab.enabled ? 'No disponible por ahora' : ''"
     >
       {{ tab.label }}
     </button>
@@ -24,4 +26,7 @@
   <button class="clear-button" (click)="clearSearch()" *ngIf="searchQuery">
     <span class="material-icons">close</span>
   </button>
+  <div class="no-results" *ngIf="noResults && isFocused">
+    No se encontraron resultados. Prueba con otro término, como "HOYO-MiX Fontaine".
+  </div>
 </div>

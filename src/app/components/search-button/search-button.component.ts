@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ThemeService } from '../../services/theme.service'; // Asegúrate de la ruta correcta
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-search-button',
@@ -17,28 +17,26 @@ export class SearchButtonComponent implements OnInit, AfterViewInit {
   searchQuery = '';
   isFocused = false;
   activeTab = 'all';
+  noResults = false; 
   searchTabs = [
-    { label: 'Todo', value: 'all' },
-    { label: 'Canciones', value: 'songs' },
-    { label: 'Videos', value: 'videos' },
-    { label: 'Álbumes', value: 'albums' },
-    { label: 'Biblioteca', value: 'library' },
+    { label: 'Todo', value: 'all', enabled: true },
+    { label: 'Canciones', value: 'songs', enabled: true },
+    { label: 'Videos', value: 'videos', enabled: true },
+    { label: 'Álbumes', value: 'albums', enabled: true },
+    { label: 'Biblioteca', value: 'library', enabled: false },
   ];
 
-  gradientStart: string = 'rgb(240, 248, 255)'; // Valor por defecto
-  gradientEnd: string = 'rgb(200, 230, 255)';   // Valor por defecto
-  dominantColor: string = 'rgb(240, 248, 255)'; // Valor por defecto
+  gradientStart: string = 'rgb(240, 248, 255)';
+  gradientEnd: string = 'rgb(200, 230, 255)';
+  dominantColor: string = 'rgb(240, 248, 255)';
 
   constructor(private themeService: ThemeService) {}
 
   ngOnInit(): void {
-    // Suscribirse al gradiente dinámico
     this.themeService.gradient$.subscribe(gradient => {
       this.gradientStart = gradient.start;
       this.gradientEnd = gradient.end;
     });
-
-    // Suscribirse al color dominante
     this.themeService.dominantColor$.subscribe(color => {
       this.dominantColor = color;
     });
@@ -50,26 +48,35 @@ export class SearchButtonComponent implements OnInit, AfterViewInit {
 
   onFocus(): void {
     this.isFocused = true;
+    this.noResults = false; 
   }
 
   onBlur(): void {
-    setTimeout(() => this.isFocused = false, 200); // Evita cerrar al hacer click en tabs
+    setTimeout(() => this.isFocused = false, 200);
   }
 
   setActiveTab(tab: string): void {
-    this.activeTab = tab;
+    const selectedTab = this.searchTabs.find(t => t.value === tab);
+    if (selectedTab?.enabled) {
+      this.activeTab = tab;
+    }
   }
 
   searchSongs(): void {
     if (this.searchQuery.trim()) {
       this.search.emit({ query: this.searchQuery, tab: this.activeTab });
-      this.searchQuery = '';
+      this.noResults = false; 
     }
   }
 
   clearSearch(): void {
     this.searchQuery = '';
+    this.noResults = false;
     this.searchInput.nativeElement.focus();
+  }
+  
+  setNoResults(): void {
+    this.noResults = true;
   }
 
   get gradientStyle(): string {

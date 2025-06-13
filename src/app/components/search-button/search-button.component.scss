@@ -9,7 +9,7 @@ $border-color: rgba(255, 255, 255, 0.1);
   left: 260px;
   right: 0;
   padding: 0.5rem 1rem;
-  background: transparent; // El gradiente se manejará vía [style.background]
+  background: transparent;
   border-bottom: 1px solid $border-color;
   display: flex;
   align-items: center;
@@ -100,10 +100,27 @@ $border-color: rgba(255, 255, 255, 0.1);
         font-weight: 500;
       }
 
-      &:hover {
+      &:hover:not(.disabled) {
         background: rgba(255, 255, 255, 0.15);
       }
+
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
+  }
+
+  .no-results {
+    position: absolute;
+    top: calc(100% + 2.5rem);
+    left: 1rem;
+    background: $bg-secondary;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    box-shadow: $shadow;
   }
 }
 
@@ -114,6 +131,11 @@ $border-color: rgba(255, 255, 255, 0.1);
 
     input {
       font-size: 0.9rem;
+    }
+
+    .no-results {
+      font-size: 0.8rem;
+      left: 0.5rem;
     }
   }
 }
