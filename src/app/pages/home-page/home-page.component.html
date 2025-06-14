@@ -1,6 +1,5 @@
 <div class="home-container">
   <div class="page-header">
-    <h1>Home</h1>
     <app-search-button (search)="onSearch($event)"></app-search-button>
   </div>
 
@@ -29,7 +28,7 @@
   <!-- Sección: Álbumes Oficiales -->
   <section class="songs-section" *ngIf="albumTracks.length > 0">
     <div class="section-header">
-      <h2 class="section-title">Álbumes Oficiales</h2>
+      <h2 class="section-title">Videos Oficiales</h2>
       <div class="navigation-buttons">
         <button class="nav-button prev-button" (click)="scrollLeftTracks()" [disabled]="isAtStartTracks">
           <span class="material-icons">chevron_left</span>
