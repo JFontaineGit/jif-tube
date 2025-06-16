@@ -1,7 +1,7 @@
 <div class="app-container">
+  <app-navbar (search)="onSearch($event)"></app-navbar>
   <app-sidebar [accentColor]="dominantColor"></app-sidebar>
   <div class="main-content">
-    <app-search-button (search)="onSearch($event)"></app-search-button>
     <main>
       <router-outlet></router-outlet>
     </main>

@@ -9,7 +9,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { SearchButtonComponent } from '../search-button/search-button.component';
+import { NavbarComponent } from '../navbar/navbar.component';
 import { PlayerComponent } from '../player/player/player.component';
 import { PlayerService } from '../../services/player.service';
 import { ThemeService } from '../../services/theme.service';
@@ -22,7 +22,7 @@ import { Subject, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, SearchButtonComponent, PlayerComponent],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, NavbarComponent, PlayerComponent],
   templateUrl: './layout.component.html',
   styleUrls: ['./layout.component.scss'],
 })

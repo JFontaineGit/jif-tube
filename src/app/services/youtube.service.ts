@@ -40,7 +40,7 @@ export class YoutubeService {
 
   /**
    * Busca videos musicales en YouTube basándose en una consulta.
-   * @param query - Término de búsqueda (ej. "Fontaine" o "La vaguelette").
+   * @param query - Término de búsqueda 
    * @returns Observable con un arreglo de objetos Song ordenados por relevancia.
    */
   searchVideos(query: string): Observable<Song[]> {
@@ -151,12 +151,9 @@ export class YoutubeService {
     const description = item.snippet.description.toLowerCase();
     const tags = (item.snippet.tags || []).map(tag => tag.toLowerCase());
 
-    // Filtrar contenido no musical
     if (this.forbiddenTerms.some(term => title.includes(term) || description.includes(term) || tags.includes(term))) {
       return null;
     }
-
-    // Puntaje de relevancia basado solo en vistas
     const relevanceScore = parseInt(item.statistics.viewCount) / 1000000;
 
     return {
@@ -166,7 +163,7 @@ export class YoutubeService {
       artist: item.snippet.channelTitle,
       thumbnailUrl: video.thumbnailUrl,
       album: this.extractAlbumFromDetails(details),
-      type: 'album-track', // Simplificado, sin distinguir official-video
+      type: 'album-track',
       duration,
       relevanceScore,
     };
@@ -176,7 +173,7 @@ export class YoutubeService {
    * Parsea la duración en formato ISO (PT#M#S) a segundos.
    * @param duration - Duración en formato ISO.
    * @returns Duración en segundos.
-   */
+  */
   private parseDuration(duration: string): number {
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return 0;

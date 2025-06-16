@@ -1,0 +1,43 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <div class="app-logo">
+      <h1>JifTube</h1>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container" [class.focused]="isFocused">
+    <div class="search-input-wrapper" [style.background]="gradientStyle">
+      <input
+        #searchInput
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Buscar música, soundtracks, covers..."
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (keyup.enter)="searchSongs()"
+        class="search-input"
+      />
+
+      <button class="search-button" (click)="searchSongs()" [disabled]="!searchQuery.trim()">
+        <span class="material-icons">search</span>
+      </button>
+
+      <button *ngIf="searchQuery" class="clear-button" (click)="clearSearch()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- No Results -->
+    <div class="no-results" *ngIf="noResults && isFocused">
+      No se encontraron resultados. Prueba con otro término de busqueda.
+    </div>
+  </div>
+
+  <!-- Profile Icon -->
+  <div class="navbar-profile">
+    <button class="profile-button">
+      <span class="material-icons">person</span>
+    </button>
+  </div>
+</nav>

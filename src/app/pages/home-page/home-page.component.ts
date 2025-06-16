@@ -5,14 +5,14 @@ import { YoutubeService } from '../../services/youtube.service';
 import { PlayerService } from '../../services/player.service';
 import { Song } from '../../models/song.model';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
-import { SearchButtonComponent } from '../../components/search-button/search-button.component';
+
 import { Router } from '@angular/router';
 import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, SongCardComponent, SearchButtonComponent],
+  imports: [CommonModule, FormsModule, SongCardComponent],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.scss'],
 })

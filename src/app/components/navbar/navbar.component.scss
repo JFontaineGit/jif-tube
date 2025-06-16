@@ -1,0 +1,219 @@
+$navbar-height: 64px;
+$sidebar-width: 64px; // Ajustado para el nuevo Sidebar
+$bg-primary: rgba(0, 0, 0, 0.8);
+$bg-secondary: rgba(0, 0, 0, 0.8);
+$border-color: rgba(255, 255, 255, 0.1);
+$hover-color: rgba(255, 255, 255, 0.1);
+$accent-color: var(--accent-color, #9c27b0);
+$shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: $navbar-height;
+  background: $bg-primary;
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid $border-color;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; // Título, búsqueda, usuario
+  padding: 0 1.5rem;
+  z-index: 1001;
+  transition: all 0.3s ease;
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    padding-right: 1rem;
+
+    .app-logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(90deg, $accent-color, #3f51b5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+
+  .search-container {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 2rem;
+    position: relative;
+
+    &.focused {
+      .search-input-wrapper {
+        box-shadow: $shadow;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid $border-color;
+      border-radius: 24px;
+      padding: 0 1rem;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: white;
+      font-size: 1rem;
+      padding: 0.75rem 0;
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    .search-button {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover:not(:disabled) {
+        color: white;
+        background: $hover-color;
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .material-icons {
+        font-size: 1.25rem;
+      }
+    }
+
+    .clear-button {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 0.5rem;
+
+      &:hover {
+        color: white;
+        background: $hover-color;
+      }
+
+      .material-icons {
+        font-size: 1.125rem;
+      }
+    }
+
+    .no-results {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: $bg-secondary;
+      backdrop-filter: blur(20px);
+      border: 1px solid $border-color;
+      border-radius: 12px;
+      padding: 1rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      box-shadow: $shadow;
+      z-index: 1000;
+    }
+  }
+
+  .navbar-profile {
+    .profile-button {
+      background: $hover-color;
+      border: 1px solid $border-color;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: rgba(255, 255, 255, 0.8);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .material-icons {
+        font-size: 1.5rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 1rem;
+
+    .navbar-brand {
+      padding-right: 0.5rem;
+
+      .app-logo h1 {
+        font-size: 1.25rem;
+      }
+    }
+
+    .search-container {
+      margin: 0 1rem;
+      background-color: transparent;
+
+      .search-input {
+        font-size: 0.9rem;
+        background-color: transparent;
+      }
+
+      .search-tabs {
+        padding: 0.5rem;
+
+        .tab-button {
+          padding: 0.4rem 0.8rem;
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    .navbar-profile .profile-button {
+      width: 36px;
+      height: 36px;
+
+      .material-icons {
+        font-size: 1.25rem;
+      }
+    }
+  }
+}
