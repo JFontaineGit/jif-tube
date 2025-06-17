@@ -1,10 +1,11 @@
 // src/app/pages/history-page/history-page.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { PlayerService } from '../../services/player.service';
 import { Song } from '../../models/song.model';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-history-page',
@@ -18,22 +19,23 @@ export class HistoryPageComponent implements OnInit, OnDestroy {
   selectedSong: Song | null = null;
   private songSubscription: Subscription | null = null;
 
-  constructor(private playerService: PlayerService) {}
+  constructor(
+    private playerService: PlayerService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+  
 
   ngOnInit(): void {
-    // Cargar historial desde localStorage
-    this.loadHistory();
-
-    // Suscribirse a cambios en la canción seleccionada para añadirla al historial
-    this.songSubscription = this.playerService.selectedSong$.subscribe((song) => {
-      if (song) {
-        this.addToHistory(song);
-      }
-    });
+    if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined' && window.localStorage)
+        this.loadHistory();
+        this.songSubscription = this.playerService.selectedSong$.subscribe((song) => {
+          if (song) {
+          this.addToHistory(song);
+        }
+      });
   }
 
   ngOnDestroy(): void {
-    // Desuscribirse para evitar memory leaks
     if (this.songSubscription) {
       this.songSubscription.unsubscribe();
     }
@@ -41,8 +43,10 @@ export class HistoryPageComponent implements OnInit, OnDestroy {
 
   loadHistory(): void {
     try {
-      const savedSongs = localStorage.getItem('recentSongs');
-      this.recentSongs = savedSongs ? JSON.parse(savedSongs) : [];
+      if (isPlatformBrowser(this.platformId) && typeof window !== 'undefined' && window.localStorage) {
+        const savedSongs = localStorage.getItem('recentSongs');
+        this.recentSongs = savedSongs ? JSON.parse(savedSongs) : [];
+      }
     } catch (error) {
       console.error('Error loading history from localStorage:', error);
       this.recentSongs = [];
@@ -52,8 +56,8 @@ export class HistoryPageComponent implements OnInit, OnDestroy {
   addToHistory(song: Song): void {
     // Evitar duplicados
     this.recentSongs = this.recentSongs.filter((s) => s.id !== song.id);
-    this.recentSongs.unshift(song); // Añadir al inicio
-    this.recentSongs = this.recentSongs.slice(0, 50); // Limitar a 50 canciones
+    this.recentSongs.unshift(song); 
+    this.recentSongs = this.recentSongs.slice(0, 50);
     try {
       localStorage.setItem('recentSongs', JSON.stringify(this.recentSongs));
     } catch (error) {
@@ -68,6 +72,6 @@ export class HistoryPageComponent implements OnInit, OnDestroy {
 
   clearHistory(): void {
     this.recentSongs = [];
-    this.playerService.clearHistory(); // Sincronizar con PlayerService
+    this.playerService.clearHistory(); 
   }
 }

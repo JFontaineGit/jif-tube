@@ -7,7 +7,7 @@ import { isPlatformBrowser } from '@angular/common';
   providedIn: 'root',
 })
 export class ThemeService {
-  private dominantColorSubject = new BehaviorSubject<string>('rgb(15, 20, 25)');
+  private dominantColorSubject = new BehaviorSubject<string>('#1a4d4d');
   dominantColor$ = this.dominantColorSubject.asObservable();
 
   gradient$ = this.dominantColor$.pipe(
@@ -28,7 +28,6 @@ export class ThemeService {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
-    // Establecer el tema YouTube Music por defecto
     this.setYouTubeMusicTheme();
   }
 
@@ -36,7 +35,6 @@ export class ThemeService {
     if (isPlatformBrowser(this.platformId)) {
       this.renderer.setStyle(document.documentElement, '--gradient-start', '#0f1419');
       this.renderer.setStyle(document.documentElement, '--gradient-end', '#1a4d4d');
-      this.dominantColorSubject.next('rgb(15, 20, 25)');
     }
   }
 
@@ -59,7 +57,7 @@ export class ThemeService {
           })
           .catch(e => {
             console.error('Error al extraer el color promedio:', e);
-            this.setYouTubeMusicTheme(); // Volver al tema por defecto
+            this.setYouTubeMusicTheme(); 
           });
       };
 
@@ -81,9 +79,5 @@ export class ThemeService {
 
   private darkenColor(rgb: number[], factor: number): number[] {
     return rgb.map(value => Math.max(0, Math.round(value * (1 - factor))));
-  }
-
-  private getFallbackColor(song?: { artist?: string; type?: string }): string {
-    return 'rgb(15, 20, 25)';
   }
 }

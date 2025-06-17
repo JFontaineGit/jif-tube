@@ -5,8 +5,7 @@ $gradient-end: #2196f3;
 
 .library-page {
   padding: 2rem 1.5rem;
-  background: linear-gradient(to bottom, var(--gradient-start, #{$gradient-start}), var(--gradient-end, #{$gradient-end}));
-  min-height: calc(100vh - 4rem); // Ajuste para dejar espacio al player
+  min-height: calc(100vh - 4rem);
 
   .page-header {
     margin-bottom: 2rem;

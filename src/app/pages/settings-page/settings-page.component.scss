@@ -1,4 +1,6 @@
 .settings-page {
+  padding: 2rem 1.5rem;
+  
   .page-header {
     margin-bottom: 2rem;
 
@@ -6,7 +8,7 @@
       font-size: 2rem;
       font-weight: 700;
       margin: 0 0 0.5rem;
-      background: linear-gradient(90deg, var(--accent-color, #607d8b), var(--accent-color, #78909c));
+      background: linear-gradient(90deg, var(--accent-color, #f5fcff), var(--accent-color, #f4faff));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
