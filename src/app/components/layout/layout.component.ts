@@ -1,3 +1,4 @@
+// layout.component.ts
 import {
   Component,
   OnInit,
@@ -57,7 +58,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(color => {
         this.dominantColor = color;
-        // Ya no seteamos nada directamente acá
       });
   }
 
@@ -75,6 +75,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
     if (!query.trim()) return;
 
     const navigateToSearch = (songs: Song[]) => {
+      console.log('🎯 Navegando a /search con:', { query, tab, songs }); // DEBUG
       this.router.navigate(['/search'], { state: { query, tab, songs } });
     };
 

@@ -1,8 +1,10 @@
+// search-page.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Song } from '../../models/song.model';
 import { PlayerService } from '../../services/player.service';
 import { LibraryService } from '../../services/library.service';
-import { Router } from '@angular/router';
+import { YoutubeService } from '../../services/youtube.service';
+import { Router, ActivatedRoute } from '@angular/router';
 import { map, Observable, of } from 'rxjs';
 import { SongCardComponent } from '../../components/song-card/song-card.component'; 
 
@@ -31,19 +33,39 @@ export class SearchPageComponent implements OnInit {
   constructor(
     private playerService: PlayerService,
     private libraryService: LibraryService,
-    private router: Router
+    private youtubeService: YoutubeService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.savedSongs$ = this.libraryService.getSavedSongs();
-    const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state) {
-      const state = navigation.extras.state as RouterState;
+    // Recuperar state de la navegación
+    const state = this.router.getCurrentNavigation()?.extras.state as RouterState;
+    if (state) {
       this.query = state.query || '';
       this.tab = state.tab || 'all';
       this.songs = state.songs || [];
       this.setBestResult();
       this.filterSongs();
+    } else {
+      // Manejar recarga: recuperar query y tab de parámetros de URL
+      this.route.queryParams.subscribe(params => {
+        this.query = params['q'] || '';
+        this.tab = params['tab'] || 'all';
+        if (this.query.trim()) {
+          const navigateToSearch = (songs: Song[]) => {
+            this.songs = songs;
+            this.setBestResult();
+            this.filterSongs();
+          };
+          if (this.tab === 'library') {
+            this.libraryService.searchInLibrary(this.query).subscribe(navigateToSearch);
+          } else {
+            this.youtubeService.searchVideos(this.query).subscribe(navigateToSearch);
+          }
+        }
+      });
     }
   }
 

@@ -1,17 +1,10 @@
+// navbar.component.ts
 import { Component, Output, EventEmitter, ViewChild, ElementRef, OnInit, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { YoutubeService } from '../../services/youtube.service';
 import { ThemeService } from '../../services/theme.service';
-import { Song } from '../../models/song.model';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
-
-interface SearchTab {
-  label: string;
-  value: string;
-  enabled: boolean;
-}
+import { BehaviorSubject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -21,7 +14,6 @@ interface SearchTab {
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent implements OnInit, AfterViewInit {
-  private youtubeService = inject(YoutubeService);
   private themeService = inject(ThemeService);
 
   @Output() search = new EventEmitter<{ query: string; tab: string }>();
@@ -41,21 +33,10 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     this.searchSubject
       .pipe(
         debounceTime(300),
-        distinctUntilChanged(),
-        switchMap(query => {
-          if (!query.trim()) {
-            this.noResults = false;
-            return [];
-          }
-          return this.youtubeService.searchVideos(query);
-        })
+        distinctUntilChanged()
       )
-      .subscribe({
-        next: (results: Song[]) => {
-          this.noResults = results.length === 0;
-          this.search.emit({ query: this.searchQuery, tab: this.activeTab });
-        },
-        error: err => console.error('Search error:', err),
+      .subscribe(() => {
+        this.search.emit({ query: this.searchQuery, tab: this.activeTab });
       });
   }
 
