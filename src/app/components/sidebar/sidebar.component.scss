@@ -1,6 +1,6 @@
 $navbar-height: 64px;
-$sidebar-width: 80px; // Más estrecho para íconos pequeños
-$bg-secondary: rgba(0, 0, 0, 0.8);
+$sidebar-width: 80px; 
+$bg-secondary: transparent;
 $border-color: rgba(255, 255, 255, 0.1);
 $hover-color: rgba(255, 255, 255, 0.1);
 $accent-color: var(--accent-color, #9c27b0);
@@ -13,7 +13,6 @@ $accent-color: var(--accent-color, #9c27b0);
   color: white;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid $border-color;
   position: fixed;
   top: $navbar-height;
   left: 0;
@@ -38,7 +37,7 @@ $accent-color: var(--accent-color, #9c27b0);
 
     .nav-item {
       display: flex;
-      flex-direction: column; // Ícono arriba, etiqueta debajo
+      flex-direction: column; 
       align-items: center;
       padding: 0.75rem;
       cursor: pointer;
@@ -65,12 +64,12 @@ $accent-color: var(--accent-color, #9c27b0);
       }
 
       .nav-icon {
-        font-size: 1.25rem; // Íconos pequeños
+        font-size: 1.25rem;
         margin-bottom: 0.25rem;
       }
 
       .nav-label {
-        font-size: 0.75rem; // Etiquetas pequeñas
+        font-size: 0.75rem; 
         font-weight: 500;
         text-align: center;
         color: rgba(255, 255, 255, 0.8);
@@ -79,7 +78,6 @@ $accent-color: var(--accent-color, #9c27b0);
   }
 
   .settings-menu {
-    border-top: 1px solid $border-color;
     padding-top: 1rem;
 
     .nav-item {

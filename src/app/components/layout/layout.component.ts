@@ -4,7 +4,6 @@ import {
   Inject,
   PLATFORM_ID,
   OnDestroy,
-  ElementRef
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
@@ -38,7 +37,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
     private youtubeService: YoutubeService,
     private libraryService: LibraryService,
     private router: Router,
-    private elRef: ElementRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -59,17 +57,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(color => {
         this.dominantColor = color;
-        const root = this.elRef.nativeElement.ownerDocument.documentElement;
-        root.style.setProperty('--dominant-color', color);
-        root.style.setProperty('--accent-color', color);
-      });
-
-    this.themeService.gradient$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(({ start, end }) => {
-        const root = this.elRef.nativeElement.ownerDocument.documentElement;
-        root.style.setProperty('--gradient-start', start);
-        root.style.setProperty('--gradient-end', end);
+        // Ya no seteamos nada directamente acá
       });
   }
 

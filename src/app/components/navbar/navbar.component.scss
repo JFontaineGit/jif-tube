@@ -1,6 +1,6 @@
 $navbar-height: 64px;
-$sidebar-width: 64px; // Ajustado para el nuevo Sidebar
-$bg-primary: rgba(0, 0, 0, 0.8);
+$sidebar-width: 64px; 
+$bg-primary: transparent;
 $bg-secondary: rgba(0, 0, 0, 0.8);
 $border-color: rgba(255, 255, 255, 0.1);
 $hover-color: rgba(255, 255, 255, 0.1);
@@ -14,11 +14,9 @@ $shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   right: 0;
   height: $navbar-height;
   background: $bg-primary;
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid $border-color;
   display: flex;
   align-items: center;
-  justify-content: space-between; // Título, búsqueda, usuario
+  justify-content: space-between; 
   padding: 0 1.5rem;
   z-index: 1001;
   transition: all 0.3s ease;
@@ -57,7 +55,7 @@ $shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       align-items: center;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid $border-color;
-      border-radius: 24px;
+      border-radius: 12px;
       padding: 0 1rem;
       transition: all 0.3s ease;
 
@@ -104,7 +102,7 @@ $shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       }
 
       .material-icons {
-        font-size: 1.25rem;
+        font-size: 1.50rem;
       }
     }
 

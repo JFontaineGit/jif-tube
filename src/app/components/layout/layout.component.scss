@@ -5,21 +5,40 @@ $sidebar-width: 64px;
 $sidebar-width-small: 48px;
 
 .app-container {
+  position: relative;
   display: flex;
-  flex-direction: row; 
+  flex-direction: row;
   height: 100vh;
   width: 100vw;
-  background: linear-gradient(to bottom, var(--gradient-start, #0f1419), var(--gradient-end, #1a4d4d));
-  transition: background 0.5s ease;
+
+  background: radial-gradient(
+    circle at top right,
+    #3f0d84,    // violeta oscuro
+    #1b1d38 20%, 
+    #0d2b3f 50%,
+    #05352e 80%
+  );
+  transition: background 0.8s ease-in-out;
   overflow: hidden;
 
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .main-content {
+    position: relative;
+    z-index: 1;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    margin-left: $sidebar-width; 
+    margin-left: $sidebar-width;
     padding: $spacing-md;
-    padding-top: $navbar-height; 
+    padding-top: $navbar-height;
     overflow-y: auto;
     min-width: 0;
     transition: margin-left 0.3s ease;
@@ -33,7 +52,7 @@ $sidebar-width-small: 48px;
   .player-container {
     position: fixed;
     bottom: 0;
-    left: $sidebar-width; 
+    left: $sidebar-width;
     width: calc(100vw - $sidebar-width);
     background: var(--bg-card, rgba(15, 20, 25, 0.9));
     padding: $spacing-sm;
