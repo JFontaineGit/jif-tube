@@ -4,6 +4,7 @@ import { LibraryPageComponent } from "./pages/library-page/library-page.componen
 import { HistoryPageComponent } from "./pages/history-page/history-page.component"
 import { SettingsPageComponent } from "./pages/settings-page/settings-page.component"
 import { LayoutComponent } from "./components/layout/layout.component"
+import { SearchPageComponent } from "./pages/search-page/search-page.component"
 
 export const routes: Routes = [
   {
@@ -14,6 +15,7 @@ export const routes: Routes = [
       { path: "library", component: LibraryPageComponent },
       { path: "history", component: HistoryPageComponent },
       { path: "settings", component: SettingsPageComponent },
+      { path: 'search', component: SearchPageComponent },
       { path: "**", redirectTo: "" },
     ],
   },

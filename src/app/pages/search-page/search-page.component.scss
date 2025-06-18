@@ -30,6 +30,20 @@ $accent-color: #9c27b0;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
   }
+
+  .save-button {
+    background-color: $accent-color;
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:disabled {
+      background-color: lighten($accent-color, 20%);
+      cursor: not-allowed;
+    }
+  }
 }
 
 @media (max-width: 768px) {

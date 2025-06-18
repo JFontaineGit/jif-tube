@@ -22,10 +22,10 @@ export class SettingsPageComponent implements OnInit {
   themeOptions: ThemeOption[] = [
     { label: 'Dark', value: 'dark', icon: 'dark_mode' },
     { label: 'Light', value: 'light', icon: 'light_mode' },
-    { label: 'Dynamic', value: 'dynamic', icon: 'color_lens' }, // Nueva opción para tema dinámico
+    { label: 'Dynamic', value: 'dynamic', icon: 'color_lens' }, 
   ];
 
-  selectedTheme = 'dynamic'; // Por defecto, usa el tema dinámico
+  selectedTheme = 'dynamic'; 
   autoplay = true;
 
   constructor(

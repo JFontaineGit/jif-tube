@@ -51,6 +51,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
         this.isPlayerVisible = !!song;
         if (song?.thumbnailUrl) {
           this.themeService.updateThemeFromImage(song.thumbnailUrl, song);
+        } else {
+          this.themeService.setDefaultTheme();
         }
       });
 
@@ -75,8 +77,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
     if (!query.trim()) return;
 
     const navigateToSearch = (songs: Song[]) => {
-      console.log('🎯 Navegando a /search con:', { query, tab, songs }); // DEBUG
-      this.router.navigate(['/search'], { state: { query, tab, songs } });
+      this.router.navigate(['/search'], {
+        queryParams: { q: query, tab: tab },
+        state: { query, tab, songs }
+      });
     };
 
     if (tab === 'library') {
