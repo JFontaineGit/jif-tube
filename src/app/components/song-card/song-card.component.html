@@ -10,5 +10,12 @@
     <p class="song-artist">{{ song.artist }}</p>
     <p class="song-album">{{ song.album || 'Desconocido' }}</p>
   </div>
-  <ng-content></ng-content> <!-- Para el botón de eliminar -->
+  <button
+    *ngIf="showSaveButton"
+    class="save-button"
+    (click)="onSave($event)"
+    [disabled]="isSongSaved()"
+    >
+    {{ isSongSaved() ? 'Guardado' : '+'}}
+  </button>
 </div>

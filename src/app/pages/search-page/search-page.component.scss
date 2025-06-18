@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 $bg-secondary: rgba(0, 0, 0, 0.7);
 $border-color: rgba(255, 255, 255, 0.1);
 $accent-color: #9c27b0;
@@ -37,10 +39,9 @@ $accent-color: #9c27b0;
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 4px;
-    cursor: pointer;
 
     &:disabled {
-      background-color: lighten($accent-color, 20%);
+      background-color: color.adjust($accent-color, $lightness: 20%);
       cursor: not-allowed;
     }
   }
