@@ -2,7 +2,7 @@ $card-width: 200px;
 $card-width-small: 160px;
 $border-radius: 12px;
 $border-radius-small: 8px;
-$play-color: #ff0000; // YouTube red
+$play-color: #ff0000; 
 $transition-duration: 0.2s;
 $hover-scale: 1.02;
 $shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -16,7 +16,7 @@ $shadow-hover-dark: 0 8px 24px rgba(0, 0, 0, 0.4);
   border-radius: $border-radius;
   overflow: hidden;
   transition: transform $transition-duration ease-out,
-    box-shadow $transition-duration ease-out;
+  box-shadow $transition-duration ease-out;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -80,9 +80,7 @@ $shadow-hover-dark: 0 8px 24px rgba(0, 0, 0, 0.4);
     background-color: var(--surface-variant, #f5f5f5);
     overflow: hidden;
 
-    @media (prefers-color-scheme: dark) {
-      background-color: var(--surface-variant, #2a2a2a);
-    }
+
 
     .play-overlay {
       position: absolute;
@@ -117,11 +115,6 @@ $shadow-hover-dark: 0 8px 24px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     gap: 4px;
-    background-color: var(--surface, #ffffff);
-
-    @media (prefers-color-scheme: dark) {
-      background-color: var(--surface, #1a1a1a);
-    }
 
     .song-title {
       font-size: 16px;

@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Song } from '../../models/song.model';
+import { LibraryService } from '../../services/library.service';
 import { LoggerService } from '../../services/core/logger.service';
 
 @Component({
