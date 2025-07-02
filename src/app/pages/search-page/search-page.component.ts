@@ -1,14 +1,15 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Song } from '../../models/song.model';
-import { PlayerService } from '../../services/player.service';
+import { YoutubePlayerService } from '../../services/youtube-iframe.service';
 import { LibraryService } from '../../services/library.service';
 import { YoutubeService } from '../../services/youtube.service';
+import { LoggerService } from '../../services/core/logger.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { map, Observable, Subject, takeUntil } from 'rxjs';
-import { SongCardComponent } from '../../components/song-card/song-card.component'; 
+import { SongCardComponent } from '../../components/song-card/song-card.component';
 import { ThemeService } from '../../services/theme.service';
-
 
 interface RouterState {
   query?: string;
@@ -19,11 +20,21 @@ interface RouterState {
 @Component({
   selector: 'app-search-page',
   standalone: true,
-  imports: [SongCardComponent, CommonModule], 
+  imports: [CommonModule, FormsModule, SongCardComponent],
   templateUrl: './search-page.component.html',
   styleUrls: ['./search-page.component.scss'],
 })
 export class SearchPageComponent implements OnInit, OnDestroy {
+  private youtubePlayerService = inject(YoutubePlayerService);
+  private libraryService = inject(LibraryService);
+  private youtubeService = inject(YoutubeService);
+  private logger = inject(LoggerService);
+  private themeService = inject(ThemeService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
+
   query: string = '';
   tab: string = 'all';
   songs: Song[] = [];
@@ -31,16 +42,6 @@ export class SearchPageComponent implements OnInit, OnDestroy {
   filteredSongs: Song[] = [];
   savedSongs$!: Observable<Song[]>;
   private savedSongsCache: { [key: string]: boolean } = {};
-  private destroy$ = new Subject<void>();
-
-  constructor(
-    private playerService: PlayerService,
-    private libraryService: LibraryService,
-    private youtubeService: YoutubeService,
-    private themeService: ThemeService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {}
 
   ngOnInit(): void {
     this.savedSongs$ = this.libraryService.getSavedSongs().pipe(
@@ -53,6 +54,15 @@ export class SearchPageComponent implements OnInit, OnDestroy {
         return savedSongs;
       })
     );
+
+    this.youtubePlayerService.playerState$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((state) => {
+      if (state === 'error') {
+        this.logger.error('Error en el reproductor de YouTube desde SearchPage');
+      }
+    });
+
     const state = this.router.getCurrentNavigation()?.extras.state as RouterState;
     if (state) {
       this.query = state.query || '';
@@ -61,20 +71,27 @@ export class SearchPageComponent implements OnInit, OnDestroy {
       this.setBestResult();
       this.filterSongs();
     } else {
-      this.route.queryParams.subscribe(params => {
+      this.route.queryParams.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(params => {
         this.query = params['q'] || '';
         this.tab = params['tab'] || 'all';
         if (this.query.trim()) {
           const navigateToSearch = (songs: Song[]) => {
-            console.log('Navigating to search with query:', this.query, 'and tab:', this.tab);
+            this.logger.info(`Navegando a búsqueda con query: ${this.query}, tab: ${this.tab}`);
             this.songs = songs;
             this.setBestResult();
             this.filterSongs();
+            this.cdr.detectChanges();
           };
           if (this.tab === 'library') {
-            this.libraryService.searchInLibrary(this.query).subscribe(navigateToSearch);
+            this.libraryService.searchInLibrary(this.query).pipe(
+              takeUntil(this.destroy$)
+            ).subscribe(navigateToSearch);
           } else {
-            this.youtubeService.searchVideos(this.query).subscribe(navigateToSearch);
+            this.youtubeService.searchVideos(this.query).pipe(
+              takeUntil(this.destroy$)
+            ).subscribe(navigateToSearch);
           }
         }
       });
@@ -96,21 +113,42 @@ export class SearchPageComponent implements OnInit, OnDestroy {
 
   filterSongs(): void {
     if (this.tab === 'library') {
-      this.libraryService.searchInLibrary(this.query).subscribe(songs => {
+      this.libraryService.searchInLibrary(this.query).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(songs => {
         this.filteredSongs = songs;
+        this.cdr.detectChanges();
       });
     } else {
       this.filteredSongs = this.songs;
+      this.cdr.detectChanges();
     }
   }
 
   playSong(song: Song): void {
-    this.playerService.setSelectedSong(song);
+    if (!song?.videoId) {
+      this.logger.error(`Canción sin videoId válido: ${song?.title || 'canción desconocida'}`);
+      return;
+    }
+
+    this.logger.info(`Reproduciendo canción: ${song.title} (${song.videoId})`);
+    this.youtubePlayerService.playVideo(song.videoId, undefined, song);
+
+    if (song.thumbnailUrl) {
+      this.themeService.updateThemeFromImage(song.thumbnailUrl, { artist: song.artist, type: song.type });
+    }
   }
 
   saveSong(song: Song): void {
-    this.libraryService.saveSong(song).subscribe(() => {
-      this.savedSongs$ = this.libraryService.getSavedSongs();
+    this.libraryService.saveSong(song).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.info(`Canción guardada: ${song.title}`);
+        this.savedSongs$ = this.libraryService.getSavedSongs();
+        this.cdr.detectChanges();
+      },
+      error: (err) => this.logger.error('Error al guardar la canción', err),
     });
   }
 

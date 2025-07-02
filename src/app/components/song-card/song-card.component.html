@@ -1,14 +1,32 @@
-<div class="song-card" [ngClass]="cardTypeClass" (click)="onSelect()">
-  <div class="thumbnail">
-    <img [src]="song.thumbnailUrl" [alt]="song.title" class="song-image" />
-    <div class="play-overlay">
-      <span class="material-icons">play_circle</span>
+<div 
+  class="song-card" 
+  [ngClass]="cardTypeClass" 
+  (click)="onSelect()" 
+  role="button" 
+  [attr.aria-label]="'Reproducir ' + song.title + (song.artist && song.artist !== 'Artista desconocido' ? ' de ' + song.artist : '')"
+  tabindex="0"
+  (keyup.enter)="onSelect()"
+  (keyup.space)="onSelect()">
+
+  <div class="thumbnail" 
+     [ngClass]="cardTypeClass"
+     [style.backgroundImage]="'url(' + (song.thumbnailUrl || '/assets/images/default-thumbnail.jpg') + ')'"
+     role="img"
+     [attr.aria-label]="song.title">
+  
+    <div class="play-overlay" aria-hidden="true">
+      <span class="material-icons">play_circle_filled</span>
     </div>
   </div>
+
   <div class="song-info">
-    <h3 class="song-title">{{ song.title }}</h3>
-    <p class="song-artist">{{ song.artist }}</p>
-    <p class="song-album">{{ song.album || 'Desconocido' }}</p>
+    <h3 class="song-title" [title]="song.title">{{ song.title }}</h3>
+    <p class="song-artist" 
+       *ngIf="song.artist && song.artist !== 'Artista desconocido' && song.artist !== 'Desconocido'"
+       [title]="song.artist">
+      {{ song.artist }}
+    </p>
   </div>
-  <ng-content></ng-content> <!-- Para el botón de eliminar -->
+
+  <ng-content></ng-content>
 </div>

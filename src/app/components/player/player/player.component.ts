@@ -5,143 +5,150 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   inject,
-} from "@angular/core"
-import { CommonModule } from "@angular/common"
-import { FormsModule } from "@angular/forms"
-import { Subject, takeUntil } from "rxjs"
-import { PlayerControlsComponent } from "../player-controls/player-controls.component"
-import { PlayerProgressComponent } from "../player-progress/player-progress.component"
-import { PlayerInfoComponent } from "../player-info/player-info.component"
-import { AudioService } from "../../../services/audio.service"
-import type { IAudioTrack } from "../../../models/audio-track.model"
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
+import { PlayerControlsComponent } from '../player-controls/player-controls.component';
+import { PlayerProgressComponent } from '../player-progress/player-progress.component';
+import { PlayerInfoComponent } from '../player-info/player-info.component';
+import { YoutubePlayerService } from '../../../services/youtube-iframe.service';
+import { YoutubeService } from '../../../services/youtube.service';
+import { Song } from '../../../models/song.model';
+import { LoggerService } from '../../../services/core/logger.service';
 
 @Component({
-  selector: "app-player",
+  selector: 'app-player',
   standalone: true,
   imports: [CommonModule, FormsModule, PlayerControlsComponent, PlayerProgressComponent, PlayerInfoComponent],
-  templateUrl: "./player.component.html",
-  styleUrls: ["./player.component.scss"],
+  templateUrl: './player.component.html',
+  styleUrls: ['./player.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlayerComponent implements OnInit, OnDestroy {
-  private audioService = inject(AudioService)
-  private cdr = inject(ChangeDetectorRef)
-  private destroy$ = new Subject<void>()
+  private youtubePlayerService = inject(YoutubePlayerService);
+  private youtubeService = inject(YoutubeService);
+  private logger = inject(LoggerService);
+  private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
-  currentTrack: IAudioTrack | null = null
-  isPlaying = false
-  currentTime = 0
-  duration = 0
-  volume = 1
-  error: string | null = null
+  currentTrack: Song | null = null;
+  isPlaying = false;
+  currentTime = 0;
+  duration = 0;
+  volume = 1;
+  error: string | null = null;
+  searchQuery = '';
 
   ngOnInit(): void {
-    // Suscribirse a los cambios de pista actual
-    this.audioService.currentTrack$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (track) => {
-        this.currentTrack = track
-        this.cdr.markForCheck()
-      },
-      error: (err) => {
-        this.handleError("Error al cargar la pista", err)
-      },
-    })
+    this.youtubePlayerService.isPlaying$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isPlaying) => {
+        this.isPlaying = isPlaying;
+        this.cdr.markForCheck();
+      });
 
-    // Suscribirse al estado de reproducción
-    this.audioService.isPlaying$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (isPlaying) => {
-        this.isPlaying = isPlaying
-        this.cdr.markForCheck()
-      },
-      error: (err) => {
-        this.handleError("Error en el estado de reproducción", err)
-      },
-    })
+    this.youtubePlayerService.currentTime$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((time) => {
+        this.currentTime = time;
+        this.cdr.markForCheck();
+      });
 
-    // Suscribirse al tiempo actual
-    this.audioService.currentTime$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (time) => {
-        this.currentTime = time
-        this.cdr.markForCheck()
-      },
-      error: (err) => {
-        this.handleError("Error al actualizar el tiempo", err)
-      },
-    })
+    this.youtubePlayerService.duration$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((duration) => {
+        this.duration = duration;
+        this.cdr.markForCheck();
+      });
 
-    // Suscribirse a la duración
-    this.audioService.duration$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (duration) => {
-        this.duration = duration
-        this.cdr.markForCheck()
-      },
-      error: (err) => {
-        this.handleError("Error al obtener la duración", err)
-      },
-    })
+    this.youtubePlayerService.currentSong$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((song) => {
+        this.currentTrack = song;
+        this.logger.info(`Actualizando pista en PlayerComponent: ${song?.title || 'Ninguna'}`);
+        this.cdr.markForCheck();
+      });
 
-    // Suscribirse al volumen
-    this.audioService.volume$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (volume) => {
-        this.volume = volume
-        this.cdr.markForCheck()
-      },
-      error: (err) => {
-        this.handleError("Error al ajustar el volumen", err)
-      },
-    })
+    this.youtubePlayerService.playerState$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        if (state === 'error') {
+          this.handleError('Error en el reproductor', new Error('Estado de error'));
+        }
+      });
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next()
-    this.destroy$.complete()
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onPlayPause(): void {
     if (this.isPlaying) {
-      this.audioService.pause()
+      this.youtubePlayerService.pauseVideo();
     } else {
-      this.audioService.play().catch((err) => {
-        this.handleError("Error al reproducir", err)
-      })
+      if (this.currentTrack?.videoId) {
+        this.youtubePlayerService.playVideo(this.currentTrack.videoId, undefined, this.currentTrack);
+      } else {
+        this.handleError('No hay pista seleccionada para reproducir', new Error('Sin videoId'));
+      }
     }
+    this.cdr.markForCheck();
   }
 
   onStop(): void {
-    this.audioService.stop()
+    this.youtubePlayerService.stopVideo();
+    this.isPlaying = false;
+    this.cdr.markForCheck();
   }
 
   onPrevious(): void {
-    this.audioService.previous().catch((err) => {
-      this.handleError("Error al cambiar a la pista anterior", err)
-    })
+    this.handleError('Función previous no implementada', new Error('No implementado'));
   }
 
   onNext(): void {
-    this.audioService.next().catch((err) => {
-      this.handleError("Error al cambiar a la siguiente pista", err)
-    })
+    this.handleError('Función next no implementada', new Error('No implementado'));
   }
 
   onSeek(time: number): void {
-    this.audioService.seek(time).catch((err) => {
-      this.handleError("Error al buscar posición", err)
-    })
+    if (this.youtubePlayerService.isPlayerReady()) {
+      this.youtubePlayerService.seekTo(time);
+      this.currentTime = time;
+      this.cdr.markForCheck();
+    } else {
+      this.handleError('Reproductor no listo para seek', new Error('Reproductor no inicializado'));
+    }
   }
 
   onVolumeChange(volume: number): void {
-    this.audioService.setVolume(volume)
+    this.volume = volume;
+    this.youtubePlayerService.setVolume(volume); // Usa el nuevo método
+    this.cdr.markForCheck();
+  }
+
+  searchAndPlay(): void {
+    if (!this.searchQuery.trim()) {
+      this.handleError('Consulta de búsqueda vacía', new Error('No se proporcionó consulta'));
+      return;
+    }
+    this.youtubePlayerService.searchAndPlay(this.searchQuery).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.logger.info(`Búsqueda y reproducción iniciada para: ${this.searchQuery}`);
+      },
+      error: (err) => this.handleError('Error al buscar y reproducir', err),
+    });
   }
 
   private handleError(message: string, error: any): void {
-    console.error(message, error)
-    this.error = `${message}: ${error?.message || "Error desconocido"}`
-    this.cdr.markForCheck()
-
-    // Limpiar el error después de 5 segundos
+    this.error = `${message}: ${error?.message || 'Error desconocido'}`;
+    this.logger.error(this.error, error);
+    this.cdr.markForCheck();
     setTimeout(() => {
-      this.error = null
-      this.cdr.markForCheck()
-    }, 5000)
+      this.error = null;
+      this.cdr.markForCheck();
+    }, 5000);
   }
 }

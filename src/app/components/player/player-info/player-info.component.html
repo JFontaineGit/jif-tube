@@ -5,18 +5,22 @@
       [alt]="trackTitle" 
       class="thumbnail-image"
       loading="lazy">
+    <div class="thumbnail-overlay" aria-hidden="true"></div>
   </div>
-  
+
   <div class="track-details">
-    <h2 class="track-title" [title]="trackTitle">{{ trackTitle }}</h2>
-    
+    <h2 class="track-title" [title]="trackTitle">
+      <span class="title-text">{{ trackTitle }}</span>
+    </h2>
+
     <div class="track-metadata">
-      <span class="track-artist">{{ trackArtist }}</span>
-      
-      <div class="track-stats" *ngIf="trackViews || trackLikes">
-        <span class="track-views" *ngIf="trackViews">{{ trackViews }}</span>
-        <span class="track-likes" *ngIf="trackLikes">{{ trackLikes }}</span>
-      </div>
+      <span class="track-artist" *ngIf="trackArtist" [title]="trackArtist">
+        {{ trackArtist }}
+      </span>
+      <span class="metadata-separator" *ngIf="trackArtist && trackAlbum" aria-hidden="true">•</span>
+      <span class="track-album" *ngIf="trackAlbum" [title]="trackAlbum">
+        {{ trackAlbum }}
+      </span>
     </div>
   </div>
 </div>

@@ -1,4 +1,7 @@
 <div class="home-container">
+  <div *ngIf="error" class="error-message" role="alert">
+    {{ error }}
+  </div>
 
   <!-- Sección: Videos Oficiales -->
   <section class="songs-section" *ngIf="officialVideos.length > 0">
@@ -17,15 +20,15 @@
       <app-song-card
         *ngFor="let song of officialVideos"
         [song]="song"
-        (selected)="onSongSelected($event)"
-      ></app-song-card>
+        (selected)="onSongSelected($event)">
+      </app-song-card>
     </div>
   </section>
 
-  <!-- Sección: Álbumes Oficiales -->
+  <!-- Sección: Pistas de Álbum -->
   <section class="songs-section" *ngIf="albumTracks.length > 0">
     <div class="section-header">
-      <h2 class="section-title">Videos Oficiales</h2>
+      <h2 class="section-title">Pistas de Álbum</h2>
       <div class="navigation-buttons">
         <button class="nav-button prev-button" (click)="scrollLeftTracks()" [disabled]="isAtStartTracks">
           <span class="material-icons">chevron_left</span>
@@ -39,8 +42,8 @@
       <app-song-card
         *ngFor="let song of albumTracks"
         [song]="song"
-        (selected)="onSongSelected($event)"
-      ></app-song-card>
+        (selected)="onSongSelected($event)">
+      </app-song-card>
     </div>
   </section>
 

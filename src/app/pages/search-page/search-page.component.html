@@ -1,8 +1,13 @@
 <div class="search-page">
-  <h2>Mejor resultado"</h2>
-
+  <h2>Mejor resultado</h2>
   <div class="best-result" *ngIf="bestResult as result">
     <app-song-card [song]="result" (selected)="playSong($event)">
+      <button 
+        class="save-button" 
+        (click)="saveSong(result); $event.stopPropagation()" 
+        [disabled]="isSongSaved(result)">
+        {{ isSongSaved(result) ? 'Guardado' : '+ Guardar' }}
+      </button>
     </app-song-card>
   </div>
 
@@ -11,9 +16,11 @@
     <app-song-card 
       *ngFor="let song of filteredSongs" 
       [song]="song" 
-      (selected)="playSong($event)"
-    >
-      <button class="save-button" (click)="saveSong(song); $event.stopPropagation()" [disabled]="isSongSaved(song)">
+      (selected)="playSong($event)">
+      <button 
+        class="save-button" 
+        (click)="saveSong(song); $event.stopPropagation()" 
+        [disabled]="isSongSaved(song)">
         {{ isSongSaved(song) ? 'Guardado' : '+ Guardar' }}
       </button>
     </app-song-card>

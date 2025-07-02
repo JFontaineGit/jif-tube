@@ -1,195 +1,202 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, forkJoin, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { map, catchError, switchMap, tap } from 'rxjs/operators';
-import { Song } from '../models/song.model';
+import { Song, SearchResponse, VideoDetailsResponse, SearchConfig } from '../models/song.model';
 import { LoggerService } from './core/logger.service';
 import { StorageService } from './core/storage.service';
-import { SearchResponse, VideoDetailsResponse, SearchConfig } from '../models/song.model';
+import { environment } from '../environments/environment';
+import { mockSongs } from '../models/mock-songs.model';
+import { SearchHistoryEntry } from '../models/search-history.model';
+import Fuse from 'fuse.js';
 
-// Interfaz para datos almacenados en caché
 interface CacheEntry {
-  data: Song[];
+  data: Song[] | VideoDetailsResponse;
   timestamp: number;
 }
 
-/**
- * Servicio para buscar videos musicales oficiales en YouTube y transformarlos en objetos Song.
- * Prioriza videos oficiales y audio oficial, excluyendo contenido irrelevante.
- */
 @Injectable({
   providedIn: 'root',
 })
 export class YoutubeService {
   private apiUrl = 'https://www.googleapis.com/youtube/v3';
-  private apiKey = 'AIzaSyDhUFUrs5MbqkG_6RaRIWhIFWcyOEK8qhE'
+  private apiKey = environment.youtubeApiKey;
   private config: SearchConfig = {
-    minDurationSeconds: 30, // Para intros cortas
-    maxDurationSeconds: 600, // 10 minutos
-    cacheTTL: 60, // 1 hora en minutos
+    minDurationSeconds: 30,
+    maxDurationSeconds: 600,
+    cacheTTL: 60,
   };
-  private forbiddenTerms = [
-    'tiktok', 'shorts', 'reaction', 'topic', 'compilation',
-  ];
+  private forbiddenTerms = ['tiktok', 'shorts', 'reaction', 'topic', 'compilation', 'lyrics video', 'lyric video', 'visualizer'];
+  private popularQueries = ['trending music', 'new releases', 'top hits 2025'];
 
   constructor(
     private http: HttpClient,
     private logger: LoggerService,
     private storage: StorageService
-  ) {}
+  ) {
+    this.initializeCache();
+  }
 
-  /**
-   * Busca videos musicales en YouTube basándose en una consulta.
-   * @param query - Término de búsqueda 
-   * @returns Observable con un arreglo de objetos Song ordenados por relevancia.
-   */
+  private initializeCache(): void {
+    this.logger.info('Inicializando caché con búsquedas populares');
+    this.popularQueries.forEach((query) => {
+      this.searchVideos(query).subscribe({
+        next: () => this.logger.debug(`Caché precargado para query: ${query}`),
+        error: (err) => this.logger.error(`Error al precargar caché para ${query}`, err),
+      });
+    });
+  }
+
   searchVideos(query: string): Observable<Song[]> {
+    if (environment.demoMode) {
+      this.logger.info(`Modo demo activado, devolviendo canciones simuladas para: ${query}`);
+      return of(mockSongs);
+    }
+
+    const historyKey = 'search_history';
+    this.storage.get<SearchHistoryEntry[]>(historyKey).pipe(
+      switchMap((history) => {
+        const updatedHistory = history || [];
+        const existingEntry = updatedHistory.find((entry) => entry.query === query);
+        if (existingEntry) {
+          existingEntry.count += 1;
+          existingEntry.timestamp = Date.now();
+        } else {
+          updatedHistory.push({ query, timestamp: Date.now(), count: 1 });
+        }
+        updatedHistory.sort((a, b) => b.timestamp - a.timestamp);
+        return this.storage.save(historyKey, updatedHistory.slice(0, 10));
+      })
+    ).subscribe({
+      next: () => this.logger.debug(`Historial de búsqueda actualizado para: ${query}`),
+      error: (err) => this.logger.error(`Error al guardar historial para ${query}`, err),
+    });
+
     const cacheKey = `search_${query.toLowerCase()}`;
     return this.storage.get<CacheEntry>(cacheKey).pipe(
-      switchMap(cached => {
+      switchMap((cached) => {
         if (cached && this.isCacheValid(cached.timestamp)) {
-          return of(cached.data);
+          this.logger.debug(`Devolviendo resultados desde caché para: ${query}`);
+          return of(cached.data as Song[]);
         }
         return this.fetchVideos(query, cacheKey);
       })
     );
   }
 
-  /**
-   * Realiza la búsqueda de videos en la API de YouTube.
-   * @param query - Término de búsqueda.
-   * @param cacheKey - Clave para almacenar en caché.
-   * @returns Observable con un arreglo de objetos Song.
-   */
   private fetchVideos(query: string, cacheKey: string): Observable<Song[]> {
-    const params = new HttpParams()
+    const normalizedQuery = query
+      .toLowerCase()
+      .replace(/\b(a|el|la|los|las|de|del|que|y|o)\b/g, '')
+      .replace(/[,\.\-!?:;]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const searchParams = new HttpParams()
       .set('part', 'snippet')
-      .set('maxResults', '20')
-      .set('q', query) 
       .set('type', 'video')
-      .set('videoCategoryId', '10') // Categoría de música
-      .set('videoDuration', 'medium')
+      .set('videoCategoryId', '10')
+      .set('order', 'viewCount')
+      .set('relevanceLanguage', 'es')
+      .set('regionCode', 'AR')
+      .set('videoDefinition', 'high')
+      .set('maxResults', '10')
+      .set('q', normalizedQuery)
       .set('key', this.apiKey);
 
-    return this.http.get<SearchResponse>(`${this.apiUrl}/search`, { params }).pipe(
-      map(response => response.items.map(item => ({
-        videoId: item.id.videoId,
-        title: item.snippet.title,
-        artist: item.snippet.channelTitle,
-        thumbnailUrl: item.snippet.thumbnails.high.url,
-        publishedAt: item.snippet.publishedAt,
-      }))),
-      switchMap(videos => {
-        if (!videos.length) {
+    this.logger.debug(`Realizando búsqueda normalizada: ${normalizedQuery}`);
+
+    return this.http.get<SearchResponse>(`${this.apiUrl}/search`, { params: searchParams }).pipe(
+      map((response) => response.items.map(item => item.id.videoId)),
+      switchMap((videoIds) => {
+        if (!videoIds.length) {
+          this.logger.warn(`No se encontraron videos válidos para query: ${normalizedQuery}`);
           return of([]);
         }
 
-        const batchSize = 5;
-        const batches: Observable<(Song | null)[]>[] = [];
-        for (let i = 0; i < videos.length; i += batchSize) {
-          const batch = videos.slice(i, i + batchSize).map(video =>
-            this.getVideoDetails(video.videoId).pipe(
-              map(details => this.transformToSong(video, details)),
-              catchError(() => of(null))
-            )
-          );
-          batches.push(forkJoin(batch));
-        }
+        const videoParams = new HttpParams()
+          .set('part', 'snippet,contentDetails,statistics')
+          .set('id', videoIds.join(','))
+          .set('key', this.apiKey);
 
-        return forkJoin(batches).pipe(
-          map(results => results.flat().filter((song): song is Song => song !== null)),
-          map(songs => this.sortByRelevance(songs)),
-          tap(songs => {
+        return this.http.get<VideoDetailsResponse>(`${this.apiUrl}/videos`, { params: videoParams }).pipe(
+          map((response) => response.items.map((item) => {
+            const duration = this.parseDuration(item.contentDetails.duration);
+            const publishedAt = new Date(item.snippet.publishedAt);
+            const ageDays = (Date.now() - publishedAt.getTime()) / (1000 * 60 * 60 * 24);
+            const views = parseInt(item.statistics.viewCount || '0', 10);
+            const titleTerms = item.snippet.title.toLowerCase().split(/\s+/);
+            const queryTerms = normalizedQuery.split(/\s+/);
+            const matchTitleRatio = queryTerms.reduce((acc, term) => acc + (titleTerms.includes(term) ? 1 : 0), 0) / queryTerms.length || 0;
+
+            let customScore = (views * 0.5) + ((1 / ageDays) * 0.3) + (matchTitleRatio * 0.2);
+
+            const fuse = new Fuse([item.snippet.title], { includeScore: true });
+            const fuzzyResult = fuse.search(normalizedQuery)[0];
+            const normalizedDistance = fuzzyResult ? fuzzyResult.score || 0 : 1;
+            const semanticBoost = (item.snippet.title.toLowerCase().includes('official audio') ||
+              item.snippet.title.toLowerCase().includes('topic') ||
+              (item.snippet.tags || []).some(tag => tag.toLowerCase().includes('official audio') || tag.toLowerCase().includes('topic')))
+              ? 1.5 : 1;
+            customScore *= semanticBoost;
+            customScore += (1 - normalizedDistance) * 0.1;
+
+            return {
+              id: item.id,
+              videoId: item.id,
+              title: item.snippet.title,
+              artist: item.snippet.channelTitle,
+              thumbnailUrl: item.snippet.thumbnails?.high?.url || '',
+              album: this.extractAlbumFromDetails({ items: [item] }),
+              type: item.snippet.title.toLowerCase().includes('official audio') ? 'official-video' : 'album-track',
+              duration,
+              customScore,
+            } as Song;
+          })),
+          map((songs) => songs.sort((a, b) => (b.customScore || 0) - (a.customScore || 0))),
+          tap((songs) => {
             if (songs.length) {
               const cacheEntry: CacheEntry = { data: songs, timestamp: Date.now() };
               this.storage.save(cacheKey, cacheEntry).subscribe({
-                error: err => this.logger.error(`Error al guardar en caché: ${err.message}`, err)
+                next: () => this.logger.debug(`Resultados cacheados para: ${normalizedQuery}`),
+                error: (err) => this.logger.error(`Error al guardar caché para ${normalizedQuery}`, err),
               });
             }
-          })
+          }),
+          catchError((error) => this.handleError(error, `Error en fetchVideos: ${normalizedQuery}`))
         );
-      }),
-      catchError(error => this.handleError(error, `Error al buscar videos musicales con query: ${query}`))
+      })
     );
   }
 
-  /**
-   * Obtiene detalles de un video de YouTube.
-   * @param videoId - ID del video.
-   * @returns Observable con los detalles del video o null si falla.
-   */
-  private getVideoDetails(videoId: string): Observable<VideoDetailsResponse | null> {
-    const params = new HttpParams()
-      .set('part', 'snippet,contentDetails,statistics')
-      .set('id', videoId)
-      .set('key', this.apiKey);
-
-    return this.http.get<VideoDetailsResponse>(`${this.apiUrl}/videos`, { params }).pipe(
-      catchError(() => of(null))
+  getSearchHistory(): Observable<string[]> {
+    const historyKey = 'search_history';
+    return this.storage.get<SearchHistoryEntry[]>(historyKey).pipe(
+      map((history) => {
+        const sortedHistory = (history || []).sort((a, b) => b.count - a.count).map((entry) => entry.query);
+        this.logger.debug(`Historial de búsqueda obtenido con ${sortedHistory.length} entradas`);
+        return sortedHistory;
+      })
     );
   }
 
-  /**
-   * Transforma un video y sus detalles en un objeto Song.
-   * @param video - Datos básicos del video.
-   * @param details - Detalles completos del video.
-   * @returns Objeto Song o null si no es relevante.
-   */
-  private transformToSong(
-    video: { videoId: string; title: string; artist: string; thumbnailUrl: string; publishedAt: string },
-    details: VideoDetailsResponse | null
-  ): Song | null {
-    if (!details?.items?.length) return null;
-
-    const item = details.items[0];
-    const duration = this.parseDuration(item.contentDetails.duration);
-    if (duration < this.config.minDurationSeconds || duration > this.config.maxDurationSeconds) {
-      return null;
-    }
-
-    const title = item.snippet.title.toLowerCase();
-    const description = item.snippet.description.toLowerCase();
-    const tags = (item.snippet.tags || []).map(tag => tag.toLowerCase());
-
-    if (this.forbiddenTerms.some(term => title.includes(term) || description.includes(term) || tags.includes(term))) {
-      return null;
-    }
-    const relevanceScore = parseInt(item.statistics.viewCount) / 1000000;
-
-    return {
-      id: video.videoId,
-      videoId: video.videoId,
-      title: item.snippet.title,
-      artist: item.snippet.channelTitle,
-      thumbnailUrl: video.thumbnailUrl,
-      album: this.extractAlbumFromDetails(details),
-      type: 'album-track',
-      duration,
-      relevanceScore,
-    };
-  }
-
-  /**
-   * Parsea la duración en formato ISO (PT#M#S) a segundos.
-   * @param duration - Duración en formato ISO.
-   * @returns Duración en segundos.
-  */
   private parseDuration(duration: string): number {
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (!match) return 0;
+    if (!match) {
+      this.logger.warn(`Formato de duración no válido: ${duration}`);
+      return 0;
+    }
     const hours = parseInt(match[1] || '0', 10);
     const minutes = parseInt(match[2] || '0', 10);
     const seconds = parseInt(match[3] || '0', 10);
     return hours * 3600 + minutes * 60 + seconds;
   }
 
-  /**
-   * Extrae el nombre del álbum desde los detalles del video.
-   * @param details - Respuesta de detalles del video.
-   * @returns Nombre del álbum o 'Desconocido'.
-   */
   private extractAlbumFromDetails(details: VideoDetailsResponse | null): string {
-    if (!details?.items?.length) return 'Desconocido';
+    if (!details?.items?.length) {
+      this.logger.debug('No se encontraron detalles para extraer álbum');
+      return 'Desconocido';
+    }
     const description = details.items[0].snippet.description;
     const tags = details.items[0].snippet.tags || [];
 
@@ -201,54 +208,43 @@ export class YoutubeService {
     ];
     for (const pattern of patterns) {
       const match = description.match(pattern);
-      if (match) return match[1].trim();
+      if (match) {
+        this.logger.debug(`Álbum extraído de descripción: ${match[1].trim()}`);
+        return match[1].trim();
+      }
     }
 
     const albumTag = tags.find(tag => tag.toLowerCase().includes('album') || tag.toLowerCase().includes('ost'));
     return albumTag ? albumTag.replace(/(album|ost)/i, '').trim() : 'Desconocido';
   }
 
-  /**
-   * Ordena canciones por puntaje de relevancia.
-   * @param songs - Arreglo de canciones.
-   * @returns Arreglo ordenado.
-   */
-  private sortByRelevance(songs: Song[]): Song[] {
-    return songs.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
-  }
-
-  /**
-   * Verifica si el caché es válido según el timestamp.
-   * @param timestamp - Timestamp del caché.
-   * @returns True si el caché es válido.
-   */
   private isCacheValid(timestamp: number): boolean {
-    if (!timestamp) return false;
-    const ageInMinutes = (Date.now() - timestamp) / 1000 / 60;
+    const ageInMinutes = (Date.now() - timestamp) / (1000 * 60);
     return ageInMinutes < this.config.cacheTTL;
   }
 
-  /**
-   * Maneja errores de operaciones HTTP.
-   * @param error - Error capturado.
-   * @param message - Mensaje descriptivo.
-   * @returns Observable con el error manejado.
-   */
   private handleError(error: any, message: string): Observable<never> {
     let errorMessage = message;
     if (error.status) {
       switch (error.status) {
-        case 400: errorMessage = `${message}: Solicitud inválida`; break;
+        case 400:
+          errorMessage = `${message}: Solicitud inválida`;
+          break;
         case 401:
           errorMessage = `${message}: No autorizado`;
-          this.storage.clearStorage().subscribe({
-            error: err => this.logger.error(`Error al limpiar almacenamiento: ${err.message}`, err)
-          });
+          this.storage.clearStorage().subscribe();
           break;
-        case 403: errorMessage = `${message}: Acceso denegado (posible límite de cuota)`; break;
-        case 404: errorMessage = `${message}: Recurso no encontrado`; break;
-        case 500: errorMessage = `${message}: Error del servidor`; break;
-        default: errorMessage = `${message}: ${error.message || 'Error desconocido'}`;
+        case 403:
+          errorMessage = `${message}: Acceso denegado (posible límite de cuota)`;
+          break;
+        case 404:
+          errorMessage = `${message}: Recurso no encontrado`;
+          break;
+        case 500:
+          errorMessage = `${message}: Error del servidor`;
+          break;
+        default:
+          errorMessage = `${message}: ${error.message || 'Error desconocido'}`;
       }
     } else {
       errorMessage = `${message}: ${error.message || 'Error desconocido'}`;

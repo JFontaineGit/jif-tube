@@ -1,4 +1,3 @@
-// src/app/services/audio.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
@@ -56,9 +55,11 @@ export class AudioService {
         this.currentTrackSubject.next(track);
         this.audio.src = track.url;
         this.audio.load();
+        this.logger.debug(`Cargando pista: ${track.title}`);
       }
       await this.audio.play();
       this.isPlayingSubject.next(true);
+      this.logger.info(`Reproduciendo pista: ${this.currentTrackSubject.value?.title || 'desconocida'}`);
     } catch (error) {
       this.handleError(error);
       throw error;
@@ -72,6 +73,7 @@ export class AudioService {
     try {
       this.audio.pause();
       this.isPlayingSubject.next(false);
+      this.logger.info('Reproducción pausada');
     } catch (error) {
       this.handleError(error);
     }
@@ -87,6 +89,7 @@ export class AudioService {
       this.currentTrackSubject.next(null);
       this.isPlayingSubject.next(false);
       this.currentTimeSubject.next(0);
+      this.logger.info('Reproducción detenida');
     } catch (error) {
       this.handleError(error);
     }
@@ -99,7 +102,7 @@ export class AudioService {
   async previous(): Promise<void> {
     try {
       // TODO: Implementar lógica para obtener la pista anterior desde el historial
-      this.logger.log('Función previous no implementada aún');
+      this.logger.warn('Función previous no implementada aún');
       throw new Error('Función previous no implementada');
     } catch (error) {
       this.handleError(error);
@@ -114,7 +117,7 @@ export class AudioService {
   async next(): Promise<void> {
     try {
       // TODO: Implementar lógica para obtener la siguiente pista desde la cola
-      this.logger.log('Función next no implementada aún');
+      this.logger.warn('Función next no implementada aún');
       throw new Error('Función next no implementada');
     } catch (error) {
       this.handleError(error);
@@ -134,6 +137,7 @@ export class AudioService {
       }
       this.audio.currentTime = time;
       this.currentTimeSubject.next(time);
+      this.logger.debug(`Posición ajustada a ${time} segundos`);
     } catch (error) {
       this.handleError(error);
       throw error;
@@ -151,6 +155,7 @@ export class AudioService {
       }
       this.audio.volume = volume;
       this.volumeSubject.next(volume);
+      this.logger.debug(`Volumen ajustado a ${volume}`);
     } catch (error) {
       this.handleError(error);
     }
@@ -164,14 +169,17 @@ export class AudioService {
   private loadTrack(song: Song): Observable<IAudioTrack> {
     const params = new HttpParams().set('videoId', song.videoId);
     return this.http.get<{ url: string; duration: number }>('https://api.example.com/audio-stream', { params }).pipe(
-      map((response: { url: string; duration: number }) => ({
-        id: song.id,
-        title: song.title,
-        artist: song.artist,
-        url: response.url,
-        duration: response.duration,
-        thumbnail: song.thumbnailUrl,
-      })),
+      map((response: { url: string; duration: number }) => {
+        this.logger.debug(`Pista cargada para videoId: ${song.videoId}`);
+        return {
+          id: song.id,
+          title: song.title,
+          artist: song.artist,
+          url: response.url,
+          duration: response.duration,
+          thumbnail: song.thumbnailUrl,
+        };
+      }),
       catchError((error: any) => this.handleError(error))
     );
   }
@@ -182,16 +190,19 @@ export class AudioService {
   private initializeAudioEvents(): void {
     this.audio.addEventListener('timeupdate', () => {
       this.currentTimeSubject.next(this.audio.currentTime);
+      this.logger.debug(`Tiempo actualizado: ${this.audio.currentTime.toFixed(2)} segundos`);
     });
 
     this.audio.addEventListener('loadedmetadata', () => {
       this.durationSubject.next(this.audio.duration);
+      this.logger.debug(`Duración cargada: ${this.audio.duration} segundos`);
     });
 
     this.audio.addEventListener('ended', () => {
       this.isPlayingSubject.next(false);
+      this.logger.info('Pista finalizada');
       this.next().catch(() => {
-        this.logger.log('No hay más pistas para reproducir');
+        this.logger.warn('No hay más pistas para reproducir');
       });
     });
 
@@ -214,7 +225,10 @@ export class AudioService {
           break;
         case 401:
           errorMessage = 'No autorizado';
-          this.storage.clearStorage();
+          this.storage.clearStorage().subscribe({
+            next: () => this.logger.info('Almacenamiento limpiado tras error 401'),
+            error: (err) => this.logger.error('Error al limpiar almacenamiento', err),
+          });
           break;
         case 403:
           errorMessage = 'Acceso denegado';
@@ -232,7 +246,7 @@ export class AudioService {
       errorMessage = error.message || errorMessage;
     }
 
-    this.logger.log(`AudioService Error: ${errorMessage}`, error);
+    this.logger.error(`AudioService Error: ${errorMessage}`, error);
     return throwError(() => new Error(errorMessage));
   }
 }

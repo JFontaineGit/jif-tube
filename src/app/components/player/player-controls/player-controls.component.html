@@ -1,62 +1,73 @@
 <div class="controls-container">
   <div class="main-controls">
-    <button 
-      class="control-button" 
-      (click)="previous.emit()" 
-      aria-label="Anterior">
-      <span class="control-icon previous-icon" aria-hidden="true"></span>
+    <button
+      class="control-button secondary-control"
+      (click)="previous.emit()"
+      aria-label="Canción anterior"
+      type="button"
+    >
+      <span class="material-icons" aria-hidden="true">skip_previous</span>
     </button>
-    
-    <button 
-      class="control-button play-pause-button" 
-      (click)="playPause.emit()" 
-      [attr.aria-label]="isPlaying ? 'Pausar' : 'Reproducir'">
-      <span 
-        class="control-icon" 
-        [class.play-icon]="!isPlaying" 
-        [class.pause-icon]="isPlaying" 
-        aria-hidden="true">
+
+    <button
+      class="control-button primary-control"
+      (click)="playPause.emit()"
+      [attr.aria-label]="isPlaying ? 'Pausar reproducción' : 'Reproducir'"
+      type="button"
+    >
+      <span class="material-icons" aria-hidden="true">
+        {{ isPlaying ? "pause" : "play_arrow" }}
       </span>
     </button>
-    
-    <button 
-      class="control-button" 
-      (click)="stop.emit()" 
-      aria-label="Detener">
-      <span class="control-icon stop-icon" aria-hidden="true"></span>
+
+    <button
+      class="control-button secondary-control"
+      (click)="next.emit()"
+      aria-label="Siguiente canción"
+      type="button"
+    >
+      <span class="material-icons" aria-hidden="true">skip_next</span>
     </button>
-    
-    <button 
-      class="control-button" 
-      (click)="next.emit()" 
-      aria-label="Siguiente">
-      <span class="control-icon next-icon" aria-hidden="true"></span>
+
+    <button
+      class="control-button tertiary-control"
+      (click)="stop.emit()"
+      aria-label="Detener reproducción"
+      type="button"
+    >
+      <span class="material-icons" aria-hidden="true">stop</span>
     </button>
   </div>
-  
-  <div class="volume-control">
-    <button 
-      class="control-button volume-button" 
-      (click)="onVolumeIconClick()" 
-      aria-label="Ajustar volumen">
-      <span 
-        class="control-icon" 
-        [class.volume-high-icon]="volume > 0.5" 
-        [class.volume-low-icon]="volume > 0 && volume <= 0.5" 
-        [class.volume-mute-icon]="volume === 0" 
-        aria-hidden="true">
+
+  <div class="volume-control" [class.active]="isVolumeVisible">
+    <button
+      class="control-button volume-button"
+      (click)="onVolumeIconClick()"
+      [attr.aria-label]="getVolumeLabel()"
+      type="button"
+    >
+      <span class="material-icons" aria-hidden="true">
+        {{
+          volume === 0
+            ? "volume_off"
+            : volume < 0.5
+            ? "volume_down"
+            : "volume_up"
+        }}
       </span>
     </button>
-    
+
     <div class="volume-slider" *ngIf="isVolumeVisible">
-      <input 
-        type="range" 
-        min="0" 
-        max="1" 
-        step="0.01" 
-        [value]="volume" 
-        (input)="onVolumeChange($event)" 
-        aria-label="Control de volumen">
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        [value]="volume"
+        (input)="onVolumeChange($event)"
+        aria-label="Control de volumen"
+        class="volume-input"
+      />
     </div>
   </div>
 </div>

@@ -1,64 +1,58 @@
-import { Component, Input, ChangeDetectionStrategy } from "@angular/core"
-import { CommonModule } from "@angular/common"
-
-import type { IAudioTrack } from "../../../models/audio-track.model"
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Song } from '../../../models/song.model';
+import { LoggerService } from '../../../services/core/logger.service';
 
 @Component({
-  selector: "app-player-info",
+  selector: 'app-player-info',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: "./player-info.component.html",
-  styleUrls: ["./player-info.component.scss"],
+  templateUrl: './player-info.component.html',
+  styleUrls: ['./player-info.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlayerInfoComponent {
-  @Input() currentTrack: IAudioTrack | null = null
+  private logger = inject(LoggerService);
+
+  @Input() currentTrack: Song | null = null;
 
   get trackTitle(): string {
-    return this.currentTrack?.title || "Sin título"
+    const title = this.currentTrack?.title || 'Sin título';
+    this.logger.debug(`Mostrando título: ${title}`);
+    return title;
   }
 
   get trackArtist(): string {
-    return this.currentTrack?.artist || "Artista desconocido"
+    const artist = this.currentTrack?.artist || 'Artista desconocido';
+    this.logger.debug(`Mostrando artista: ${artist}`);
+    return artist;
   }
 
   get trackThumbnail(): string {
-    return this.currentTrack?.thumbnail || "/assets/images/default-thumbnail.jpg"
+    const thumbnail = this.currentTrack?.thumbnailUrl || '/assets/images/default-thumbnail.jpg';
+    this.logger.debug(`Mostrando thumbnail: ${thumbnail}`);
+    return thumbnail;
   }
 
-  get trackViews(): string {
-    if (!this.currentTrack?.views) {
-      return ""
-    }
-
-    return this.formatViews(this.currentTrack.views)
+  get trackAlbum(): string {
+    const album = this.currentTrack?.album || 'Desconocido';
+    this.logger.debug(`Mostrando álbum: ${album}`);
+    return album;
   }
 
-  get trackLikes(): string {
-    if (!this.currentTrack?.likes) {
-      return ""
+  get trackDuration(): string {
+    if (!this.currentTrack?.duration) {
+      return '0:00';
     }
-
-    return this.formatLikes(this.currentTrack.likes)
+    return this.formatTime(this.currentTrack.duration);
   }
 
-  private formatViews(views: number): string {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M vistas`
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(0)}k vistas`
-    } else {
-      return `${views} vistas`
+  private formatTime(seconds: number): string {
+    if (isNaN(seconds) || !isFinite(seconds)) {
+      return '0:00';
     }
-  }
-
-  private formatLikes(likes: number): string {
-    if (likes >= 1000000) {
-      return `${(likes / 1000000).toFixed(1)}M me gusta`
-    } else if (likes >= 1000) {
-      return `${(likes / 1000).toFixed(1)}K me gusta`
-    } else {
-      return `${likes} me gusta`
-    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
 }

@@ -2,19 +2,23 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, from, throwError, catchError } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { LoggerService } from './logger.service';
 
 /**
  * Servicio para gestionar operaciones de almacenamiento local (localStorage o en memoria).
- * Proporciona métodos para guardar, obtener y limpiar datos de forma segura, con soporte para entornos sin localStorage.
+ * Proporciona métodos para guardar, obtener, limpiar y listar claves, con soporte para entornos sin localStorage.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class StorageService {
-  private memoryStorage: Map<string, string> = new Map(); // Fallback en memoria
+  private memoryStorage: Map<string, string> = new Map();
   private isBrowser: boolean;
 
-  constructor(@Inject(PLATFORM_ID) platformId: Object) {
+  constructor(
+    @Inject(PLATFORM_ID) platformId: Object,
+    private logger: LoggerService
+  ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
@@ -23,13 +27,17 @@ export class StorageService {
    * @returns True si localStorage está definido y accesible.
    */
   private isLocalStorageAvailable(): boolean {
-    if (!this.isBrowser) return false;
+    if (!this.isBrowser) {
+      this.logger.warn('localStorage no disponible: no se está ejecutando en un navegador');
+      return false;
+    }
     try {
       const testKey = '__test__';
       localStorage.setItem(testKey, testKey);
       localStorage.removeItem(testKey);
       return true;
-    } catch {
+    } catch (error: any) {
+      this.logger.warn(`localStorage no accesible: ${error.message || 'Error desconocido'}`, error);
       return false;
     }
   }
@@ -47,17 +55,23 @@ export class StorageService {
           const serializedValue = JSON.stringify(value);
           if (this.isLocalStorageAvailable()) {
             localStorage.setItem(key, serializedValue);
+            this.logger.debug(`Guardado en localStorage: ${key}`);
           } else {
             this.memoryStorage.set(key, serializedValue);
+            this.logger.debug(`Guardado en memoria: ${key}`);
           }
           resolve();
         } catch (error: any) {
-          reject(new Error(`Error al guardar en almacenamiento: ${error.message || 'Error desconocido'}`));
+          this.logger.error(`Error al guardar en almacenamiento: ${key}`, error);
+          reject(error);
         }
       })
     ).pipe(
       map(() => void 0),
-      catchError(error => throwError(() => error))
+      catchError((error) => {
+        this.logger.error(`Error en observable de save: ${key}`, error);
+        return throwError(() => error);
+      })
     );
   }
 
@@ -73,21 +87,28 @@ export class StorageService {
           let serializedValue: string | null = null;
           if (this.isLocalStorageAvailable()) {
             serializedValue = localStorage.getItem(key);
+            this.logger.debug(`Obtenido de localStorage: ${key}`);
           } else {
             serializedValue = this.memoryStorage.get(key) || null;
+            this.logger.debug(`Obtenido de memoria: ${key}`);
           }
           if (serializedValue === null) {
+            this.logger.debug(`No se encontró valor para la clave: ${key}`);
             resolve(null);
           } else {
             const value: T = JSON.parse(serializedValue);
             resolve(value);
           }
         } catch (error: any) {
-          reject(new Error(`Error al obtener del almacenamiento: ${error.message || 'Error desconocido'}`));
+          this.logger.error(`Error al obtener del almacenamiento: ${key}`, error);
+          reject(error);
         }
       })
     ).pipe(
-      catchError(error => throwError(() => error))
+      catchError((error) => {
+        this.logger.error(`Error en observable de get: ${key}`, error);
+        return throwError(() => error);
+      })
     );
   }
 
@@ -101,17 +122,23 @@ export class StorageService {
         try {
           if (this.isLocalStorageAvailable()) {
             localStorage.clear();
+            this.logger.info('localStorage limpiado');
           } else {
             this.memoryStorage.clear();
+            this.logger.info('Almacenamiento en memoria limpiado');
           }
           resolve();
         } catch (error: any) {
-          reject(new Error(`Error al limpiar el almacenamiento: ${error.message || 'Error desconocido'}`));
+          this.logger.error('Error al limpiar el almacenamiento', error);
+          reject(error);
         }
       })
     ).pipe(
       map(() => void 0),
-      catchError(error => throwError(() => error))
+      catchError((error) => {
+        this.logger.error('Error en observable de clearStorage', error);
+        return throwError(() => error);
+      })
     );
   }
 
@@ -126,17 +153,53 @@ export class StorageService {
         try {
           if (this.isLocalStorageAvailable()) {
             localStorage.removeItem(key);
+            this.logger.debug(`Eliminada clave de localStorage: ${key}`);
           } else {
             this.memoryStorage.delete(key);
+            this.logger.debug(`Eliminada clave de memoria: ${key}`);
           }
           resolve();
         } catch (error: any) {
-          reject(new Error(`Error al eliminar del almacenamiento: ${error.message || 'Error desconocido'}`));
+          this.logger.error(`Error al eliminar del almacenamiento: ${key}`, error);
+          reject(error);
         }
       })
     ).pipe(
       map(() => void 0),
-      catchError(error => throwError(() => error))
+      catchError((error) => {
+        this.logger.error(`Error en observable de remove: ${key}`, error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Obtiene todas las claves almacenadas (localStorage o en memoria).
+   * @returns Observable con un arreglo de claves.
+   */
+  getKeys(): Observable<string[]> {
+    return from(
+      new Promise<string[]>((resolve, reject) => {
+        try {
+          if (this.isLocalStorageAvailable()) {
+            const keys = Object.keys(localStorage);
+            this.logger.debug(`Claves obtenidas de localStorage: ${keys.length}`);
+            resolve(keys);
+          } else {
+            const keys = Array.from(this.memoryStorage.keys());
+            this.logger.debug(`Claves obtenidas de memoria: ${keys.length}`);
+            resolve(keys);
+          }
+        } catch (error: any) {
+          this.logger.error('Error al obtener claves del almacenamiento', error);
+          reject(error);
+        }
+      })
+    ).pipe(
+      catchError((error) => {
+        this.logger.error('Error en observable de getKeys', error);
+        return throwError(() => error);
+      })
     );
   }
 }

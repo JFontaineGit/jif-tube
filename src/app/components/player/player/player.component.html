@@ -1,27 +1,42 @@
-<div class="player-container" [class.player-error]="error">
+<div class="player-wrapper">
+  <div id="youtube-player" class="invisible-player"></div>
+
   <div *ngIf="error" class="player-error-message" role="alert">
     {{ error }}
   </div>
-  
-  <app-player-info 
-    [currentTrack]="currentTrack">
-  </app-player-info>
-  
-  <div class="player-main">
-    <app-player-controls
-      [isPlaying]="isPlaying"
-      (playPause)="onPlayPause()"
-      (stop)="onStop()"
-      (previous)="onPrevious()"
-      (next)="onNext()"
-      [volume]="volume"
-      (volumeChange)="onVolumeChange($event)">
-    </app-player-controls>
-    
-    <app-player-progress
-      [currentTime]="currentTime"
-      [duration]="duration"
-      (seek)="onSeek($event)">
-    </app-player-progress>
+
+  <div class="player-container">
+    <!-- Información de la pista -->
+    <div class="player-section player-info-section">
+      <app-player-info [currentTrack]="currentTrack"></app-player-info>
+    </div>
+
+    <!-- Controles principales y progreso -->
+    <div class="player-section player-main-section">
+      <app-player-controls
+        [isPlaying]="isPlaying"
+        (playPause)="onPlayPause()"
+        (stop)="onStop()"
+        (previous)="onPrevious()"
+        (next)="onNext()"
+        [volume]="volume"
+        (volumeChange)="onVolumeChange($event)">
+      </app-player-controls>
+
+      <app-player-progress
+        [currentTime]="currentTime"
+        [duration]="duration"
+        (seek)="onSeek($event)">
+      </app-player-progress>
+    </div>
+
+    <!-- Sección de acciones futuras -->
+    <div class="player-section player-actions-section">
+      <div class="future-actions">
+        <!-- Espacio reservado para botón de like y otras acciones -->
+        <div class="action-placeholder" aria-hidden="true"></div>
+        <div class="action-placeholder" aria-hidden="true"></div>
+      </div>
+    </div>
   </div>
 </div>

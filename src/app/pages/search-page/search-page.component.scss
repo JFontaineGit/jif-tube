@@ -1,14 +1,21 @@
+@use 'sass:color'; // Importamos variables globales si existen
+
 $bg-secondary: rgba(0, 0, 0, 0.7);
 $border-color: rgba(255, 255, 255, 0.1);
 $accent-color: #9c27b0;
 
+// Calcular ajustes de color basados en el fallback
+$accent-light: color.adjust($accent-color, $lightness: 20%);
+$accent-dark: color.adjust($accent-color, $lightness: -10%);
+
 .search-page {
   padding: 2rem 1.5rem;
+  color: var(--text-primary, white); // Fallback a blanco si no hay variable global
 
   h2 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
-    color: white;
+    color: inherit; // Hereda de .search-page
   }
 
   .best-result {
@@ -22,7 +29,7 @@ $accent-color: #9c27b0;
   h3 {
     font-size: 1.2rem;
     margin-bottom: 1rem;
-    color: white;
+    color: inherit; // Hereda de .search-page
   }
 
   .song-list {
@@ -32,16 +39,21 @@ $accent-color: #9c27b0;
   }
 
   .save-button {
-    background-color: $accent-color;
+    background-color: var(--accent-color, $accent-color);
     border: none;
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 
     &:disabled {
-      background-color: lighten($accent-color, 20%);
+      background-color: var(--accent-color-disabled, $accent-light);
       cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: var(--accent-color-hover, $accent-dark);
     }
   }
 }

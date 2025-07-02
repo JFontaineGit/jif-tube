@@ -3,26 +3,35 @@
 .progress-container {
   display: flex;
   align-items: center;
+  gap: $spacing-lg;
   width: 100%;
-  padding: $spacing-sm;
-  background-color: $player-bg-color;
-  border-radius: $border-radius;
+  padding: $spacing-sm 0;
+
+  @media (max-width: #{($breakpoint-md - 1px)}) {
+    gap: $spacing-md;
+  }
 }
 
 .time-display {
-  font-size: $font-size-sm;
-  color: $player-time-color;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: var(--player-text-secondary);
   user-select: none;
-  min-width: 40px;
+  min-width: 35px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+
+  @media (min-width: $breakpoint-md) {
+    font-size: $font-size-sm;
+    min-width: 40px;
+  }
 
   &.current-time {
     text-align: right;
-    margin-right: $spacing-sm;
   }
 
   &.duration {
     text-align: left;
-    margin-left: $spacing-sm;
   }
 }
 
@@ -33,53 +42,134 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-}
+  border-radius: $border-radius;
+  transition: all $transition-fast;
 
-.progress-background {
-  position: absolute;
-  width: 100%;
-  height: 4px;
-  background-color: $player-progress-bg-color;
-  border-radius: 2px;
-  transition: height 0.2s ease;
+  &:focus-visible {
+    outline: 2px solid var(--player-accent);
+    outline-offset: 2px;
+  }
+
+  &:hover,
+  &.dragging {
+    .progress-track {
+      height: 6px;
+    }
+
+    .progress-handle {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+  }
 
   &.dragging {
-    height: 6px;
+    .progress-fill {
+      transition: none;
+    }
   }
+}
+
+.progress-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: var(--player-bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: height $transition-fast;
+}
+
+.progress-buffer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--player-text-tertiary);
+  opacity: 0.3;
+  border-radius: 2px;
+  width: 0%; // Se puede animar con JavaScript para mostrar buffer
+  transition: width $transition-normal;
 }
 
 .progress-fill {
   position: absolute;
-  height: 4px;
-  background-color: $player-progress-color;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--player-accent) 0%,
+    var(--player-accent-hover) 100%
+  );
   border-radius: 2px;
   transition: width 0.1s linear;
-
-  &.dragging {
-    height: 6px;
-    transition: none;
-  }
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
 }
 
 .progress-handle {
   position: absolute;
+  top: 50%;
   width: 12px;
   height: 12px;
-  background-color: $player-progress-handle-color;
-  border-radius: 50%;
-  transform: translateX(-50%);
+  background: var(--player-accent);
+  border: 2px solid white;
+  border-radius: $border-radius-full;
+  transform: translateX(-50%) translateY(-50%) scale(0.8);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: all $transition-fast;
+  box-shadow: $shadow-sm;
+  z-index: 1;
 
-  .progress-bar:hover &,
-  &.visible {
-    opacity: 1;
+  @media (min-width: $breakpoint-md) {
+    width: 14px;
+    height: 14px;
   }
 }
 
-.progress-bar:hover {
-  .progress-background,
+// Estados especiales
+.progress-container.loading {
+  .progress-track {
+    background: linear-gradient(
+      90deg,
+      var(--player-bg-tertiary) 25%,
+      var(--player-bg-secondary) 50%,
+      var(--player-bg-tertiary) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+.progress-container.error {
   .progress-fill {
-    height: 6px;
+    background: #f44336;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.3);
+  }
+
+  .progress-handle {
+    background: #f44336;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Accesibilidad para usuarios con preferencias de movimiento reducido
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar,
+  .progress-track,
+  .progress-fill,
+  .progress-handle {
+    transition: none;
+  }
+
+  .progress-container.loading .progress-track {
+    animation: none;
   }
 }

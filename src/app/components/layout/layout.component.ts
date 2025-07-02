@@ -1,4 +1,3 @@
-// layout.component.ts
 import {
   Component,
   OnInit,
@@ -11,7 +10,7 @@ import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { PlayerComponent } from '../player/player/player.component';
-import { PlayerService } from '../../services/player.service';
+import { YoutubePlayerService } from '../../services/youtube-iframe.service';
 import { ThemeService } from '../../services/theme.service';
 import { Song } from '../../models/song.model';
 import { YoutubeService } from '../../services/youtube.service';
@@ -33,7 +32,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private playerService: PlayerService,
+    private youtubePlayerService: YoutubePlayerService,
     private themeService: ThemeService,
     private youtubeService: YoutubeService,
     private libraryService: LibraryService,
@@ -44,7 +43,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.playerService.selectedSong$
+    this.youtubePlayerService.currentSong$
       .pipe(takeUntil(this.destroy$))
       .subscribe((song: Song | null) => {
         this.currentSong = song;
@@ -61,6 +60,16 @@ export class LayoutComponent implements OnInit, OnDestroy {
       .subscribe(color => {
         this.dominantColor = color;
       });
+
+    if (!this.youtubePlayerService.isPlayerReady()) {
+      this.youtubePlayerService.initializePlayer('youtube-player', {
+        height: '1',
+        width: '1',
+        playerVars: { autoplay: 0, controls: 0 },
+      }).subscribe({
+        error: (err) => console.error('Error al inicializar el reproductor en Layout:', err),
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -69,7 +78,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   closePlayer(): void {
-    this.playerService.setSelectedSong(null);
+    this.youtubePlayerService.stopVideo();
+    this.youtubePlayerService.clearCurrentSong(); // Usa el nuevo método
+    this.isPlayerVisible = false;
   }
 
   onSearch(event: { query: string; tab: string }): void {
