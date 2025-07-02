@@ -15,7 +15,13 @@ export class SongCardComponent {
   private logger = inject(LoggerService);
 
   @Input() song!: Song;
+  @Input() showSaveButton: boolean = false;
   @Output() selected = new EventEmitter<Song>();
+  @Output() save = new EventEmitter<Song>()
+
+  savedSongs: Song[] = [];
+
+  constructor (private libraryService: LibraryService) {}
 
   get cardTypeClass(): string {
     return this.song?.type || 'album-track';
@@ -24,5 +30,14 @@ export class SongCardComponent {
   onSelect(): void {
     this.logger.info(`Canción seleccionada en SongCard: ${this.song.title} (${this.song.videoId})`);
     this.selected.emit(this.song);
+  }
+
+  onSave(event: Event): void{
+    event.stopPropagation(); 
+    this.save.emit(this.song);
+  }
+
+  isSongSaved(): boolean{
+    return this.savedSongs.some(savedSong => savedSong.id === this.song.id);
   }
 }
