@@ -1,90 +1,93 @@
-@use "../player/_variables.scss" as *;
-@use 'sass:color';
-
-$navbar-height: 64px;
-$sidebar-width: 64px;
-$sidebar-width-small: 48px;
+@use '../../../styles/variables' as *;
+@use '../../../styles/mixins' as *;
 
 .app-container {
   position: relative;
-  display: flex;
+  @include flex-start;
   flex-direction: row;
   height: 100vh;
   width: 100vw;
-  background: radial-gradient(
-    circle at top right,
-    var(--gradient-start, #3f0d84),
-    var(--gradient-end, #05352e) 20%,
-    var(--gradient-end, #0d2b3f) 50%,
-    var(--gradient-end, #05352e) 80%
-  ) !important;
-  transition: background 0.8s ease-in-out;
+  background: var(--bg-primary);
+  transition: background $transition-slower;
   overflow: hidden;
   z-index: 1;
-
+  
   &::after {
     content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+    @include absolute-fill;
+    background: var(--bg-overlay);
+    opacity: 0.1;
     pointer-events: none;
     z-index: -1;
   }
-
+  
   .main-content {
     position: relative;
     z-index: 2;
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+    @include flex-column;
     margin-left: $sidebar-width;
-    padding: $spacing-md;
+    padding: $spacing-lg;
     padding-top: $navbar-height;
     overflow-y: auto;
     min-width: 0;
-    transition: margin-left 0.3s ease;
+    transition: margin-left $transition-slow;
     background: transparent;
-
-    main {
-      flex: 1;
+    @include custom-scrollbar;
+    
+    @include tablet-only {
+      margin-left: $sidebar-width-mobile;
       padding: $spacing-md;
     }
+    
+    @include mobile-only {
+      margin-left: $sidebar-width-mobile;
+      padding: $spacing-sm;
+    }
+    
+    main {
+      flex: 1;
+      padding: $spacing-lg;
+      
+      @include tablet-only {
+        padding: $spacing-md;
+      }
+      
+      @include mobile-only {
+        padding: $spacing-sm;
+      }
+    }
   }
-
+  
   .player-container {
     position: fixed;
     bottom: 0;
     left: $sidebar-width;
     width: calc(100vw - $sidebar-width);
-    background: var(--bg-card, rgba(15, 20, 25, 0.9));
-    padding: $spacing-sm;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    transition: left 0.3s ease, width 0.3s ease;
-
+    background: var(--bg-card);
+    backdrop-filter: $blur-lg;
+    -webkit-backdrop-filter: $blur-lg;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 20px var(--shadow-color-lg);
+    z-index: $z-fixed;
+    transition: all $transition-slow;
+    
+    @include tablet-only {
+      left: $sidebar-width-mobile;
+      width: calc(100vw - $sidebar-width-mobile);
+    }
+    
+    @include mobile-only {
+      left: $sidebar-width-mobile;
+      width: calc(100vw - $sidebar-width-mobile);
+    }
+    
     app-player {
       width: 100%;
     }
-
+    
     &[style*="display: none"] {
-      display: none !important; // Forza ocultar cuando isPlayerVisible es false
-    }
-  }
-}
-
-@media (max-width: $breakpoint-md) {
-  .app-container {
-    .main-content {
-      margin-left: $sidebar-width-small;
-
-      main {
-        padding: $spacing-sm;
-      }
-    }
-
-    .player-container {
-      left: $sidebar-width-small;
-      width: calc(100vw - $sidebar-width-small);
+      display: none !important;
     }
   }
 }
