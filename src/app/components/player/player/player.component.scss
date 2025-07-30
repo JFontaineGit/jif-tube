@@ -7,7 +7,7 @@
   left: 0;
   right: 0;
   z-index: $z-fixed;
-  background: var(--bg-card);
+  background: transparent;
   border-top: 1px solid var(--border-color);
   backdrop-filter: $blur-xl;
   -webkit-backdrop-filter: $blur-xl;

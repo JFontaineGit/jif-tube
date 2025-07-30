@@ -1,22 +1,22 @@
-@use '../../../styles/variables' as *;
-@use '../../../styles/mixins' as *;
+@use '../../../styles/_variables.scss' as *;
+@use '../../../styles/_mixins.scss' as *;
 
 .sidebar {
   width: $sidebar-width;
   height: calc(100vh - $navbar-height);
-  background: var(--bg-card);
+  background: transparent;
   backdrop-filter: $blur-lg;
   -webkit-backdrop-filter: $blur-lg;
   border-right: 1px solid var(--border-color);
   color: var(--text-primary);
-  @include flex-column;
   position: fixed;
   top: $navbar-height;
   left: 0;
   z-index: $z-fixed;
   transition: all $transition-slow;
   box-shadow: $shadow-sm;
-  
+  @include flex-column;
+
   @include tablet-only {
     width: $sidebar-width-mobile;
     height: calc(100vh - $navbar-height-mobile);
@@ -30,10 +30,10 @@
   }
   
   .sidebar-content {
-    @include flex-column;
     height: 100%;
     padding: $spacing-lg 0;
-    
+    @include flex-column;
+
     @include mobile-only {
       padding: $spacing-md 0;
     }
@@ -46,19 +46,19 @@
       list-style: none;
       padding: 0;
       margin: 0;
-      @include flex-column;
       gap: $spacing-xs;
+      @include flex-column;    
     }
     
     .nav-item {
-      @include flex-column-center;
       padding: $spacing-md;
       cursor: pointer;
       transition: all $transition-normal;
       position: relative;
       border-radius: $border-radius;
       margin: 0 $spacing-sm;
-      
+      @include flex-column-center;
+
       @include mobile-only {
         padding: $spacing-sm;
         margin: 0 $spacing-xs;
@@ -131,14 +131,14 @@
     }
     
     .nav-item {
-      @include flex-column-center;
       padding: $spacing-md;
       cursor: pointer;
       transition: all $transition-normal;
       position: relative;
       border-radius: $border-radius;
       margin: 0 $spacing-sm;
-      
+      @include flex-column-center;
+
       @include mobile-only {
         padding: $spacing-sm;
         margin: 0 $spacing-xs;

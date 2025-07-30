@@ -1,5 +1,5 @@
-@use '../../../styles/variables' as *;
-@use '../../../styles/mixins' as *;
+@use '../../../styles/_variables.scss' as *;
+@use '../../../styles/_mixins.scss' as *;
 
 .navbar {
   position: fixed;
@@ -7,16 +7,16 @@
   left: 0;
   right: 0;
   height: $navbar-height;
-  background: var(--bg-card);
+  background: transparent;
   backdrop-filter: $blur-lg;
   -webkit-backdrop-filter: $blur-lg;
   border-bottom: 1px solid var(--border-color);
-  @include flex-between;
   padding: 0 $spacing-xl;
   z-index: $z-fixed + 1;
   transition: all $transition-slow;
   box-shadow: $shadow-sm;
-  
+  @include flex-between;
+
   @include tablet-only {
     height: $navbar-height-mobile;
     padding: 0 $spacing-lg;
@@ -28,9 +28,9 @@
   }
   
   .navbar-brand {
-    @include flex-start;
     padding-right: $spacing-lg;
-    
+    @include flex-start;    
+
     @include mobile-only {
       padding-right: $spacing-sm;
     }
@@ -39,9 +39,9 @@
       font-size: $font-size-2xl;
       font-weight: $font-weight-bold;
       margin: 0;
-      @include text-gradient(var(--dynamic-gradient-start), var(--dynamic-gradient-end));
       transition: all $transition-normal;
-      
+      @include text-gradient(var(--dynamic-gradient-start), var(--dynamic-gradient-end));  
+
       @include tablet-only {
         font-size: $font-size-xl;
       }
@@ -81,7 +81,6 @@
     }
     
     .search-input-wrapper {
-      @include flex-start;
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: $border-radius-xl;
@@ -89,7 +88,8 @@
       transition: all $transition-slow;
       backdrop-filter: $blur;
       -webkit-backdrop-filter: $blur;
-      
+      @include flex-start;
+
       &:hover {
         background: var(--bg-tertiary);
         border-color: var(--dynamic-accent);
@@ -117,7 +117,6 @@
     }
     
     .search-button {
-      @include button-ghost;
       background: none;
       border: none;
       color: var(--text-secondary);
@@ -125,7 +124,8 @@
       padding: $spacing-sm;
       border-radius: $border-radius-full;
       transition: all $transition-fast;
-      
+      @include button-ghost;
+
       &:hover:not(:disabled) {
         color: var(--text-primary);
         background: var(--bg-tertiary);
@@ -147,7 +147,6 @@
     }
     
     .clear-button {
-      @include button-ghost;
       background: none;
       border: none;
       color: var(--text-tertiary);
@@ -156,7 +155,8 @@
       border-radius: $border-radius-full;
       transition: all $transition-fast;
       margin-left: $spacing-sm;
-      
+      @include button-ghost;
+
       &:hover {
         color: var(--text-primary);
         background: var(--bg-tertiary);
@@ -193,7 +193,6 @@
   
   .navbar-profile {
     .profile-button {
-      @include button-secondary;
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);
       border-radius: $border-radius-full;
@@ -202,7 +201,8 @@
       cursor: pointer;
       transition: all $transition-normal;
       color: var(--text-secondary);
-      
+      @include button-secondary;
+
       @include mobile-only {
         width: 36px;
         height: 36px;

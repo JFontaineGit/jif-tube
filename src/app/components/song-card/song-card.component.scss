@@ -1,5 +1,6 @@
-@use '../../../styles/variables' as *;
-@use '../../../styles/mixins' as *;
+@use '../../../styles/_variables.scss' as *;
+@use '../../../styles/_mixins.scss' as *;
+@use 'sass:math';
 
 $card-width: 220px;
 $card-width-tablet: 200px;
@@ -8,16 +9,16 @@ $play-color: #ef4444;
 $hover-scale: 1.03;
 
 .song-card {
-  @include card-interactive;
   width: $card-width;
   min-height: 280px;
   overflow: hidden;
-  @include flex-column;
   position: relative;
   color: var(--text-primary);
-  background: var(--bg-card);
+  background: transparent;
   border-radius: $border-radius-xl;
-  
+  @include card-interactive;  
+  @include flex-column;
+
   @include tablet-only {
     width: $card-width-tablet;
     min-height: 260px;
@@ -32,7 +33,7 @@ $hover-scale: 1.03;
   &:focus-visible {
     transform: scale($hover-scale);
     box-shadow: $shadow-xl;
-    border-color: var(--dynamic-primary);
+    border-color: transparent;
     
     .play-overlay {
       opacity: 1;
@@ -45,7 +46,7 @@ $hover-scale: 1.03;
     }
     
     .song-info {
-      background: var(--bg-secondary);
+      background: transparent;
     }
   }
   
@@ -55,7 +56,7 @@ $hover-scale: 1.03;
   
   &.official-video {
     .thumbnail {
-      @include aspect-ratio(16/9);
+      @include aspect-ratio(math.div(16, 9));
       
       &::after {
         content: 'OFFICIAL';
@@ -85,14 +86,14 @@ $hover-scale: 1.03;
   .thumbnail {
     position: relative;
     width: 100%;
-    @include aspect-ratio(1);
     border-radius: $border-radius-lg $border-radius-lg 0 0;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-color: var(--bg-tertiary);
+    background-color: transparent;
     overflow: hidden;
-    
+    @include aspect-ratio(1);
+
     .thumbnail-image {
       width: 100%;
       height: 100%;
@@ -103,8 +104,6 @@ $hover-scale: 1.03;
     }
     
     .play-overlay {
-      @include absolute-fill;
-      @include flex-center;
       background: linear-gradient(
         135deg,
         rgba(0, 0, 0, 0.4) 0%,
@@ -113,7 +112,9 @@ $hover-scale: 1.03;
       opacity: 0;
       transition: all $transition-normal;
       border-radius: inherit;
-      
+      @include absolute-fill;
+      @include flex-center;
+
       .material-icons {
         font-size: 4rem;
         color: $play-color;
@@ -138,12 +139,12 @@ $hover-scale: 1.03;
   .song-info {
     padding: $spacing-lg;
     flex: 1;
-    @include flex-column;
     gap: $spacing-sm;
-    background: var(--bg-card);
+    background: transparent;
     border-radius: 0 0 $border-radius-lg $border-radius-lg;
     transition: background $transition-normal;
-    
+    @include flex-column;
+
     @include tablet-only {
       padding: $spacing-md;
     }
@@ -158,9 +159,9 @@ $hover-scale: 1.03;
       color: var(--text-primary);
       margin: 0;
       line-height: $line-height-tight;
-      @include text-clamp(2);
       transition: color $transition-fast;
-      
+      @include text-clamp(2);
+
       @include tablet-only {
         font-size: $font-size-base;
       }
@@ -180,9 +181,9 @@ $hover-scale: 1.03;
       color: var(--text-secondary);
       margin: 0;
       line-height: $line-height-normal;
-      @include text-truncate;
       transition: color $transition-fast;
-      
+      @include text-truncate;      
+
       @include mobile-only {
         font-size: $font-size-xs;
       }
@@ -198,7 +199,6 @@ $hover-scale: 1.03;
     position: absolute;
     top: $spacing-sm;
     right: $spacing-sm;
-    @include button-base;
     background: rgba(0, 0, 0, 0.8);
     color: white;
     border: none;
@@ -212,7 +212,8 @@ $hover-scale: 1.03;
     -webkit-backdrop-filter: $blur-sm;
     box-shadow: $shadow-md;
     transition: all $transition-normal;
-    
+    @include button-base;
+
     @include mobile-only {
       width: 32px;
       height: 32px;

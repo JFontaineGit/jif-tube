@@ -1,4 +1,5 @@
-@use './variables' as *;
+@use './_variables.scss' as *;
+@use 'sass:math';
 
 // ===== MEDIA QUERIES =====
 @mixin mobile-only {
@@ -142,8 +143,8 @@
   overflow: hidden;
 }
 
-@mixin text-gradient($gradient: $gradient-primary) {
-  background: $gradient;
+@mixin text-gradient($start: var(--dynamic-gradient-start), $end: var(--dynamic-gradient-end)) {
+  background: linear-gradient(90deg, $start, $end);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -322,16 +323,15 @@
 
 @mixin aspect-ratio($ratio: 1) {
   aspect-ratio: $ratio;
-  
+
   @supports not (aspect-ratio: 1) {
     &::before {
       content: '';
       display: block;
-      padding-top: percentage(1 / $ratio);
+      padding-top: math.percentage(math.div(1, $ratio));
     }
   }
 }
-
 // ===== KEYFRAMES =====
 @keyframes fadeIn {
   from {
