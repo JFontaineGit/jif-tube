@@ -10,10 +10,16 @@
 
   <div class="thumbnail" 
      [ngClass]="cardTypeClass"
-     [style.backgroundImage]="'url(' + (song.thumbnailUrl || '/assets/images/default-thumbnail.jpg') + ')'"
      role="img"
      [attr.aria-label]="song.title">
-  
+    
+    <img 
+      class="thumbnail-image"
+      [src]="song.thumbnailUrl || '/assets/images/default-thumbnail.jpg'" 
+      [alt]="song.title"
+      loading="lazy"
+      (error)="onImageError($event)">
+    
     <div class="play-overlay" aria-hidden="true">
       <span class="material-icons">play_circle_filled</span>
     </div>

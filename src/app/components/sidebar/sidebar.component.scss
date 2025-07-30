@@ -1,141 +1,201 @@
-$navbar-height: 64px;
-$sidebar-width: 80px; 
-$bg-secondary: transparent;
-$border-color: rgba(255, 255, 255, 0.1);
-$hover-color: rgba(255, 255, 255, 0.1);
-$accent-color: var(--accent-color, #9c27b0);
+@use '../../../styles/_variables.scss' as *;
+@use '../../../styles/_mixins.scss' as *;
 
 .sidebar {
   width: $sidebar-width;
   height: calc(100vh - $navbar-height);
-  background: $bg-secondary;
-  backdrop-filter: blur(20px);
-  color: white;
-  display: flex;
-  flex-direction: column;
+  background: transparent;
+  backdrop-filter: $blur-lg;
+  -webkit-backdrop-filter: $blur-lg;
+  border-right: 1px solid var(--border-color);
+  color: var(--text-primary);
   position: fixed;
   top: $navbar-height;
   left: 0;
-  z-index: 1000;
-  transition: all 0.3s ease;
+  z-index: $z-fixed;
+  transition: all $transition-slow;
+  box-shadow: $shadow-sm;
+  @include flex-column;
 
-  .sidebar-content {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 1rem 0;
+  @include tablet-only {
+    width: $sidebar-width-mobile;
+    height: calc(100vh - $navbar-height-mobile);
+    top: $navbar-height-mobile;
   }
+  
+  @include mobile-only {
+    width: $sidebar-width-mobile;
+    height: calc(100vh - $navbar-height-mobile);
+    top: $navbar-height-mobile;
+  }
+  
+  .sidebar-content {
+    height: 100%;
+    padding: $spacing-lg 0;
+    @include flex-column;
 
+    @include mobile-only {
+      padding: $spacing-md 0;
+    }
+  }
+  
   .nav-menu {
     flex: 1;
-
+    
     ul {
       list-style: none;
       padding: 0;
       margin: 0;
+      gap: $spacing-xs;
+      @include flex-column;    
     }
-
+    
     .nav-item {
-      display: flex;
-      flex-direction: column; 
-      align-items: center;
-      padding: 0.75rem;
+      padding: $spacing-md;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-normal;
       position: relative;
+      border-radius: $border-radius;
+      margin: 0 $spacing-sm;
+      @include flex-column-center;
 
-      &:hover {
-        background-color: $hover-color;
+      @include mobile-only {
+        padding: $spacing-sm;
+        margin: 0 $spacing-xs;
       }
-
+      
+      &:hover {
+        background: var(--bg-secondary);
+        transform: translateX(2px);
+      }
+      
       &.active {
-        background-color: $hover-color;
-        color: $accent-color;
-
+        background: var(--bg-tertiary);
+        color: var(--dynamic-primary);
+        
         &::before {
           content: '';
           position: absolute;
           left: 0;
           top: 0;
           bottom: 0;
-          width: 3px;
-          background: $accent-color;
+          width: 4px;
+          background: var(--dynamic-primary);
+          border-radius: 0 $border-radius $border-radius 0;
+          box-shadow: $shadow-md;
         }
       }
-
+      
       .nav-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.25rem;
+        font-size: $font-size-xl;
+        margin-bottom: $spacing-xs;
+        transition: transform $transition-fast;
+        
+        @include mobile-only {
+          font-size: $font-size-lg;
+        }
       }
-
+      
       .nav-label {
-        font-size: 0.75rem; 
-        font-weight: 500;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-medium;
         text-align: center;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
+        transition: color $transition-fast;
+        
+        @include mobile-only {
+          font-size: 10px;
+        }
+      }
+      
+      &:hover {
+        .nav-icon {
+          transform: scale(1.1);
+        }
+        
+        .nav-label {
+          color: var(--text-primary);
+        }
       }
     }
   }
-
+  
   .settings-menu {
-    padding-top: 1rem;
-
+    padding-top: $spacing-lg;
+    border-top: 1px solid var(--border-color);
+    margin-top: $spacing-lg;
+    
+    @include mobile-only {
+      padding-top: $spacing-md;
+      margin-top: $spacing-md;
+    }
+    
     .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0.75rem;
+      padding: $spacing-md;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all $transition-normal;
       position: relative;
+      border-radius: $border-radius;
+      margin: 0 $spacing-sm;
+      @include flex-column-center;
 
-      &:hover {
-        background-color: $hover-color;
+      @include mobile-only {
+        padding: $spacing-sm;
+        margin: 0 $spacing-xs;
       }
-
+      
+      &:hover {
+        background: var(--bg-secondary);
+        transform: translateX(2px);
+      }
+      
       &.active {
-        background-color: $hover-color;
-        color: $accent-color;
-
+        background: var(--bg-tertiary);
+        color: var(--dynamic-primary);
+        
         &::before {
           content: '';
           position: absolute;
           left: 0;
           top: 0;
           bottom: 0;
-          width: 3px;
-          background: $accent-color;
+          width: 4px;
+          background: var(--dynamic-primary);
+          border-radius: 0 $border-radius $border-radius 0;
+          box-shadow: $shadow-md;
         }
       }
-
+      
       .nav-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.25rem;
+        font-size: $font-size-xl;
+        margin-bottom: $spacing-xs;
+        transition: transform $transition-fast;
+        
+        @include mobile-only {
+          font-size: $font-size-lg;
+        }
       }
-
+      
       .nav-label {
-        font-size: 0.75rem;
-        font-weight: 500;
+        font-size: $font-size-xs;
+        font-weight: $font-weight-medium;
         text-align: center;
-        color: rgba(255, 255, 255, 0.8);
+        color: var(--text-secondary);
+        transition: color $transition-fast;
+        
+        @include mobile-only {
+          font-size: 10px;
+        }
       }
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 48px; // Aún más compacto en móviles
-
-    .nav-item {
-      padding: 0.5rem;
-
-      .nav-icon {
-        font-size: 1rem;
-      }
-
-      .nav-label {
-        font-size: 0.65rem;
+      
+      &:hover {
+        .nav-icon {
+          transform: scale(1.1);
+        }
+        
+        .nav-label {
+          color: var(--text-primary);
+        }
       }
     }
   }

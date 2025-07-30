@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Song } from '../../models/song.model';
 import { LibraryService } from '../../services/library.service';
 import { LoggerService } from '../../services/core/logger.service';
+import { LibraryService } from '../../services/library.service';
 
 @Component({
   selector: 'app-song-card',
@@ -14,15 +15,15 @@ import { LoggerService } from '../../services/core/logger.service';
 })
 export class SongCardComponent {
   private logger = inject(LoggerService);
+  private libraryService = inject(LibraryService);
 
   @Input() song!: Song;
   @Input() showSaveButton: boolean = false;
   @Output() selected = new EventEmitter<Song>();
-  @Output() save = new EventEmitter<Song>()
+  @Output() save = new EventEmitter<Song>();
 
   savedSongs: Song[] = [];
 
-  constructor (private libraryService: LibraryService) {}
 
   get cardTypeClass(): string {
     return this.song?.type || 'album-track';
@@ -33,12 +34,18 @@ export class SongCardComponent {
     this.selected.emit(this.song);
   }
 
-  onSave(event: Event): void{
+  onSave(event: Event): void {
     event.stopPropagation(); 
     this.save.emit(this.song);
   }
 
-  isSongSaved(): boolean{
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '/assets/images/default-thumbnail.jpg';
+    this.logger.warn(`Error cargando imagen para: ${this.song.title}`);
+  }
+
+  isSongSaved(): boolean {
     return this.savedSongs.some(savedSong => savedSong.id === this.song.id);
   }
 }

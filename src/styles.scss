@@ -1,31 +1,18 @@
+@use './styles/variables' as *;
+@use './styles/mixins' as *;
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  color: var(--text-primary, #ffffff);
-  font-family: 'Arial', sans-serif;
+  color: var(--text-primary);
+  font-family: $font-family-primary;
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-
-:root {
-  --text-primary: #ffffff; /* gris claro para buena legibilidad */
-  --text-secondary: #b3b3b3; /* equivalente más oscuro */
-  --bg-primary: #0f172a;
-  --bg-secondary: rgba(0, 0, 0, 0.7);
-  --bg-card: rgba(15, 20, 25, 0.9);
-  --border-color: rgba(66, 69, 73, 0.4);
-  --hover-color: rgba(66, 69, 73, 0.4);
-  --active-color: rgba(66, 69, 73, 0.6);
-  --error-color: #f44336;
-  --control-color: #272b30;
-  --control-hover-color: #272b32;
-  --control-hover-bg: rgba(66, 69, 73, 0.3);
-  --control-focus-color: #1db954;
-  --progress-bg-color: #36393e;
-  --progress-color: #1db954;
-  --progress-handle-color: #1e2123;
-}
-
 
 * {
   box-sizing: border-box;
@@ -34,9 +21,69 @@ html, body {
 a {
   color: inherit;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: $transition-colors;
+  
+  &:hover {
+    color: var(--dynamic-primary);
+  }
 }
 
 body {
-  transition: background 0.5s ease;
+  background: var(--bg-primary);
+  transition: background $transition-slower;
+}
+
+// ===== UTILIDADES GLOBALES =====
+.container {
+  width: 100%;
+  max-width: $large-desktop;
+  margin: 0 auto;
+  padding: 0 $spacing-lg;
+  
+  @include tablet-up {
+    padding: 0 $spacing-xl;
+  }
+  
+  @include large-desktop-up {
+    padding: 0 $spacing-xxl;
+  }
+}
+
+.text-gradient {
+  @include text-gradient;
+}
+
+.fade-in {
+  @include fade-in;
+}
+
+.slide-up {
+  @include slide-up;
+}
+
+.scale-in {
+  @include scale-in;
+}
+
+// ===== SCROLLBAR GLOBAL =====
+* {
+  @include custom-scrollbar;
+}
+
+// ===== ACCESIBILIDAD =====
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// ===== FOCUS VISIBLE =====
+:focus-visible {
+  outline: 2px solid var(--dynamic-primary);
+  outline-offset: 2px;
+  border-radius: $border-radius-sm;
 }

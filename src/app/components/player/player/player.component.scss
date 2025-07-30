@@ -1,143 +1,120 @@
-@use '../_variables.scss' as *;
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
 
 .player-wrapper {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: $z-player;
-  background: var(--player-bg-primary);
-  border-top: 1px solid var(--player-border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-
-  // Variables CSS para modo oscuro (por defecto)
-  --player-bg-primary: #{$dark-bg-primary};
-  --player-bg-secondary: #{$dark-bg-secondary};
-  --player-bg-tertiary: #{$dark-bg-tertiary};
-  --player-text-primary: #{$dark-text-primary};
-  --player-text-secondary: #{$dark-text-secondary};
-  --player-text-tertiary: #{$dark-text-tertiary};
-  --player-accent: #{$dark-accent};
-  --player-accent-hover: #{$dark-accent-hover};
-  --player-border: #{$dark-border};
-  --player-shadow: #{$dark-shadow};
-
-  // Modo claro
-  @media (prefers-color-scheme: light) {
-    --player-bg-primary: #{$light-bg-primary};
-    --player-bg-secondary: #{$light-bg-secondary};
-    --player-bg-tertiary: #{$light-bg-tertiary};
-    --player-text-primary: #{$light-text-primary};
-    --player-text-secondary: #{$light-text-secondary};
-    --player-text-tertiary: #{$light-text-tertiary};
-    --player-accent: #{$light-accent};
-    --player-accent-hover: #{$light-accent-hover};
-    --player-border: #{$light-border};
-    --player-shadow: #{$light-shadow};
-  }
+  z-index: $z-fixed;
+  background: transparent;
+  border-top: 1px solid var(--border-color);
+  backdrop-filter: $blur-xl;
+  -webkit-backdrop-filter: $blur-xl;
+  box-shadow: 0 -8px 32px var(--shadow-color-lg);
+  @include slide-up;
 }
 
 .invisible-player {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
+  @include visually-hidden;
 }
 
 .player-container {
   display: grid;
   grid-template-columns: 1fr;
-  gap: $spacing-md;
-  padding: $spacing-lg;
-  min-height: 80px;
+  gap: $spacing-lg;
+  padding: $spacing-xl;
+  min-height: $player-height-mobile;
   max-width: 100vw;
-  font-family: $font-family;
-
-  @media (min-width: $breakpoint-md) {
+  font-family: $font-family-primary;
+  
+  @include desktop-up {
     grid-template-columns: 300px 1fr auto;
     align-items: center;
-    gap: $spacing-xl;
-    padding: $spacing-lg $spacing-xl;
-    min-height: 90px;
+    gap: $spacing-xxl;
+    padding: $spacing-xl $spacing-3xl;
+    min-height: $player-height;
   }
-
-  @media (min-width: $breakpoint-lg) {
-    max-width: 1400px;
+  
+  @include large-desktop-up {
+    max-width: $xl-desktop;
     margin: 0 auto;
-    padding: $spacing-lg $spacing-xxl;
+    padding: $spacing-xl $spacing-4xl;
   }
 }
 
 .player-section {
-  display: flex;
-  align-items: center;
+  @include flex-start;
   min-width: 0; // Permite que el contenido se contraiga
 }
 
 .player-info-section {
   order: 1;
-
-  @media (min-width: $breakpoint-md) {
+  
+  @include desktop-up {
     order: 0;
   }
 }
 
 .player-main-section {
   order: 0;
-  flex-direction: column;
+  @include flex-column;
   gap: $spacing-sm;
   flex: 1;
-
-  @media (min-width: $breakpoint-md) {
+  
+  @include desktop-up {
     order: 1;
-    gap: $spacing-md;
+    gap: $spacing-lg;
   }
 }
 
 .player-actions-section {
   order: 2;
   justify-content: flex-end;
-
-  @media (max-width: #{ $breakpoint-md - 1px }) {
-    display: none; // Ocultar en móviles
+  
+  @include tablet-only {
+    display: none;
+  }
+  
+  @include mobile-only {
+    display: none;
   }
 }
 
 .future-actions {
-  display: flex;
-  align-items: center;
+  @include flex-start;
   gap: $spacing-sm;
-
+  
   .action-placeholder {
     width: 32px;
     height: 32px;
     border-radius: $border-radius-full;
-    background: var(--player-bg-tertiary);
+    background: var(--bg-tertiary);
     opacity: 0.3;
-    transition: opacity $transition-normal;
-
+    transition: all $transition-normal;
+    
     &:hover {
       opacity: 0.5;
+      transform: scale(1.1);
     }
   }
 }
 
 .player-error-message {
-  background: linear-gradient(90deg, 
-    rgba(244, 67, 54, 0.1) 0%, 
-    rgba(244, 67, 54, 0.05) 100%);
-  color: #f44336;
-  padding: $spacing-md $spacing-lg;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.1) 0%,
+    rgba(239, 68, 68, 0.05) 100%
+  );
+  color: $error-color;
+  padding: $spacing-lg $spacing-xl;
   margin: 0;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
-  border-left: 3px solid #f44336;
-  animation: slideDown 0.3s ease-out;
-
+  border-left: 4px solid $error-color;
+  border-radius: 0 $border-radius $border-radius 0;
+  @include slide-up;
+  
   @keyframes slideDown {
     from {
       transform: translateY(-100%);
@@ -150,7 +127,7 @@
   }
 }
 
-// Reducir movimiento para usuarios con preferencias de accesibilidad
+// Accessibility
 @media (prefers-reduced-motion: reduce) {
   .player-wrapper,
   .player-container,
