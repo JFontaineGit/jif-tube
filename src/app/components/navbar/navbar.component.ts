@@ -1,3 +1,4 @@
+// navbar.component.ts
 import {
   Component,
   Output,
@@ -9,6 +10,7 @@ import {
   Input,
   signal,
   HostListener,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -20,8 +22,11 @@ import {
   Subject,
   takeUntil
 } from 'rxjs';
-import { ApiService } from '../../services/core/pocket-base.service';
+import { AuthService } from '../../services/auth/auth.service';
+import { StorageService } from '../../services/core/storage.service';
+import { LoggerService } from '../../services/core/logger.service';
 import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
+import { MeUser } from '../../services/interfaces/auth.interfaces';
 
 interface SearchEvent {
   query: string;
@@ -36,6 +41,10 @@ interface SearchEvent {
   styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
+  private readonly authService = inject(AuthService);
+  private readonly storage = inject(StorageService);
+  private readonly logger = inject(LoggerService);
+  
   private destroy$ = new Subject<void>();
   private searchSubject = new BehaviorSubject<string>('');
 
@@ -53,9 +62,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
   // Auth signals
   isAuthDialogOpen = signal(false);
   isUserMenuOpen = signal(false);
-  currentUser = signal<any>(null);
+  currentUser = signal<MeUser | null>(null);
+  isLoadingUser = signal(false);
 
-  constructor(private apiService: ApiService) {
+  constructor() {
     this.searchSubject
       .pipe(
         debounceTime(300),
@@ -74,7 +84,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCurrentUser();
-    this.checkAuthPeriodically();
   }
 
   ngOnDestroy(): void {
@@ -85,14 +94,32 @@ export class NavbarComponent implements OnInit, OnDestroy {
   // ============ AUTH METHODS ============
   
   private loadCurrentUser(): void {
-    const user = this.apiService.getCurrentUser();
-    this.currentUser.set(user);
-  }
+    const accessToken = this.storage.getAccessToken();
+    
+    if (!accessToken) {
+      this.currentUser.set(null);
+      return;
+    }
 
-  private checkAuthPeriodically(): void {
-    setInterval(() => {
-      this.loadCurrentUser();
-    }, 5000);
+    this.isLoadingUser.set(true);
+    
+    this.authService.me().subscribe({
+      next: (user) => {
+        this.logger.debug('Usuario cargado:', user);
+        this.currentUser.set(user);
+        this.isLoadingUser.set(false);
+      },
+      error: (error) => {
+        this.logger.error('Error al cargar usuario:', error);
+        this.currentUser.set(null);
+        this.isLoadingUser.set(false);
+        
+        // If token is invalid, clear it
+        if (error.status === 401) {
+          this.storage.removeTokens();
+        }
+      }
+    });
   }
 
   @HostListener('window:scroll')
@@ -114,6 +141,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   closeAuthDialog(): void {
     this.isAuthDialogOpen.set(false);
+  }
+
+  onAuthSuccess(): void {
     this.loadCurrentUser();
   }
 
@@ -122,28 +152,53 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.apiService.logout();
-    this.currentUser.set(null);
-    this.isUserMenuOpen.set(false);
+    this.isLoadingUser.set(true);
+    
+    this.authService.logout().subscribe({
+      next: () => {
+        this.logger.debug('Logout exitoso');
+        this.storage.removeTokens();
+        this.currentUser.set(null);
+        this.isUserMenuOpen.set(false);
+        this.isLoadingUser.set(false);
+      },
+      error: (error) => {
+        this.logger.error('Error en logout:', error);
+        // Even if logout fails, clear local tokens
+        this.storage.removeTokens();
+        this.currentUser.set(null);
+        this.isUserMenuOpen.set(false);
+        this.isLoadingUser.set(false);
+      }
+    });
   }
 
   getUserInitials(): string {
     const user = this.currentUser();
-    if (!user?.email) return 'U';
+    if (!user) return 'U';
     
-    return user.email
-      .split('@')[0]
-      .split('.')
-      .map((part: string) => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    if (user.username) {
+      return user.username.substring(0, 2).toUpperCase();
+    }
+    
+    if (user.email) {
+      return user.email
+        .split('@')[0]
+        .split('.')
+        .map((part: string) => part[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    
+    return 'U';
   }
 
-  getUserAvatar(): string {
+  getUserDisplayName(): string {
     const user = this.currentUser();
-    if (!user?.email) return '';
-    return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.email)}`;
+    if (!user) return '';
+    
+    return user.username || user.email?.split('@')[0] || '';
   }
 
   // ============ SEARCH METHODS ============

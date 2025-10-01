@@ -2,316 +2,350 @@
   <div class="auth-dialog-overlay" (click)="onOverlayClick($event)">
     <div class="auth-dialog" (click)="$event.stopPropagation()">
 
-      <!-- VISTA DE LOGIN -->
-      @if (currentView() === 'login') {
-        <div class="auth-dialog__header">
-          <div class="auth-dialog__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-            </svg>
-          </div>
-          <h2>Acceso a JifTube</h2>
-          <p>Inicia sesión para disfrutar de tu música favorita</p>
-        </div>
-
-        @if (errorMessage()) {
-          <div class="auth-dialog__message auth-dialog__message--error">
-            {{ errorMessage() }}
-          </div>
-        }
-
-        @if (successMessage()) {
-          <div class="auth-dialog__message auth-dialog__message--success">
-            {{ successMessage() }}
-          </div>
-        }
-
-        <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-dialog__form">
-          <div class="form-group">
-            <label for="login-email" class="form-label">Correo electrónico</label>
-            <input
-              type="email"
-              id="login-email"
-              formControlName="email"
-              placeholder="tu@correo.com"
-              class="form-input"
-              [class.form-input--error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
-            >
-            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
-              <div class="error-message">El correo electrónico es requerido</div>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="login-password" class="form-label">Contraseña</label>
-            <div class="password-input">
-              <input
-                [type]="showPassword() ? 'text' : 'password'"
-                id="login-password"
-                formControlName="password"
-                placeholder="••••••••"
-                class="form-input"
-                [class.form-input--error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
-              >
-              <button
-                type="button"
-                class="toggle-password"
-                (click)="showPassword.set(!showPassword())"
-                aria-label="Mostrar/Ocultar contraseña"
-              >
-                <svg *ngIf="!showPassword()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <svg *ngIf="showPassword()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </button>
+      @switch (currentView()) {
+        @case ('login') {
+          <div class="auth-dialog__header">
+            <div class="auth-dialog__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+              </svg>
             </div>
-            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
-              <div class="error-message">La contraseña es requerida</div>
-            }
+            <h2>Acceso a JifTube</h2>
+            <p>Inicia sesión para disfrutar de tu música favorita</p>
           </div>
 
-          <button
-            type="button"
-            class="forgot-link"
-            (click)="switchView('forgot-password')"
-          >
-            ¿Olvidaste tu contraseña?
-          </button>
+          @if (errorMessage()) {
+            <div class="auth-dialog__message auth-dialog__message--error">
+              {{ errorMessage() }}
+            </div>
+          }
 
-          <button
-            type="submit"
-            class="auth-dialog__submit"
-            [disabled]="loginForm.invalid || isSubmitting()"
-          >
-            @if (isSubmitting()) {
-              <span class="loading-spinner"></span>
-              Iniciando sesión...
-            } @else {
-              Iniciar sesión
-            }
-          </button>
+          @if (successMessage()) {
+            <div class="auth-dialog__message auth-dialog__message--success">
+              {{ successMessage() }}
+            </div>
+          }
 
-          <div class="auth-dialog__footer">
-            <p>
-              ¿No tienes una cuenta?
-              <button type="button" class="link-button" (click)="switchView('register')">
-                Regístrate aquí
-              </button>
-            </p>
-          </div>
-        </form>
-      }
-
-      <!-- VISTA DE REGISTRO -->
-      @if (currentView() === 'register') {
-        <div class="auth-dialog__header">
-          <div class="auth-dialog__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="20" y2="14"></line>
-              <line x1="23" y1="11" x2="17" y2="11"></line>
-            </svg>
-          </div>
-          <h2>Crear cuenta</h2>
-          <p>Únete a JifTube y descubre música increíble</p>
-        </div>
-
-        @if (errorMessage()) {
-          <div class="auth-dialog__message auth-dialog__message--error">
-            {{ errorMessage() }}
-          </div>
-        }
-
-        @if (successMessage()) {
-          <div class="auth-dialog__message auth-dialog__message--success">
-            {{ successMessage() }}
-          </div>
-        }
-
-        <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-dialog__form">
-          <div class="form-group">
-            <label for="register-email" class="form-label">Correo electrónico</label>
-            <input
-              type="email"
-              id="register-email"
-              formControlName="email"
-              placeholder="tu@correo.com"
-              class="form-input"
-              [class.form-input--error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
-            >
-            @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
-              <div class="error-message">Ingresa un correo electrónico válido</div>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="register-password" class="form-label">Contraseña</label>
-            <div class="password-input">
+          <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-dialog__form">
+            <div class="form-group">
+              <label for="login-email" class="form-label">Usuario o Email</label>
               <input
-                [type]="showPassword() ? 'text' : 'password'"
-                id="register-password"
-                formControlName="password"
-                placeholder="Mínimo 6 caracteres"
+                type="text"
+                id="login-email"
+                formControlName="username_or_email"
+                placeholder="usuario o correo@ejemplo.com"
                 class="form-input"
-                [class.form-input--error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
-                (input)="checkPasswordStrength()"
+                [class.form-input--error]="loginForm.get('username_or_email')?.invalid && loginForm.get('username_or_email')?.touched"
               >
-              <button
-                type="button"
-                class="toggle-password"
-                (click)="showPassword.set(!showPassword())"
-                aria-label="Mostrar/Ocultar contraseña"
-              >
-                <svg *ngIf="!showPassword()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <svg *ngIf="showPassword()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </button>
+              @if (loginForm.get('username_or_email')?.invalid && loginForm.get('username_or_email')?.touched) {
+                <div class="error-message">El usuario o email es requerido</div>
+              }
             </div>
 
-            @if (registerForm.get('password')?.value) {
-              <div class="password-strength">
-                <div class="strength-bar">
-                  <div class="strength-fill" [ngClass]="passwordStrengthClass()" [style.width.%]="passwordStrength()"></div>
-                </div>
-                <span class="strength-text" [ngClass]="passwordStrengthClass()">
-                  {{ passwordStrengthText() }}
-                </span>
+            <div class="form-group">
+              <label for="login-password" class="form-label">Contraseña</label>
+              <div class="password-input">
+                <input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  id="login-password"
+                  formControlName="password"
+                  placeholder="••••••••"
+                  class="form-input"
+                  [class.form-input--error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                >
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="showPassword.set(!showPassword())"
+                  aria-label="Mostrar/Ocultar contraseña"
+                >
+                  @if (!showPassword()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  }
+                </button>
               </div>
-            }
-
-            @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
-              <div class="error-message">La contraseña debe tener al menos 6 caracteres</div>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="confirm-password" class="form-label">Confirmar contraseña</label>
-            <div class="password-input">
-              <input
-                [type]="showConfirmPassword() ? 'text' : 'password'"
-                id="confirm-password"
-                formControlName="confirmPassword"
-                placeholder="Repite tu contraseña"
-                class="form-input"
-                [class.form-input--error]="(registerForm.get('confirmPassword')?.invalid || registerForm.errors?.['passwordMismatch']) && registerForm.get('confirmPassword')?.touched"
-              >
-              <button
-                type="button"
-                class="toggle-password"
-                (click)="showConfirmPassword.set(!showConfirmPassword())"
-                aria-label="Mostrar/Ocultar contraseña"
-              >
-                <svg *ngIf="!showConfirmPassword()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <svg *ngIf="showConfirmPassword()" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </button>
+              @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+                <div class="error-message">La contraseña es requerida</div>
+              }
             </div>
-            @if ((registerForm.get('confirmPassword')?.invalid || registerForm.errors?.['passwordMismatch']) && registerForm.get('confirmPassword')?.touched) {
-              <div class="error-message">Las contraseñas no coinciden</div>
-            }
-          </div>
 
-          <button
-            type="submit"
-            class="auth-dialog__submit"
-            [disabled]="registerForm.invalid || isSubmitting()"
-          >
-            @if (isSubmitting()) {
-              <span class="loading-spinner"></span>
-              Creando cuenta...
-            } @else {
-              Crear cuenta
-            }
-          </button>
+            <div class="form-group-checkbox">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="rememberEmail()"
+                  (change)="toggleRememberEmail()"
+                >
+                <span>Recordar mi email</span>
+              </label>
+            </div>
 
-          <div class="auth-dialog__footer">
-            <p>
-              ¿Ya tienes una cuenta?
-              <button type="button" class="link-button" (click)="switchView('login')">
-                Inicia sesión
-              </button>
-            </p>
-          </div>
-        </form>
-      }
-
-      <!-- VISTA DE OLVIDE CONTRASEÑA -->
-      @if (currentView() === 'forgot-password') {
-        <div class="auth-dialog__header">
-          <div class="auth-dialog__icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-          </div>
-          <h2>Recuperar contraseña</h2>
-          <p>Te enviaremos un enlace para restablecer tu contraseña</p>
-        </div>
-
-        @if (errorMessage()) {
-          <div class="auth-dialog__message auth-dialog__message--error">
-            {{ errorMessage() }}
-          </div>
-        }
-
-        @if (successMessage()) {
-          <div class="auth-dialog__message auth-dialog__message--success">
-            {{ successMessage() }}
-          </div>
-        }
-
-        <form [formGroup]="forgotForm" (ngSubmit)="onForgotPassword()" class="auth-dialog__form">
-          <div class="form-group">
-            <label for="forgot-email" class="form-label">Correo electrónico</label>
-            <input
-              type="email"
-              id="forgot-email"
-              formControlName="email"
-              placeholder="tu@correo.com"
-              class="form-input"
-              [class.form-input--error]="forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched"
+            <button
+              type="button"
+              class="forgot-link"
+              (click)="switchView('forgot-password')"
             >
-            @if (forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched) {
-              <div class="error-message">Ingresa un correo electrónico válido</div>
-            }
+              ¿Olvidaste tu contraseña?
+            </button>
+
+            <button
+              type="submit"
+              class="auth-dialog__submit"
+              [disabled]="loginForm.invalid || isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span class="loading-spinner"></span>
+                Iniciando sesión...
+              } @else {
+                Iniciar sesión
+              }
+            </button>
+
+            <div class="auth-dialog__footer">
+              <p>
+                ¿No tienes una cuenta?
+                <button type="button" class="link-button" (click)="switchView('register')">
+                  Regístrate aquí
+                </button>
+              </p>
+            </div>
+          </form>
+        }
+
+        @case ('register') {
+          <div class="auth-dialog__header">
+            <div class="auth-dialog__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+              </svg>
+            </div>
+            <h2>Crear cuenta</h2>
+            <p>Únete a JifTube y descubre música increíble</p>
           </div>
 
-          <button
-            type="submit"
-            class="auth-dialog__submit"
-            [disabled]="forgotForm.invalid || isSubmitting()"
-          >
-            @if (isSubmitting()) {
-              <span class="loading-spinner"></span>
-              Enviando...
-            } @else {
-              Enviar enlace
-            }
-          </button>
+          @if (errorMessage()) {
+            <div class="auth-dialog__message auth-dialog__message--error">
+              {{ errorMessage() }}
+            </div>
+          }
 
-          <div class="auth-dialog__footer">
-            <p>
-              <button type="button" class="link-button" (click)="switchView('login')">
-                Volver al inicio de sesión
-              </button>
-            </p>
+          @if (successMessage()) {
+            <div class="auth-dialog__message auth-dialog__message--success">
+              {{ successMessage() }}
+            </div>
+          }
+
+          <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-dialog__form">
+            <div class="form-group">
+              <label for="register-username" class="form-label">Nombre de usuario</label>
+              <input
+                type="text"
+                id="register-username"
+                formControlName="username"
+                placeholder="usuario123"
+                class="form-input"
+                [class.form-input--error]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+              >
+              @if (registerForm.get('username')?.invalid && registerForm.get('username')?.touched) {
+                <div class="error-message">El usuario debe tener al menos 3 caracteres</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="register-email" class="form-label">Correo electrónico</label>
+              <input
+                type="email"
+                id="register-email"
+                formControlName="email"
+                placeholder="tu@correo.com"
+                class="form-input"
+                [class.form-input--error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+              >
+              @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+                <div class="error-message">Ingresa un correo electrónico válido</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="register-password" class="form-label">Contraseña</label>
+              <div class="password-input">
+                <input
+                  [type]="showPassword() ? 'text' : 'password'"
+                  id="register-password"
+                  formControlName="password"
+                  placeholder="Mínimo 6 caracteres"
+                  class="form-input"
+                  [class.form-input--error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+                  (input)="checkPasswordStrength()"
+                >
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="showPassword.set(!showPassword())"
+                  aria-label="Mostrar/Ocultar contraseña"
+                >
+                  @if (!showPassword()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  }
+                </button>
+              </div>
+
+              @if (registerForm.get('password')?.value) {
+                <div class="password-strength">
+                  <div class="strength-bar">
+                    <div class="strength-fill" [ngClass]="passwordStrengthClass()" [style.width.%]="passwordStrength()"></div>
+                  </div>
+                  <span class="strength-text" [ngClass]="passwordStrengthClass()">
+                    {{ passwordStrengthText() }}
+                  </span>
+                </div>
+              }
+
+              @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+                <div class="error-message">La contraseña debe tener al menos 6 caracteres</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="confirm-password" class="form-label">Confirmar contraseña</label>
+              <div class="password-input">
+                <input
+                  [type]="showConfirmPassword() ? 'text' : 'password'"
+                  id="confirm-password"
+                  formControlName="confirmPassword"
+                  placeholder="Repite tu contraseña"
+                  class="form-input"
+                  [class.form-input--error]="(registerForm.get('confirmPassword')?.invalid || registerForm.errors?.['passwordMismatch']) && registerForm.get('confirmPassword')?.touched"
+                >
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="showConfirmPassword.set(!showConfirmPassword())"
+                  aria-label="Mostrar/Ocultar contraseña"
+                >
+                  @if (!showConfirmPassword()) {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  }
+                </button>
+              </div>
+              @if ((registerForm.get('confirmPassword')?.invalid || registerForm.errors?.['passwordMismatch']) && registerForm.get('confirmPassword')?.touched) {
+                <div class="error-message">Las contraseñas no coinciden</div>
+              }
+            </div>
+
+            <button
+              type="submit"
+              class="auth-dialog__submit"
+              [disabled]="registerForm.invalid || isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span class="loading-spinner"></span>
+                Creando cuenta...
+              } @else {
+                Crear cuenta
+              }
+            </button>
+
+            <div class="auth-dialog__footer">
+              <p>
+                ¿Ya tienes una cuenta?
+                <button type="button" class="link-button" (click)="switchView('login')">
+                  Inicia sesión
+                </button>
+              </p>
+            </div>
+          </form>
+        }
+
+        @case ('forgot-password') {
+          <div class="auth-dialog__header">
+            <div class="auth-dialog__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <h2>Recuperar contraseña</h2>
+            <p>Te enviaremos un enlace para restablecer tu contraseña</p>
           </div>
-        </form>
+
+          @if (errorMessage()) {
+            <div class="auth-dialog__message auth-dialog__message--error">
+              {{ errorMessage() }}
+            </div>
+          }
+
+          @if (successMessage()) {
+            <div class="auth-dialog__message auth-dialog__message--success">
+              {{ successMessage() }}
+            </div>
+          }
+
+          <form [formGroup]="forgotForm" (ngSubmit)="onForgotPassword()" class="auth-dialog__form">
+            <div class="form-group">
+              <label for="forgot-email" class="form-label">Correo electrónico</label>
+              <input
+                type="email"
+                id="forgot-email"
+                formControlName="email"
+                placeholder="tu@correo.com"
+                class="form-input"
+                [class.form-input--error]="forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched"
+              >
+              @if (forgotForm.get('email')?.invalid && forgotForm.get('email')?.touched) {
+                <div class="error-message">Ingresa un correo electrónico válido</div>
+              }
+            </div>
+
+            <button
+              type="submit"
+              class="auth-dialog__submit"
+              [disabled]="forgotForm.invalid || isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span class="loading-spinner"></span>
+                Enviando...
+              } @else {
+                Enviar enlace
+              }
+            </button>
+
+            <div class="auth-dialog__footer">
+              <p>
+                <button type="button" class="link-button" (click)="switchView('login')">
+                  Volver al inicio de sesión
+                </button>
+              </p>
+            </div>
+          </form>
+        }
       }
 
       <button
