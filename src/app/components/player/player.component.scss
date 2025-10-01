@@ -1,7 +1,7 @@
 @use "../../../styles/_mixins.scss" as mix;
 @use "../../../styles/_variables.scss" as var;
 @use "../../../styles/_media-queries.scss" as media;
-@use 'sass:color';
+@use "sass:color";
 
 // ========================================
 // PLAYER WRAPPER - Controla el layout principal
@@ -55,7 +55,7 @@
       padding: var.$spacing-sm var.$spacing-xl;
       max-height: 72px;
       height: 72px;
-      background: transparent; 
+      background: transparent;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
 
       @include media.tablet-up {
@@ -87,7 +87,7 @@
       margin: 0;
       border-radius: var.$radius-md;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
       z-index: 1;
     }
 
@@ -95,8 +95,16 @@
     .player-info {
       padding-left: var.$spacing-md;
       text-align: left;
-      .title { @include mix.text-truncate; margin-bottom: 2px; }
-      .artist { @include mix.text-truncate; font-size: var.$font-size-xs; }
+      
+      .title {
+        margin-bottom: 2px;
+        @include mix.text-truncate;
+      }
+      
+      .artist {
+        font-size: var.$font-size-xs;
+        @include mix.text-truncate;
+      }
     }
   }
 
@@ -134,7 +142,9 @@
         z-index: 1;
       }
 
-      .player-info { text-align: center; }
+      .player-info {
+        text-align: center;
+      }
     }
   }
 }
@@ -149,7 +159,12 @@
     color-mix(in srgb, var(--ytmusic-album-color) 25%, #1a2332),
     color-mix(in srgb, var(--ytmusic-album-color) 15%, #0f1419)
   );
-  border-top: 1px solid color-mix(in srgb, var(--ytmusic-album-color) 40%, rgba(255,255,255,0.06));
+  border-top: 1px solid
+    color-mix(
+      in srgb,
+      var(--ytmusic-album-color) 40%,
+      rgba(255, 255, 255, 0.06)
+    );
   padding: var.$spacing-3xl var.$spacing-2xl var.$spacing-2xl;
   transition: all var.$transition-normal;
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
@@ -169,26 +184,23 @@
   height: 36px;
   background: color-mix(in srgb, var(--ytmusic-album-color) 20%);
   backdrop-filter: var.$blur-xl;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var.$radius-full;
   cursor: pointer;
   transition: all var.$transition-fast;
-
-  @include mix.flex-center;
-  @include mix.focus-ring;
-
-  /* aseguramos que siempre esté por encima del artwork y sea interactivo */
   z-index: 9999;
   pointer-events: auto;
+  @include mix.flex-center;
+  @include mix.focus-ring;
 
   .material-icons {
     font-size: var.$font-size-xl;
     color: var.$text-primary;
   }
 
-  &:hover { 
-    transform: scale(1.08); 
-    border-color: var(--ytmusic-album-color); 
+  &:hover {
+    transform: scale(1.08);
+    border-color: var(--ytmusic-album-color);
   }
 
   /* ----- posición cuando está minimizado (barra) ----- */
@@ -219,7 +231,7 @@
   aspect-ratio: 1;
   border-radius: var.$radius-2xl;
   overflow: hidden;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
   transition: all var.$transition-normal;
   margin: 0 auto var.$spacing-2xl;
 
@@ -249,7 +261,8 @@
 }
 
 @keyframes soundWave {
-  0%, 100% {
+  0%,
+  100% {
     height: 16px;
   }
   50% {
@@ -349,7 +362,8 @@
   background: var(--ytmusic-album-color, var.$dynamic-primary);
   border-radius: var.$radius-full;
   transition: width 0.1s linear;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent);
+  box-shadow: 0 0 12px
+    color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent);
 }
 
 .progress-handle {
@@ -457,9 +471,16 @@
 }
 
 @keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  25% { transform: scale(1.3); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .playback-controls {
@@ -614,7 +635,8 @@
   background: var(--ytmusic-album-color, var.$dynamic-primary);
   border-radius: var.$radius-full;
   transition: width 0.1s ease;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--ytmusic-album-color) 50%, transparent);
+  box-shadow: 0 0 8px
+    color-mix(in srgb, var(--ytmusic-album-color) 50%, transparent);
 }
 
 .volume-slider {
@@ -631,7 +653,8 @@
   }
 
   &:hover ~ .volume-track .volume-fill {
-    box-shadow: 0 0 12px color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent);
+    box-shadow: 0 0 12px
+      color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent);
   }
 }
 

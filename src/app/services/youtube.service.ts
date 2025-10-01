@@ -28,7 +28,7 @@ export class YoutubeService {
   };
   private forbiddenTerms = ['tiktok', 'shorts', 'reaction', 'topic', 'compilation', 'lyrics video', 'lyric video', 'visualizer'];
   private popularQueries = ['trending music', 'new releases', 'top hits 2025'];
-
+ 
   constructor(
     private http: HttpClient,
     private logger: LoggerService,
