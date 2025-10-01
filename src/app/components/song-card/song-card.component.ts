@@ -1,8 +1,14 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, inject } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  signal,
+  computed
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Song } from '../../models/song.model';
-import { LoggerService } from '../../services/core/logger.service';
-import { LibraryService } from '../../services/library.service';
+import { Song, SongType } from '../../models/song.model';
 
 @Component({
   selector: 'app-song-card',
@@ -13,38 +19,96 @@ import { LibraryService } from '../../services/library.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SongCardComponent {
-  private logger = inject(LoggerService);
-  private libraryService = inject(LibraryService);
-
-  @Input() song!: Song;
-  @Input() showSaveButton: boolean = false;
+  @Input({ required: true }) song!: Song;
+  @Input() showActions = true;
+  @Input() size: 'small' | 'medium' | 'large' = 'medium';
   @Output() selected = new EventEmitter<Song>();
-  @Output() save = new EventEmitter<Song>();
+  @Output() optionsClick = new EventEmitter<{ song: Song; event: Event }>();
 
-  savedSongs: Song[] = [];
+  isLoading = signal(false);
+  imageLoaded = signal(false);
 
+  cardClasses = computed(() => {
+    const classes = ['song-card'];
 
-  get cardTypeClass(): string {
-    return this.song?.type || 'album-track';
-  }
+    if (this.song?.type) {
+      classes.push(this.song.type);
+    }
+
+    if (this.isLoading()) {
+      classes.push('loading');
+    }
+
+    classes.push(`size-${this.size}`);
+
+    return classes.join(' ');
+  });
+
+  thumbnailClasses = computed(() => {
+    const classes = ['thumbnail'];
+
+    if (this.song?.type === SongType.OfficialVideo) {
+      classes.push('video-thumbnail');
+    } else {
+      classes.push('album-thumbnail');
+    }
+
+    return classes.join(' ');
+  });
 
   onSelect(): void {
-    this.logger.info(`Canción seleccionada en SongCard: ${this.song.title} (${this.song.videoId})`);
+    if (!this.song || this.isLoading()) return;
+
+    console.log(`Canción seleccionada: ${this.song.title} (${this.song.videoId})`);
     this.selected.emit(this.song);
   }
 
-  onSave(event: Event): void {
-    event.stopPropagation(); 
-    this.save.emit(this.song);
+  onOptionsClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.song) return;
+
+    this.optionsClick.emit({ song: this.song, event });
   }
 
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
     img.src = '/assets/images/default-thumbnail.jpg';
-    this.logger.warn(`Error cargando imagen para: ${this.song.title}`);
+
+    console.warn(`Error loading image for: ${this.song?.title || 'Unknown song'}`);
+    this.imageLoaded.set(false);
   }
 
-  isSongSaved(): boolean {
-    return this.savedSongs.some(savedSong => savedSong.id === this.song.id);
+  onImageLoad(): void {
+    this.imageLoaded.set(true);
+  }
+
+  formatDuration(seconds: number): string {
+    if (!seconds || seconds < 0) return '0:00';
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+
+  getAriaLabel(): string {
+    const { title, artist } = this.song;
+    const artistText = artist && artist !== 'Artista desconocido' ? ` de ${artist}` : '';
+    return `Reproducir ${title}${artistText}`;
+  }
+
+  getCardClasses(): string {
+    return this.cardClasses();
+  }
+
+  getThumbnailClasses(): string {
+    return this.thumbnailClasses();
+  }
+
+  // Fix para el template HTML (usa SongType enum)
+  get SongType() {
+    return SongType;
   }
 }

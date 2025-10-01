@@ -1,0 +1,37 @@
+@use './_transitions.scss' as *;
+@use 'sass:math';
+
+// Aplicación de transiciones a elementos clave (usando mixin de _transitions).
+#player-page {
+  @include player-transform;
+}
+
+#nav-bar-background {
+  @include smooth-bg;
+}
+
+#mini-guide-background {
+  border-right: 0px !important;
+  @include smooth-bg;
+}
+
+#guide-wrapper {
+  @include smooth-bg;
+}
+
+// Fondos con fallback a theme-mix (SCSS) si no hay JS, pero prioriza runtime.
+body {
+  background: theme-mix(rgba(3, 3, 3), var(--ytmusic-album-color-ratio, 50%)) !important;
+}
+
+:root {
+  --ytmusic-background: theme-mix(rgba(3, 3, 3), var(--ytmusic-album-color-ratio, 50%)) !important;
+}
+
+// Loops para generar alphas de overlays si se expande (ejemplo escalable).
+$alpha-levels: (5, 10, 15, 30, 60, 80);
+@each $level in $alpha-levels {
+  .overlay-alpha-#{$level} {
+    background: rgba(0, 0, 0, math.div($level, 100)) !important;
+  }
+}

@@ -1,0 +1,60 @@
+// Mapas y loops para colores estáticos/semi-dinámicos.
+// Fallbacks con mix() de SCSS para theming simple; runtime usa color-mix() via JS.
+// Mapa base para colores negros/grises (inspirado en variableMap del JS, pero estático aquí).
+
+$base-colors: (
+  'black1': #212121,
+  'black2': #181818,
+  'black3': #030303,
+  'black4': #030303,
+  'blackpure': #000,
+  'overlay-heavy': rgba(0, 0, 0, 0.8),
+  'overlay-medium': rgba(0, 0, 0, 0.6),
+  'overlay-medium-light': rgba(0, 0, 0, 0.3),
+  'overlay-light': rgba(0, 0, 0, 0.1),
+  'alpha-5': rgba(0, 0, 0, 0.05),
+  'alpha-10': rgba(0, 0, 0, 0.1),
+  'alpha-15': rgba(0, 0, 0, 0.15),
+  'alpha-30': rgba(0, 0, 0, 0.3),
+  'alpha-60': rgba(0, 0, 0, 0.6),
+  'alpha-80': rgba(0, 0, 0, 0.8),
+  'alpha-98': rgba(40, 40, 40, 0.98),
+  'alpha-95': rgba(40, 40, 40, 0.95),
+);
+
+@function theme-mix($base-color, $album-ratio: 50%) {
+  @return color-mix(in srgb, #{$base-color} calc(100% - #{$album-ratio}), var(--ytmusic-album-color, #000) #{$album-ratio});;
+}
+
+$icon-color-selectors: (
+  '.duration.ytmusic-player-queue-item, .byline.ytmusic-player-queue-item': (
+    'color',
+    '--yt-endpoint-color',
+    '--yt-endpoint-hover-color',
+    '--yt-endpoint-visited-color'
+  ),
+  '.icon.ytmusic-menu-navigation-item-renderer': ('color',),
+  '.menu.ytmusic-player-bar': ('--iron-icon-fill-color',),
+  'ytmusic-player-bar': ('color',),
+  '.time-info.ytmusic-player-bar': ('color',),
+  '.volume-slider.ytmusic-player-bar, .expand-volume-slider.ytmusic-player-bar': ('--paper-slider-container-color',)
+);
+
+@mixin white-semi($properties...) {
+  @each $prop in $properties {
+    #{$prop}: rgba(255, 255, 255, 0.5) !important;
+  }
+}
+
+@each $selector, $props in $icon-color-selectors {
+  #{$selector} {
+    @each $prop in $props {
+      @include white-semi($prop);
+    }
+  }
+}
+
+yt-page-navigation-progress {
+  --yt-page-navigation-container-color: rgba(0, 0, 0, 0.27) !important; // #00000046 en hex
+  --yt-page-navigation-progress-color: white !important;
+}

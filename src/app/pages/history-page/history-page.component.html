@@ -1,25 +1,43 @@
 <div class="history-page">
+  <!-- Header -->
   <header class="page-header">
-    <h1>History</h1>
-    <p>Your recently played songs</p>
-
-    <button class="clear-button" *ngIf="recentSongs.length > 0" (click)="clearHistory()">
-      <span class="material-icons">delete</span>
-      Clear History
-    </button>
+    <div class="header-content">
+      <h1 class="page-title">Historial</h1>
+      <p class="page-subtitle">Canciones reproducidas recientemente</p>
+    </div>
+    
+    @if (recentSongs().length > 0) {
+      <button class="clear-button" (click)="clearHistory()">
+        <span class="material-icons">delete_outline</span>
+        <span>Limpiar historial</span>
+      </button>
+    }
   </header>
 
-  <div class="songs-grid" *ngIf="recentSongs.length > 0">
-    <app-song-card
-      *ngFor="let song of recentSongs"
-      [song]="song"
-      (selected)="onSongSelected($event)"
-    ></app-song-card>
-  </div>
+  <!-- Error State -->
+  @if (error()) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
 
-  <div class="empty-state" *ngIf="recentSongs.length === 0">
-    <span class="material-icons">history</span>
-    <p>Your history is empty</p>
-    <p class="sub-text">Songs you play will appear here</p>
-  </div>
+  <!-- Songs Grid -->
+  @if (recentSongs().length > 0) {
+    <div class="songs-grid">
+      @for (song of recentSongs(); track trackBySongId($index, song)) {
+        <app-song-card
+          [song]="song"
+          (selected)="onSongSelected($event)">
+        </app-song-card>
+      }
+    </div>
+  } @else {
+    <!-- Empty State -->
+    <div class="empty-state">
+      <span class="material-icons">history</span>
+      <h3>Tu historial está vacío</h3>
+      <p>Las canciones que reproduzcas aparecerán aquí</p>
+    </div>
+  }
 </div>

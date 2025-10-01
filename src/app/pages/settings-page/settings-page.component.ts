@@ -1,16 +1,12 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule } from '@angular/common';
+// src/app/pages/settings-page/settings-page.component.ts
+import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
+
 import { StorageService } from '../../services/core/storage.service';
 import { PlayerService } from '../../services/player.service';
-import { ThemeService } from '../../services/theme.service';
-import { isPlatformBrowser } from '@angular/common';
-
-interface ThemeOption {
-  label: string;
-  value: string;
-  icon: string;
-}
+import { LoggerService } from '../../services/core/logger.service';
 
 @Component({
   selector: 'app-settings-page',
@@ -20,71 +16,165 @@ interface ThemeOption {
   styleUrls: ['./settings-page.component.scss'],
 })
 export class SettingsPageComponent implements OnInit {
-  themeOptions: ThemeOption[] = [
-    { label: 'Dark', value: 'dark', icon: 'dark_mode' },
-    { label: 'Light', value: 'light', icon: 'light_mode' },
-    { label: 'Dynamic', value: 'dynamic', icon: 'color_lens' },
-  ];
+  private playerService = inject(PlayerService);
+  private storage = inject(StorageService);
+  private logger = inject(LoggerService);
+  private platformId = inject(PLATFORM_ID);
+  private destroy$ = new Subject<void>();
+  private isBrowser = isPlatformBrowser(this.platformId);
 
-  selectedTheme = 'dynamic';
-  autoplay = true;
+  // Settings signals
+  autoplay = signal<boolean>(true);
+  notifications = signal<boolean>(false);
+  volume = signal<number>(100);
+  error = signal<string | null>(null);
 
-  constructor(
-    private playerService: PlayerService,
-    private themeService: ThemeService,
-    private storage: StorageService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
-
-  ngOnInit() {
-    this.storage.get<string>('theme').subscribe((savedTheme) => {
-      this.selectedTheme = savedTheme || 'dynamic';
-      this.applyTheme(this.selectedTheme);
-    });
-
-    this.storage.get<boolean>('autoplay').subscribe((savedAutoplay) => {
-      this.autoplay = savedAutoplay ?? true;
-    });
+  ngOnInit(): void {
+    if (!this.isBrowser) return;
+    this.loadSettings();
+    this.syncWithPlayerState();
   }
 
-  changeTheme(theme: string): void {
-    this.selectedTheme = theme;
-    this.applyTheme(theme);
-    this.storage.save('theme', theme).subscribe();
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  applyTheme(theme: string) {
-    if (isPlatformBrowser(this.platformId) && typeof document !== 'undefined') {
-      if (theme === 'dynamic') {
-        // No aplicamos data-theme, dejamos que ThemeService maneje el color
-        this.themeService.dominantColor$.subscribe((color) => {
-          document.documentElement.style.setProperty('--accent-color', color);
-        });
-      } else {
-        document.documentElement.setAttribute('data-theme', theme);
-      }
-    }
-  }
-
-  toggleAutoplay(): void {
-    this.autoplay = !this.autoplay;
-    this.storage.save('autoplay', this.autoplay).subscribe();
-    this.playerService.setAutoplay(this.autoplay);
-  }
-
-  clearData(): void {
-    if (
-      confirm(
-        '¿Estás seguro de que quieres borrar todos los datos de la aplicación? Esta acción no se puede deshacer.'
-      )
-    ) {
-      this.storage.clearStorage().subscribe(() => {
-        this.playerService.clearHistory();
-        this.selectedTheme = 'dynamic';
-        this.autoplay = true;
-        this.applyTheme('dynamic');
-        console.log('Datos borrados');
+  /**
+   * Carga configuraciones guardadas
+   */
+  private loadSettings(): void {
+    // Autoplay
+    this.storage.get<boolean>('autoplay')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (saved) => {
+          this.autoplay.set(saved ?? true);
+        },
+        error: (err) => this.logger.error('Error cargando autoplay:', err),
       });
-    }
+
+    // Notifications
+    this.storage.get<boolean>('notifications')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (saved) => {
+          this.notifications.set(saved ?? false);
+        },
+        error: (err) => this.logger.error('Error cargando notificaciones:', err),
+      });
+  }
+
+  /**
+   * Sincroniza con el estado del player
+   */
+  private syncWithPlayerState(): void {
+    this.playerService.state$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(state => {
+        this.volume.set(state.volume);
+      });
+  }
+
+  /**
+   * Toggle autoplay
+   */
+  toggleAutoplay(): void {
+    const newValue = !this.autoplay();
+    this.autoplay.set(newValue);
+    
+    this.storage.save('autoplay', newValue)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.logger.info(`Autoplay: ${newValue ? 'activado' : 'desactivado'}`),
+        error: (err) => {
+          this.logger.error('Error guardando autoplay:', err);
+          this.error.set('Error al guardar configuración');
+        },
+      });
+  }
+
+  /**
+   * Toggle notifications
+   */
+  toggleNotifications(): void {
+    const newValue = !this.notifications();
+    this.notifications.set(newValue);
+    
+    this.storage.save('notifications', newValue)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.logger.info(`Notificaciones: ${newValue ? 'activadas' : 'desactivadas'}`),
+        error: (err) => {
+          this.logger.error('Error guardando notificaciones:', err);
+          this.error.set('Error al guardar configuración');
+        },
+      });
+  }
+
+  /**
+   * Actualiza el volumen
+   */
+  onVolumeChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const newVolume = parseInt(target.value, 10);
+    this.volume.set(newVolume);
+    this.playerService.setVolume(newVolume / 100);
+  }
+
+  /**
+   * Limpia todos los datos de la app
+   */
+  clearData(): void {
+    const confirmed = confirm(
+      '¿Estás seguro de que quieres borrar todos los datos de la aplicación?\n\n' +
+      'Esto incluye:\n' +
+      '• Historial de reproducción\n' +
+      '• Biblioteca guardada\n' +
+      '• Configuraciones\n\n' +
+      'Esta acción NO se puede deshacer.'
+    );
+
+    if (!confirmed) return;
+
+    this.storage.clearStorage()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.logger.info('Todos los datos han sido eliminados');
+          
+          this.autoplay.set(true);
+          this.notifications.set(false);
+          this.volume.set(100);
+          
+          if (this.isBrowser) {
+            localStorage.removeItem('recentSongs');
+            localStorage.removeItem('savedSongs');
+          }
+          
+          alert('Datos eliminados correctamente. La página se recargará.');
+          window.location.reload();
+        },
+        error: (err) => {
+          this.logger.error('Error limpiando datos:', err);
+          this.error.set('Error al limpiar los datos');
+          alert('Hubo un error al eliminar los datos. Intenta nuevamente.');
+        },
+      });
+  }
+
+  /**
+   * Exporta datos (placeholder para futura funcionalidad)
+   */
+  exportData(): void {
+    alert('Funcionalidad de exportación próximamente disponible');
+    // TODO: Implementar exportación de datos a JSON
+  }
+
+  /**
+   * Importa datos (placeholder para futura funcionalidad)
+   */
+  importData(): void {
+    alert('Funcionalidad de importación próximamente disponible');
   }
 }

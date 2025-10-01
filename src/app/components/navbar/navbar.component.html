@@ -1,43 +1,103 @@
-<nav class="navbar">
-  <div class="navbar-brand">
-    <div class="app-logo">
-      <h1>JifTube</h1>
-    </div>
-  </div>
-
-  <!-- Search Bar -->
-  <div class="search-container" [class.focused]="isFocused">
-    <div class="search-input-wrapper">
-      <input
-        #searchInput
-        type="text"
-        [(ngModel)]="searchQuery"
-        placeholder="Buscar música, soundtracks, covers..."
-        (focus)="onFocus()"
-        (blur)="onBlur()"
-        (keyup.enter)="searchSongs()"
-        class="search-input"
-      />
-
-      <button class="search-button" (click)="searchSongs()" [disabled]="!searchQuery.trim()">
-        <span class="material-icons">search</span>
+<nav
+  class="navbar"
+  [class.scrolled]="isScrolled"
+  role="navigation"
+  aria-label="Main navigation">
+  <div class="navbar-container">
+    <!-- Menú hamburguesa + Logo -->
+    <div class="navbar-brand">
+      <button
+        class="menu-btn"
+        (click)="onToggleSidebar()"
+        aria-label="Toggle menu"
+        type="button">
+        <svg
+          class="icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M3 12h18M3 6h18M3 18h18" />
+        </svg>
       </button>
 
-      <button *ngIf="searchQuery" class="clear-button" (click)="clearSearch()">
-        <span class="material-icons">close</span>
+      <h1 class="app-logo">
+        <span class="logo-icon">🎵</span>
+        JifTube
+      </h1>
+    </div>
+
+    <!-- Barra de búsqueda -->
+    <div class="search-container" [class.focused]="isFocused()">
+      <form class="search-form" (ngSubmit)="searchSongs()" role="search">
+        <div class="search-input-wrapper">
+          <button
+            type="button"
+            class="search-icon-btn"
+            aria-label="Search"
+            tabindex="-1">
+            <span class="material-icons">search</span>
+          </button>
+
+          <input
+            #searchInput
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            [ngModelOptions]="{standalone: true}"
+            placeholder="Buscar música, soundtracks, covers..."
+            (focus)="onFocus()"
+            (blur)="onBlur()"
+            (input)="onInput($event)"
+            class="search-input"
+            role="searchbox"
+            aria-label="Search for music"
+            autocomplete="off"
+            spellcheck="false"
+          />
+
+          @if (searchQuery()) {
+            <button
+              type="button"
+              class="clear-btn"
+              (click)="clearSearch()"
+              aria-label="Clear search">
+              <span class="material-icons">close</span>
+            </button>
+          }
+
+          <button
+            type="submit"
+            class="search-btn"
+            [disabled]="!searchQuery().trim()"
+            aria-label="Search">
+            <span class="material-icons">arrow_forward</span>
+          </button>
+        </div>
+
+        <!-- Resultados o estado vacío -->
+        @if (noResults() && isFocused()) {
+          <div class="search-feedback" role="status">
+            <span class="material-icons">search_off</span>
+            <p>No se encontraron resultados</p>
+            <span class="suggestion">Prueba con otro término</span>
+          </div>
+        }
+      </form>
+    </div>
+
+    <!-- Perfil y acciones -->
+    <div class="navbar-actions">
+      <button
+        class="action-btn profile-btn"
+        aria-label="User profile"
+        type="button">
+        <span class="material-icons">account_circle</span>
       </button>
     </div>
-
-    <!-- No Results -->
-    <div class="no-results" *ngIf="noResults && isFocused">
-      No se encontraron resultados. Prueba con otro término de busqueda.
-    </div>
-  </div>
-
-  <!-- Profile Icon -->
-  <div class="navbar-profile">
-    <button class="profile-button">
-      <span class="material-icons">person</span>
-    </button>
   </div>
 </nav>

@@ -1,0 +1,224 @@
+@use "./_variables.scss" as var;
+
+// ========================================
+// BREAKPOINTS MODERNOS
+// ========================================
+$mobile-small: 360px;
+$mobile: 480px;
+$mobile-large: 640px;
+$tablet: 768px;
+$tablet-large: 1024px;
+$desktop: 1280px;
+$desktop-large: 1440px;
+$desktop-xl: 1920px;
+
+// ========================================
+// MOBILE FIRST APPROACH
+// ========================================
+@mixin mobile-small {
+  @media (max-width: #{$mobile-small - 1px}) {
+    @content;
+  }
+}
+@mixin mobile-up {
+  @media (min-width: $mobile) {
+    @content;
+  }
+}
+@mixin mobile-only {
+  @media (max-width: #{var.$mobile-max}) {
+    @content;
+  }
+}
+@mixin tablet-up {
+  @media (min-width: #{var.$tablet-min}) {
+    @content;
+  }
+}
+@mixin tablet-only {
+  @media (min-width: #{var.$tablet-min}) and (max-width: #{$tablet-large - 1px}) {
+    @content;
+  }
+}
+@mixin desktop-up {
+  @media (min-width: $tablet-large) {
+    @content;
+  }
+}
+@mixin desktop-only {
+  @media (min-width: $tablet-large) and (max-width: #{$desktop - 1px}) {
+    @content;
+  }
+}
+@mixin desktop-large-up {
+  @media (min-width: $desktop) {
+    @content;
+  }
+}
+@mixin desktop-xl-up {
+  @media (min-width: $desktop-xl) {
+    @content;
+  }
+}
+
+// ========================================
+// ORIENTACIÓN Y CARACTERÍSTICAS
+// ========================================
+@mixin landscape {
+  @media (orientation: landscape) {
+    @content;
+  }
+}
+@mixin portrait {
+  @media (orientation: portrait) {
+    @content;
+  }
+}
+@mixin touch-device {
+  @media (hover: none) and (pointer: coarse) {
+    @content;
+  }
+}
+@mixin hover-device {
+  @media (hover: hover) and (pointer: fine) {
+    @content;
+  }
+}
+
+// ========================================
+// PREFERENCIAS DEL USUARIO
+// ========================================
+@mixin dark-mode {
+  @media (prefers-color-scheme: dark) {
+    @content;
+  }
+}
+@mixin light-mode {
+  @media (prefers-color-scheme: light) {
+    @content;
+  }
+}
+@mixin high-contrast {
+  @media (prefers-contrast: high) {
+    @content;
+  }
+}
+@mixin reduce-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+// ========================================
+// MIXINS ESPECÍFICOS PARA MÚSICA APP
+// ========================================
+@mixin player-mobile {
+  @include mobile-only {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var.$player-height;
+    z-index: var.$z-player;
+  }
+}
+@mixin player-desktop {
+  @include tablet-up {
+    position: fixed;
+    bottom: 0;
+    left: var.$sidebar-width;
+    right: 0;
+    height: var.$player-height;
+    z-index: var.$z-player;
+  }
+}
+@mixin sidebar-responsive {
+  width: var.$sidebar-width;
+  @include mobile-only {
+    width: var.$sidebar-mobile-width;
+  }
+}
+@mixin main-content-responsive {
+  margin-left: var.$sidebar-width;
+  @include mobile-only {
+    margin-left: var.$sidebar-mobile-width;
+  }
+}
+@mixin cards-grid-responsive {
+  display: grid;
+  gap: var.$spacing-2xl;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  @include mobile-only {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var.$spacing-lg;
+  }
+  @media (min-width: $tablet-large) {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  @media (min-width: $desktop) {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+@mixin container-responsive {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var.$spacing-lg;
+  @include mobile-only {
+    padding: 0 var.$spacing-md;
+  }
+  @media (min-width: $tablet-large) {
+    padding: 0 var.$spacing-2xl;
+    max-width: 1400px;
+  }
+  @media (min-width: $desktop) {
+    max-width: 1600px;
+  }
+}
+
+// ========================================
+// NAVBAR RESPONSIVE
+// ========================================
+@mixin navbar-height {
+  height: var.$navbar-height;
+  @include mobile-only {
+    height: var.$navbar-mobile-height;
+  }
+}
+@mixin navbar-spacing {
+  &{
+    padding: 0 var.$spacing-2xl;
+  }
+  
+  @include mobile-only {
+    padding: 0 var.$spacing-lg;
+  }
+  
+  @media (min-width: #{var.$tablet-min}) and (max-width: #{$tablet-large - 1px}) {
+    padding: 0 var.$spacing-xl;
+  }
+}
+
+// ========================================
+// UTILIDADES ESPECÍFICAS
+// ========================================
+@mixin hide-mobile {
+  @include mobile-only {
+    display: none !important;
+  }
+}
+@mixin show-mobile-only {
+  display: none;
+  @include mobile-only {
+    display: block;
+  }
+}
+@mixin expand-mobile {
+  @include mobile-only {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var.$z-modal;
+  }
+}

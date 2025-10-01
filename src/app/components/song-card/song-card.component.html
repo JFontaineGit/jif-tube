@@ -1,38 +1,73 @@
-<div 
-  class="song-card" 
-  [ngClass]="cardTypeClass" 
-  (click)="onSelect()" 
-  role="button" 
-  [attr.aria-label]="'Reproducir ' + song.title + (song.artist && song.artist !== 'Artista desconocido' ? ' de ' + song.artist : '')"
-  tabindex="0"
+<article
+  class="song-card"
+  [class]="getCardClasses()"
+  (click)="onSelect()"
   (keyup.enter)="onSelect()"
-  (keyup.space)="onSelect()">
+  (keyup.space)="onSelect()"
+  tabindex="0"
+  role="button"
+  [attr.aria-label]="getAriaLabel()">
 
-  <div class="thumbnail" 
-     [ngClass]="cardTypeClass"
-     role="img"
-     [attr.aria-label]="song.title">
-    
-    <img 
-      class="thumbnail-image"
-      [src]="song.thumbnailUrl || '/assets/images/default-thumbnail.jpg'" 
-      [alt]="song.title"
-      loading="lazy"
-      (error)="onImageError($event)">
-    
-    <div class="play-overlay" aria-hidden="true">
-      <span class="material-icons">play_circle_filled</span>
+  <div class="thumbnail-container">
+    <div class="thumbnail" [class]="getThumbnailClasses()">
+      <div class="thumbnail-wrapper">
+        <img
+          class="thumbnail-image"
+          [src]="song.thumbnailUrl || '/assets/images/default-thumbnail.jpg'"
+          [alt]="song.title"
+          loading="lazy"
+          (error)="onImageError($event)"
+          (load)="onImageLoad()">
+      </div>
+
+      <div class="play-overlay" aria-hidden="true">
+        <div class="play-button">
+          <span class="material-icons">play_circle</span>
+        </div>
+      </div>
+
+      @if (song.type === SongType.OfficialVideo) {
+        <div class="official-badge" aria-label="Official video">
+          <span class="material-icons">verified</span>
+          <span class="badge-text">OFICIAL</span>
+        </div>
+      }
+
+      @if (song.duration) {
+        <div class="duration-badge">
+          {{ formatDuration(song.duration) }}
+        </div>
+      }
     </div>
   </div>
 
   <div class="song-info">
-    <h3 class="song-title" [title]="song.title">{{ song.title }}</h3>
-    <p class="song-artist" 
-       *ngIf="song.artist && song.artist !== 'Artista desconocido' && song.artist !== 'Desconocido'"
-       [title]="song.artist">
-      {{ song.artist }}
-    </p>
+    <h3 class="song-title" [title]="song.title">
+      {{ song.title }}
+    </h3>
+
+    @if (song.artist && song.artist !== 'Artista desconocido' && song.artist !== 'Desconocido') {
+      <p class="song-artist" [title]="song.artist">
+        {{ song.artist }}
+      </p>
+    }
+
+    @if (song.album) {
+      <p class="song-album" [title]="song.album">
+        {{ song.album }}
+      </p>
+    }
+  </div>
+
+  <div class="card-actions">
+    <button
+      class="options-btn"
+      (click)="onOptionsClick($event)"
+      [attr.aria-label]="'Más opciones para ' + song.title"
+      type="button">
+      <span class="material-icons">more_vert</span>
+    </button>
   </div>
 
   <ng-content></ng-content>
-</div>
+</article>

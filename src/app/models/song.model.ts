@@ -1,4 +1,9 @@
-// models/song.model.ts
+// Remodernizado: Enum para type, optional state fields para player (no persistentes). Tipado estricto sin any.
+
+export enum SongType {
+  OfficialVideo = 'official-video',
+  AlbumTrack = 'album-track'
+}
 
 export interface Song {
   id: string;
@@ -7,7 +12,7 @@ export interface Song {
   artist: string;
   thumbnailUrl: string;
   album?: string;
-  type: 'official-video' | 'album-track';
+  type: SongType;
   duration?: number;
 
   /** Puntuación basada en engagement, antigüedad y otros factores */
@@ -15,6 +20,10 @@ export interface Song {
 
   /** Puntuación personalizada con boost semántico (fuzzy match, etiquetas, etc.) */
   customScore?: number;
+
+  // State para UI (no en DB, de polling/API)
+  currentTime?: number;  // Segundos actuales
+  isPlaying?: boolean;   // Estado reproducción
 }
 
 export interface SearchResponse {
@@ -51,8 +60,7 @@ export interface VideoDetailsResponse {
       };
     };
     contentDetails: {
-      /** Duración en formato ISO 8601, ej: PT3M45S */
-      duration: string;
+      duration: string;  // ISO 8601, e.g., PT3M45S
     };
     statistics: {
       viewCount: string;
@@ -63,12 +71,7 @@ export interface VideoDetailsResponse {
 }
 
 export interface SearchConfig {
-  /** Tiempo mínimo en segundos para una canción válida */
   minDurationSeconds: number;
-
-  /** Tiempo máximo en segundos para una canción válida */
   maxDurationSeconds: number;
-
-  /** Tiempo de vida del caché en minutos */
   cacheTTL: number;
 }

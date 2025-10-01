@@ -1,15 +1,15 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { map, Observable, Subject, takeUntil, distinctUntilChanged } from 'rxjs';
+
 import { Song } from '../../models/song.model';
-import { YoutubePlayerService } from '../../services/youtube-iframe.service';
+import { PlayerService } from '../../services/player.service';
 import { LibraryService } from '../../services/library.service';
 import { YoutubeService } from '../../services/youtube.service';
 import { LoggerService } from '../../services/core/logger.service';
-import { Router, ActivatedRoute } from '@angular/router';
-import { map, Observable, Subject, takeUntil } from 'rxjs';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
-import { ThemeService } from '../../services/theme.service';
 
 interface RouterState {
   query?: string;
@@ -25,77 +25,31 @@ interface RouterState {
   styleUrls: ['./search-page.component.scss'],
 })
 export class SearchPageComponent implements OnInit, OnDestroy {
-  private youtubePlayerService = inject(YoutubePlayerService);
+  private playerService = inject(PlayerService);
   private libraryService = inject(LibraryService);
   private youtubeService = inject(YoutubeService);
   private logger = inject(LoggerService);
-  private themeService = inject(ThemeService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
 
-  query: string = '';
-  tab: string = 'all';
-  songs: Song[] = [];
-  bestResult: Song | null = null;
-  filteredSongs: Song[] = [];
+  // Signals para UI
+  query = signal<string>('');
+  tab = signal<string>('all');
+  songs = signal<Song[]>([]);
+  filteredSongs = signal<Song[]>([]);
+  bestResult = computed(() => this.songs().length > 0 ? this.songs()[0] : null);
+  error = signal<string | null>(null);
+  isLoading = signal<boolean>(false);
+
+  // Cache de canciones guardadas
+  private savedSongsCache = signal<{ [key: string]: boolean }>({});
   savedSongs$!: Observable<Song[]>;
-  private savedSongsCache: { [key: string]: boolean } = {};
 
   ngOnInit(): void {
-    this.savedSongs$ = this.libraryService.getSavedSongs().pipe(
-      takeUntil(this.destroy$),
-      map(savedSongs => {
-        this.savedSongsCache = {};
-        savedSongs.forEach(song => {
-          this.savedSongsCache[song.id] = true;
-        });
-        return savedSongs;
-      })
-    );
-
-    this.youtubePlayerService.playerState$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe((state) => {
-      if (state === 'error') {
-        this.logger.error('Error en el reproductor de YouTube desde SearchPage');
-      }
-    });
-
-    const state = this.router.getCurrentNavigation()?.extras.state as RouterState;
-    if (state) {
-      this.query = state.query || '';
-      this.tab = state.tab || 'all';
-      this.songs = state.songs || [];
-      this.setBestResult();
-      this.filterSongs();
-    } else {
-      this.route.queryParams.pipe(
-        takeUntil(this.destroy$)
-      ).subscribe(params => {
-        this.query = params['q'] || '';
-        this.tab = params['tab'] || 'all';
-        if (this.query.trim()) {
-          const navigateToSearch = (songs: Song[]) => {
-            this.logger.info(`Navegando a búsqueda con query: ${this.query}, tab: ${this.tab}`);
-            this.songs = songs;
-            this.setBestResult();
-            this.filterSongs();
-            this.cdr.detectChanges();
-          };
-          if (this.tab === 'library') {
-            this.libraryService.searchInLibrary(this.query).pipe(
-              takeUntil(this.destroy$)
-            ).subscribe(navigateToSearch);
-          } else {
-            this.youtubeService.searchVideos(this.query).pipe(
-              takeUntil(this.destroy$)
-            ).subscribe(navigateToSearch);
-          }
-        }
-      });
-    }
+    this.setupSavedSongs();
+    this.setupPlayerStateListener();
+    this.handleNavigationState();
   }
 
   ngOnDestroy(): void {
@@ -103,56 +57,181 @@ export class SearchPageComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  setBestResult(): void {
-    if (this.songs.length > 0) {
-      this.bestResult = this.songs[0];
-    } else {
-      this.bestResult = null;
-    }
+  /**
+   * Configura el observable de canciones guardadas y actualiza el cache
+   */
+  private setupSavedSongs(): void {
+    this.savedSongs$ = this.libraryService.getSavedSongs().pipe(
+      takeUntil(this.destroy$),
+      map(savedSongs => {
+        const cache: { [key: string]: boolean } = {};
+        savedSongs.forEach(song => { cache[song.id] = true; });
+        this.savedSongsCache.set(cache);
+        return savedSongs;
+      })
+    );
   }
 
-  filterSongs(): void {
-    if (this.tab === 'library') {
-      this.libraryService.searchInLibrary(this.query).pipe(
-        takeUntil(this.destroy$)
-      ).subscribe(songs => {
-        this.filteredSongs = songs;
-        this.cdr.detectChanges();
+  /**
+   * Escucha errores del player para mostrar feedback
+   */
+  private setupPlayerStateListener(): void {
+    this.playerService.state$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        if (state.error) {
+          this.logger.error('Error en el reproductor:', state.error);
+          this.error.set(`Error en reproductor: ${state.error}`);
+        }
       });
+  }
+
+  /**
+   * Maneja el estado de navegación (router state o query params)
+   */
+  private handleNavigationState(): void {
+    const state = this.router.getCurrentNavigation()?.extras.state as RouterState;
+    
+    if (state?.songs) {
+      // Si viene del navbar con resultados precargados
+      this.query.set(state.query || '');
+      this.tab.set(state.tab || 'all');
+      this.songs.set(state.songs);
+      this.filterSongs();
     } else {
-      this.filteredSongs = this.songs;
-      this.cdr.detectChanges();
+      // Fallback: leer query params y ejecutar búsqueda
+      this.route.queryParams
+        .pipe(
+          takeUntil(this.destroy$),
+          distinctUntilChanged((prev, curr) => 
+            prev['q'] === curr['q'] && prev['tab'] === curr['tab']
+          )
+        )
+        .subscribe(params => {
+          this.query.set(params['q'] || '');
+          this.tab.set(params['tab'] || 'all');
+          
+          if (this.query().trim()) {
+            this.performSearch();
+          }
+        });
     }
   }
 
-  playSong(song: Song): void {
-    if (!song?.videoId) {
-      this.logger.error(`Canción sin videoId válido: ${song?.title || 'canción desconocida'}`);
+  /**
+   * Ejecuta la búsqueda según el tab activo
+   */
+  private performSearch(): void {
+    const searchQuery = this.query();
+    const currentTab = this.tab();
+
+    if (!searchQuery.trim()) {
+      this.error.set('La búsqueda no puede estar vacía');
       return;
     }
 
-    this.logger.info(`Reproduciendo canción: ${song.title} (${song.videoId})`);
-    this.youtubePlayerService.playVideo(song.videoId, undefined, song);
+    this.isLoading.set(true);
+    this.error.set(null);
 
-    if (song.thumbnailUrl) {
-      this.themeService.updateThemeFromImage(song.thumbnailUrl, { artist: song.artist, type: song.type });
+    const handleResults = (songs: Song[]) => {
+      this.logger.info(`Búsqueda ejecutada: "${searchQuery}", tab: ${currentTab}, resultados: ${songs.length}`);
+      this.songs.set(songs);
+      this.filterSongs();
+      this.isLoading.set(false);
+    };
+
+    const handleError = (err: any) => {
+      const errorMsg = currentTab === 'library' 
+        ? 'Error al buscar en la biblioteca' 
+        : 'Error al buscar videos en YouTube';
+      this.error.set(errorMsg);
+      this.logger.error(errorMsg, err);
+      this.isLoading.set(false);
+    };
+
+    if (currentTab === 'library') {
+      this.libraryService.searchInLibrary(searchQuery)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({ next: handleResults, error: handleError });
+    } else {
+      this.youtubeService.searchVideos(searchQuery)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({ next: handleResults, error: handleError });
     }
   }
 
-  saveSong(song: Song): void {
-    this.libraryService.saveSong(song).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: () => {
-        this.logger.info(`Canción guardada: ${song.title}`);
-        this.savedSongs$ = this.libraryService.getSavedSongs();
-        this.cdr.detectChanges();
-      },
-      error: (err) => this.logger.error('Error al guardar la canción', err),
-    });
+  /**
+   * Filtra las canciones según el tab activo
+   */
+  private filterSongs(): void {
+    const currentTab = this.tab();
+    
+    if (currentTab === 'library') {
+      this.libraryService.searchInLibrary(this.query())
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(songs => this.filteredSongs.set(songs));
+    } else {
+      this.filteredSongs.set(this.songs());
+    }
   }
 
+  /**
+   * Reproduce una canción usando el nuevo PlayerService
+   */
+  playSong(song: Song): void {
+    if (!song?.videoId) {
+      this.logger.error(`Canción sin videoId válido: ${song?.title || 'desconocida'}`);
+      this.error.set('No se puede reproducir: videoId inválido');
+      return;
+    }
+
+    this.logger.info(`Reproduciendo: ${song.title} (${song.videoId})`);
+    this.error.set(null);
+    
+    // Usa el nuevo PlayerService
+    this.playerService.loadVideo(song.videoId, 0, song);
+  }
+
+  /**
+   * Guarda una canción en la biblioteca
+   */
+  saveSong(song: Song): void {
+    if (this.isSongSaved(song)) {
+      this.logger.info(`Canción ya guardada: ${song.title}`);
+      return;
+    }
+
+    this.libraryService.saveSong(song)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.logger.info(`Canción guardada: ${song.title}`);
+          
+          // Actualiza cache localmente
+          const newCache = { ...this.savedSongsCache(), [song.id]: true };
+          this.savedSongsCache.set(newCache);
+          
+          // Refresca lista de guardados
+          this.savedSongs$ = this.libraryService.getSavedSongs();
+        },
+        error: (err) => {
+          this.logger.error('Error al guardar la canción', err);
+          this.error.set('Error al guardar la canción');
+        },
+      });
+  }
+
+  /**
+   * Verifica si una canción está guardada
+   */
   isSongSaved(song: Song): boolean {
-    return !!this.savedSongsCache[song.id];
+    return !!this.savedSongsCache()[song.id];
+  }
+
+  /**
+   * TrackBy para optimizar renderizado de lista
+   */
+  trackBySongId(index: number, song: Song): string {
+    return song.id || index.toString();
   }
 }

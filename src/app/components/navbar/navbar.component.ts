@@ -1,9 +1,29 @@
-import { Component, Output, EventEmitter, ViewChild, ElementRef, OnInit, AfterViewInit, inject } from '@angular/core';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  ViewChild,
+  ElementRef,
+  OnInit,
+  OnDestroy,
+  Input,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ThemeService } from '../../services/theme.service';
-import { BehaviorSubject, debounceTime, distinctUntilChanged } from 'rxjs';
+import {
+  BehaviorSubject,
+  debounceTime,
+  distinctUntilChanged,
+  Subject,
+  takeUntil
+} from 'rxjs';
+
+interface SearchEvent {
+  query: string;
+  tab: string;
+}
 
 @Component({
   selector: 'app-navbar',
@@ -12,19 +32,18 @@ import { BehaviorSubject, debounceTime, distinctUntilChanged } from 'rxjs';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
 })
-export class NavbarComponent implements OnInit, AfterViewInit {
-  private themeService = inject(ThemeService);
+export class NavbarComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
-  @Output() search = new EventEmitter<{ query: string; tab: string }>();
+  @Input() isScrolled = false;
+  @Output() search = new EventEmitter<SearchEvent>();
+  @Output() toggleSidebar = new EventEmitter<void>();
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
-  searchQuery = '';
-  isFocused = false;
-  activeTab = 'all';
-  noResults = false;
-  gradientStart = 'rgb(240, 248, 255)';
-  gradientEnd = 'rgb(200, 230, 255)';
-  dominantColor = 'rgb(240, 248, 255)';
+  searchQuery = signal('');
+  isFocused = signal(false);
+  noResults = signal(false);
+  activeTab = signal('all');
 
   private searchSubject = new BehaviorSubject<string>('');
 
@@ -32,49 +51,99 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     this.searchSubject
       .pipe(
         debounceTime(300),
-        distinctUntilChanged()
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
       )
-      .subscribe(() => {
-        this.search.emit({ query: this.searchQuery, tab: this.activeTab });
+      .subscribe(query => {
+        if (query.trim()) {
+          this.search.emit({
+            query: query.trim(),
+            tab: this.activeTab()
+          });
+        }
       });
   }
 
   ngOnInit(): void {
-    this.themeService.gradient$.subscribe(gradient => {
-      this.gradientStart = gradient.start;
-      this.gradientEnd = gradient.end;
-    });
-    this.themeService.dominantColor$.subscribe(color => {
-      this.dominantColor = color;
-    });
   }
 
-  ngAfterViewInit(): void {
-    this.searchInput.nativeElement.focus();
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onToggleSidebar(): void {
+    this.toggleSidebar.emit();
   }
 
   onFocus(): void {
-    this.isFocused = true;
-    this.noResults = false;
+    this.isFocused.set(true);
+    this.noResults.set(false);
   }
 
   onBlur(): void {
-    setTimeout(() => (this.isFocused = false), 200);
+    setTimeout(() => {
+      this.isFocused.set(false);
+    }, 150);
+  }
+
+  onInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.searchQuery.set(target.value);
+    const query = this.searchQuery();
+    this.noResults.set(false);
+
+    if (query.trim()) {
+      this.searchSubject.next(query);
+    }
   }
 
   searchSongs(): void {
-    if (this.searchQuery.trim()) {
-      this.searchSubject.next(this.searchQuery);
+    const query = this.searchQuery().trim();
+    if (query) {
+      this.search.emit({
+        query,
+        tab: this.activeTab()
+      });
+      this.searchInput.nativeElement.blur();
     }
   }
 
   clearSearch(): void {
-    this.searchQuery = '';
-    this.noResults = false;
+    this.searchQuery.set('');
+    this.noResults.set(false);
     this.searchInput.nativeElement.focus();
   }
 
-  get gradientStyle(): string {
-    return `linear-gradient(to right, ${this.gradientStart}, ${this.gradientEnd})`;
+  setActiveTab(tab: string): void {
+    this.activeTab.set(tab);
+    const query = this.searchQuery();
+    if (query.trim()) {
+      this.search.emit({
+        query: query.trim(),
+        tab
+      });
+    }
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.clearSearch();
+    }
+  }
+
+  onSearchFormKeydown(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        break;
+      case 'Enter':
+        event.preventDefault();
+        this.searchSongs();
+        break;
+    }
   }
 }

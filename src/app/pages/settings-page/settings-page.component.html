@@ -1,73 +1,164 @@
-<!-- src/app/pages/settings-page/settings-page.component.html -->
 <div class="settings-page">
+  <!-- Header -->
   <header class="page-header">
-    <h1>Settings</h1>
-    <p>Customize your experience</p>
+    <h1 class="page-title">Configuración</h1>
+    <p class="page-subtitle">Personaliza tu experiencia</p>
   </header>
 
+  <!-- Error Banner -->
+  @if (error()) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
   <div class="settings-container">
+    <!-- Sección: Apariencia -->
     <section class="settings-section">
-      <h2>Appearance</h2>
+      <h2>
+        <span class="material-icons">palette</span>
+        Apariencia
+      </h2>
+
+      <div class="setting-item info-card">
+        <div class="setting-label">
+          <span class="material-icons">color_lens</span>
+          <div>
+            <h3>Tema Dinámico</h3>
+            <p>Los colores cambian automáticamente según la carátula del álbum que estés reproduciendo</p>
+          </div>
+        </div>
+        <span class="badge">Activo</span>
+      </div>
+    </section>
+
+    <!-- Sección: Reproducción -->
+    <section class="settings-section">
+      <h2>
+        <span class="material-icons">play_circle</span>
+        Reproducción
+      </h2>
 
       <div class="setting-item">
         <div class="setting-label">
-          <span class="material-icons">palette</span>
+          <span class="material-icons">queue_music</span>
           <div>
-            <h3>Theme</h3>
-            <p>Choose your preferred theme</p>
+            <h3>Reproducción automática</h3>
+            <p>Reproduce automáticamente cuando seleccionas una canción</p>
           </div>
         </div>
 
-        <div class="theme-options">
-          <button
-            *ngFor="let theme of themeOptions"
-            [class.active]="selectedTheme === theme.value"
-            (click)="changeTheme(theme.value)"
-          >
-            <span class="material-icons">{{ theme.icon }}</span>
-            {{ theme.label }}
-          </button>
+        <label class="toggle" [attr.aria-label]="'Toggle autoplay'">
+          <input 
+            type="checkbox" 
+            [checked]="autoplay()" 
+            (change)="toggleAutoplay()" 
+          />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <span class="material-icons">volume_up</span>
+          <div>
+            <h3>Volumen predeterminado</h3>
+            <p>{{ volume() }}%</p>
+          </div>
+        </div>
+
+        <div class="volume-control">
+          <input
+            type="range"
+            class="volume-slider"
+            [value]="volume()"
+            (input)="onVolumeChange($event)"
+            min="0"
+            max="100"
+            step="1"
+            aria-label="Ajustar volumen"
+          />
         </div>
       </div>
     </section>
 
-    <section class="settings-section">
-      <h2>Playback</h2>
+    <!-- Sección: Datos -->
+    <section class="settings-section danger-section">
+      <h2>
+        <span class="material-icons">storage</span>
+        Gestión de Datos
+      </h2>
 
       <div class="setting-item">
         <div class="setting-label">
-          <span class="material-icons">play_circle</span>
+          <span class="material-icons">file_download</span>
           <div>
-            <h3>Autoplay</h3>
-            <p>Automatically play songs when selected</p>
+            <h3>Exportar datos</h3>
+            <p>Descarga una copia de tu biblioteca e historial</p>
           </div>
         </div>
 
-        <div class="setting-control">
-          <label class="toggle">
-            <input type="checkbox" [(ngModel)]="autoplay" (ngModelChange)="toggleAutoplay()" />
-            <span class="slider"></span>
-          </label>
-        </div>
+        <button 
+          class="secondary-button" 
+          (click)="exportData()"
+          aria-label="Exportar datos">
+          <span class="material-icons">download</span>
+          Exportar
+        </button>
       </div>
-    </section>
-
-    <section class="settings-section">
-      <h2>Data</h2>
 
       <div class="setting-item">
         <div class="setting-label">
+          <span class="material-icons">file_upload</span>
+          <div>
+            <h3>Importar datos</h3>
+            <p>Restaura tu biblioteca desde un archivo</p>
+          </div>
+        </div>
+
+        <button 
+          class="secondary-button" 
+          (click)="importData()"
+          aria-label="Importar datos">
+          <span class="material-icons">upload</span>
+          Importar
+        </button>
+      </div>
+
+      <div class="setting-item danger-item">
+        <div class="setting-label">
+          <span class="material-icons">delete_forever</span>
+          <div>
+            <h3>Eliminar todos los datos</h3>
+            <p>Borra historial, biblioteca y configuraciones. No se puede deshacer.</p>
+          </div>
+        </div>
+
+        <button 
+          class="danger-button" 
+          (click)="clearData()"
+          aria-label="Eliminar todos los datos">
           <span class="material-icons">delete</span>
-          <div>
-            <h3>Clear Data</h3>
-            <p>Remove all app data including history</p>
-          </div>
-        </div>
+          Eliminar todo
+        </button>
+      </div>
+    </section>
 
-        <div class="setting-control">
-          <button class="danger-button" (click)="clearData()">
-            Clear All Data
-          </button>
+    <!-- Info Section -->
+    <section class="settings-section info-section">
+      <div class="app-info">
+        <div class="info-row">
+          <span>Versión</span>
+          <span class="value">1.0.0</span>
+        </div>
+        <div class="info-row">
+          <span>Plataforma</span>
+          <span class="value">JifTube Music</span>
+        </div>
+        <div class="info-row">
+          <span>Autor</span>
+          <span class="value">Just Fontaine</span>
         </div>
       </div>
     </section>

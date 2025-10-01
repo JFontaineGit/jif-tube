@@ -1,21 +1,51 @@
 <div class="library-page">
+  <!-- Header -->
   <header class="page-header">
-    <h1>Library</h1>
-    <p>Browse your music collection</p>
+    <h1 class="page-title">Biblioteca</h1>
+    <p class="page-subtitle">Tu colección de música</p>
   </header>
-  
-  <div class="songs-grid">
-    <app-song-card 
-      *ngFor="let song of songs" 
-      [song]="song"
-      (selected)="onSongSelected($event)"
-    >
-      <button class="remove-button" (click)="removeSong(song.id); $event.stopPropagation()">
-        <span class="material-icons">delete</span>
-      </button>
-    </app-song-card>
-  </div>
-  <div *ngIf="songs.length === 0" class="empty-message">
-    <p>No tienes canciones guardadas en tu biblioteca.</p>
-  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <span class="material-icons spinning">refresh</span>
+      <p>Cargando biblioteca...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Songs Grid -->
+  @if (!isLoading() && songs().length > 0) {
+    <div class="songs-grid">
+      @for (song of songs(); track trackBySongId($index, song)) {
+        <div class="song-card-wrapper">
+          <app-song-card
+            [song]="song"
+            (selected)="onSongSelected($event)">
+          </app-song-card>
+          
+          <button 
+            class="remove-button" 
+            (click)="removeSong(song.id, $event)"
+            [attr.aria-label]="'Eliminar ' + song.title">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+      }
+    </div>
+  } @else if (!isLoading()) {
+    <!-- Empty State -->
+    <div class="empty-state">
+      <span class="material-icons">library_music</span>
+      <h3>Tu biblioteca está vacía</h3>
+      <p>Guarda canciones para acceder a ellas fácilmente</p>
+    </div>
+  }
 </div>

@@ -1,293 +1,407 @@
-@use '../../../styles/_variables.scss' as *;
-@use '../../../styles/_mixins.scss' as *;
-@use 'sass:math';
-
-$card-width: 220px;
-$card-width-tablet: 200px;
-$card-width-mobile: 160px;
-$play-color: #ef4444;
-$hover-scale: 1.03;
+@use '../../../styles/_variables.scss' as var;
+@use '../../../styles/_mixins.scss' as mix;
+@use '../../../styles/_media-queries.scss' as media;
+@use 'sass:color';
+@use "sass:math";
 
 .song-card {
-  width: $card-width;
-  min-height: 280px;
+  width: 100%;
+  max-width: 280px;
+  background: var.$bg-card;
+  border: 1px solid var.$border-color-light;
+  border-radius: var.$radius-2xl;
   overflow: hidden;
   position: relative;
-  color: var(--text-primary);
-  background: transparent;
-  border-radius: $border-radius-xl;
-  @include card-interactive;  
-  @include flex-column;
+  cursor: pointer;
+  transition: all var.$transition-normal;
 
-  @include tablet-only {
-    width: $card-width-tablet;
-    min-height: 260px;
+  @include mix.glassmorphism(0.05);
+  @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
+
+  @include media.mobile-only {
+    max-width: 200px;
   }
-  
-  @include mobile-only {
-    width: $card-width-mobile;
-    min-height: 220px;
-  }
-  
+
   &:hover,
   &:focus-visible {
-    transform: scale($hover-scale);
-    box-shadow: $shadow-xl;
-    border-color: transparent;
-    
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--ytmusic-album-color) 30%, rgba(0, 0, 0, 0.4));
+    border-color: color-mix(in srgb, var(--ytmusic-album-color) 50%, transparent);
+
     .play-overlay {
       opacity: 1;
-      backdrop-filter: $blur;
-      -webkit-backdrop-filter: $blur;
+      backdrop-filter: var.$blur-md;
+      -webkit-backdrop-filter: var.$blur-md;
     }
-    
-    .thumbnail-image {
-      transform: scale(1.08);
-    }
-    
-    .song-info {
-      background: transparent;
-    }
-  }
-  
-  &:active {
-    transform: scale(0.98);
-  }
-  
-  &.official-video {
-    .thumbnail {
-      @include aspect-ratio(math.div(16, 9));
-      
-      &::after {
-        content: 'OFFICIAL';
-        position: absolute;
-        top: $spacing-sm;
-        left: $spacing-sm;
-        background: linear-gradient(135deg, $play-color, #dc2626);
-        color: white;
-        padding: $spacing-xs $spacing-sm;
-        border-radius: $border-radius-sm;
-        font-size: $font-size-xs;
-        font-weight: $font-weight-bold;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        z-index: 2;
-        box-shadow: $shadow-md;
-      }
-    }
-  }
-  
-  &.album-track {
-    .thumbnail {
-      @include aspect-ratio(1);
-    }
-  }
-  
-  .thumbnail {
-    position: relative;
-    width: 100%;
-    border-radius: $border-radius-lg $border-radius-lg 0 0;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: transparent;
-    overflow: hidden;
-    @include aspect-ratio(1);
 
-    .thumbnail-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      transition: transform $transition-slow;
-      border-radius: inherit;
+    .options-btn {
+      opacity: 1;
+      transform: scale(1);
     }
-    
-    .play-overlay {
-      background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.4) 0%,
-        rgba(0, 0, 0, 0.7) 100%
-      );
-      opacity: 0;
-      transition: all $transition-normal;
-      border-radius: inherit;
-      @include absolute-fill;
-      @include flex-center;
 
-      .material-icons {
-        font-size: 4rem;
-        color: $play-color;
-        filter: drop-shadow($shadow-lg);
-        transition: transform $transition-fast;
-        
-        @include tablet-only {
-          font-size: 3.5rem;
-        }
-        
-        @include mobile-only {
-          font-size: 3rem;
-        }
-        
-        &:hover {
-          transform: scale(1.1);
-        }
-      }
-    }
-  }
-  
-  .song-info {
-    padding: $spacing-lg;
-    flex: 1;
-    gap: $spacing-sm;
-    background: transparent;
-    border-radius: 0 0 $border-radius-lg $border-radius-lg;
-    transition: background $transition-normal;
-    @include flex-column;
-
-    @include tablet-only {
-      padding: $spacing-md;
-    }
-    
-    @include mobile-only {
-      padding: $spacing-sm $spacing-md;
-    }
-    
-    .song-title {
-      font-size: $font-size-lg;
-      font-weight: $font-weight-semibold;
-      color: var(--text-primary);
-      margin: 0;
-      line-height: $line-height-tight;
-      transition: color $transition-fast;
-      @include text-clamp(2);
-
-      @include tablet-only {
-        font-size: $font-size-base;
-      }
-      
-      @include mobile-only {
-        font-size: $font-size-sm;
-      }
-      
-      &:hover {
-        color: var(--dynamic-primary);
-      }
-    }
-    
-    .song-artist {
-      font-size: $font-size-sm;
-      font-weight: $font-weight-normal;
-      color: var(--text-secondary);
-      margin: 0;
-      line-height: $line-height-normal;
-      transition: color $transition-fast;
-      @include text-truncate;      
-
-      @include mobile-only {
-        font-size: $font-size-xs;
-      }
-      
-      &:hover {
-        color: var(--text-primary);
-      }
-    }
-  }
-  
-  // Action buttons (ng-content)
-  ::ng-deep button {
-    position: absolute;
-    top: $spacing-sm;
-    right: $spacing-sm;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    border: none;
-    border-radius: $border-radius-full;
-    width: 36px;
-    height: 36px;
-    font-size: $font-size-lg;
-    z-index: 2;
-    opacity: 0;
-    backdrop-filter: $blur-sm;
-    -webkit-backdrop-filter: $blur-sm;
-    box-shadow: $shadow-md;
-    transition: all $transition-normal;
-    @include button-base;
-
-    @include mobile-only {
-      width: 32px;
-      height: 32px;
-      font-size: $font-size-base;
-    }
-    
-    &:hover:not(:disabled) {
-      background: var(--dynamic-primary);
-      transform: scale(1.1);
-      box-shadow: $shadow-lg;
-    }
-  }
-  
-  &:hover ::ng-deep button {
-    opacity: 1;
-  }
-}
-
-// Loading state
-.song-card.loading {
-  .thumbnail {
-    background: linear-gradient(
-      90deg,
-      var(--bg-tertiary) 25%,
-      var(--bg-secondary) 50%,
-      var(--bg-tertiary) 75%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-  
-  .song-title,
-  .song-artist {
-    background: var(--bg-tertiary);
-    color: transparent;
-    border-radius: $border-radius-sm;
-    animation: shimmer 1.5s infinite;
-  }
-}
-
-// Accessibility
-@media (prefers-reduced-motion: reduce) {
-  .song-card {
-    transition: box-shadow $transition-normal;
-    
-    &:hover,
-    &:focus-visible {
-      transform: none;
-    }
-    
-    .thumbnail-image,
-    .play-overlay {
-      transition: opacity $transition-normal;
-    }
-    
-    &:hover .thumbnail-image {
-      transform: none;
-    }
-  }
-}
-
-// High contrast support
-@media (prefers-contrast: high) {
-  .song-card {
-    border: $border-width-2 solid var(--border-color);
-    
     .song-info {
       .song-title {
-        font-weight: $font-weight-bold;
+        color: var(--ytmusic-album-color, var.$dynamic-primary);
       }
     }
-    
+  }
+
+  &:active {
+    transform: translateY(-4px) scale(1.01);
+  }
+
+  &.official-video {
+    .thumbnail-container {
+      @include mix.aspect-ratio(math.div(16, 9));  // Fix: math.div pa' slash division
+    }
+  }
+
+  &.album-track {
+    .thumbnail-container {
+      @include mix.aspect-ratio(1);  // Este ya estaba bien (no /)
+    }
+  }
+}
+
+.thumbnail-container {
+  position: relative;
+  overflow: hidden;
+  background: var.$bg-tertiary;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+
+  .thumbnail-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .thumbnail-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: translate(-50%, -50%) scale(1.15);
+    transition: all var.$transition-slow;
+  }
+}
+
+.play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0.75)
+  );
+  opacity: 0;
+  transition: all var.$transition-normal;
+
+  @include mix.flex-center;
+
+  .play-button {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(
+      135deg,
+      var(--ytmusic-album-color, var.$dynamic-primary),
+      color-mix(in srgb, var(--ytmusic-album-color, var.$dynamic-secondary) 80%, black)
+    );
+    border-radius: var.$radius-full;
+    transform: scale(0.85);
+    transition: all var.$transition-fast;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+    @include mix.flex-center;
+
+    @include media.mobile-only {
+      width: 52px;
+      height: 52px;
+    }
+
+    .material-icons {
+      font-size: 2.25rem;
+      color: white;
+      margin-left: 3px;
+
+      @include media.mobile-only {
+        font-size: 1.75rem;
+      }
+    }
+  }
+
+  &:hover .play-button {
+    transform: scale(1);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.official-badge {
+  position: absolute;
+  top: var.$spacing-md;
+  left: var.$spacing-md;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  padding: var.$spacing-xs var.$spacing-sm;
+  border-radius: var.$radius-md;
+  font-weight: var.$font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  box-shadow: var.$shadow-md;
+  font-size: var.$font-size-xs;
+
+  @include mix.flex-inline(var.$spacing-xs, center);
+
+  .material-icons {
+    font-size: var.$font-size-sm;
+  }
+
+  .badge-text {
+    @include media.mobile-only {
+      display: none;
+    }
+  }
+}
+
+.duration-badge {
+  position: absolute;
+  bottom: var.$spacing-md;
+  right: var.$spacing-md;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: var.$spacing-xs var.$spacing-sm;
+  border-radius: var.$radius-sm;
+  font-weight: var.$font-weight-semibold;
+  backdrop-filter: var.$blur-sm;
+  -webkit-backdrop-filter: var.$blur-sm;
+  z-index: 2;
+  font-size: var.$font-size-xs;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.song-info {
+  padding: var.$spacing-xl var.$spacing-lg var.$spacing-lg;
+  position: relative;
+  z-index: 1;
+
+  @include media.mobile-only {
+    padding: var.$spacing-lg var.$spacing-md var.$spacing-md;
+  }
+
+  .song-title {
+    font-size: var.$font-size-lg;
+    font-weight: var.$font-weight-semibold;
+    color: var.$text-primary;
+    margin: 0 0 var.$spacing-sm;
+    line-height: var.$line-height-snug;
+    transition: color var.$transition-fast;
+
+    @include media.mobile-only {
+      font-size: var.$font-size-base;
+    }
+
+    @include mix.text-clamp(2);
+  }
+
+  .song-artist {
+    font-weight: var.$font-weight-normal;
+    color: var.$text-secondary;
+    margin: 0 0 var.$spacing-xs;
+    line-height: var.$line-height-normal;
+    transition: color var.$transition-fast;
+    font-size: var.$font-size-sm;
+
+    @include media.mobile-only {
+      font-size: var.$font-size-xs;
+    }
+
+    @include mix.text-truncate;
+  }
+
+  .song-album {
+    font-weight: var.$font-weight-normal;
+    color: var.$text-tertiary;
+    margin: 0;
+    line-height: var.$line-height-normal;
+    font-size: var.$font-size-xs;
+    @include mix.text-truncate;
+  }
+}
+
+.card-actions {
+  position: absolute;
+  top: var.$spacing-md;
+  right: var.$spacing-md;
+  z-index: 3;
+
+  .options-btn {
+    width: 38px;
+    height: 38px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: var.$radius-full;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: all var.$transition-normal;
+    backdrop-filter: var.$blur-sm;
+    -webkit-backdrop-filter: var.$blur-sm;
+
+    @include mix.flex-center;
+    @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
+
+    @include media.mobile-only {
+      width: 34px;
+      height: 34px;
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .material-icons {
+      font-size: var.$font-size-lg;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-base;
+      }
+    }
+
+    &:hover {
+      background: var(--ytmusic-album-color, var.$dynamic-primary);
+      transform: scale(1.15);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--ytmusic-album-color) 50%, rgba(0, 0, 0, 0.4));
+    }
+  }
+}
+
+.song-card.loading {
+  .thumbnail {
+    @include mix.skeleton;
+  }
+
+  .song-title,
+  .song-artist {
+    background: var.$bg-tertiary;
+    color: transparent;
+    border-radius: var.$radius-sm;
+
+    @include mix.skeleton;
+  }
+
+  .song-title {
+    height: 1.2em;
+    margin-bottom: var.$spacing-sm;
+  }
+
+  .song-artist {
+    height: 1em;
+    width: 70%;
+  }
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.song-card {
+  animation: cardAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation-fill-mode: both;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.song-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ytmusic-album-color) 60%, transparent) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+.song-card:active::after {
+  animation: ripple 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@include media.reduce-motion {
+  .song-card {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+@include media.high-contrast {
+  .song-card {
+    border: 2px solid var.$text-primary;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--ytmusic-album-color, var.$dynamic-primary);
+      background: var.$bg-secondary;
+    }
+
     .play-overlay {
       background: rgba(0, 0, 0, 0.9);
+    }
+  }
+}
+
+@include media.touch-device {
+  .song-card {
+    .options-btn {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    &:hover {
+      transform: none;
+    }
+
+    &:active {
+      transform: scale(0.98);
     }
   }
 }

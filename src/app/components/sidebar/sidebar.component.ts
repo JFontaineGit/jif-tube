@@ -1,15 +1,26 @@
-import { Component, Input, inject, Renderer2, RendererFactory2, PLATFORM_ID, Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  PLATFORM_ID,
+  Inject,
+  signal,
+  computed
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
-import { ThemeService } from '../../services/theme.service';
-import { isPlatformBrowser } from '@angular/common';
-import { filter } from 'rxjs/operators';
+import { filter, takeUntil, Subject } from 'rxjs';
 
 interface NavItem {
   label: string;
   icon: string;
   route: string;
   active: boolean;
+  badge?: number;
 }
 
 @Component({
@@ -19,54 +30,112 @@ interface NavItem {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   private router = inject(Router);
-  private themeService = inject(ThemeService);
-  private renderer: Renderer2;
+  private destroy$ = new Subject<void>();
   private isBrowser: boolean;
 
-  @Input() accentColor: string = 'rgb(156, 39, 176)';
+  @Input() isOpen = false;
+  @Input() isCollapsed = false;
+  @Output() toggleSidebar = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
 
-  navItems: NavItem[] = [
-    { label: 'Home', icon: 'home', route: '/', active: true },
-    { label: 'Library', icon: 'library_music', route: '/library', active: false },
-    { label: 'History', icon: 'history', route: '/history', active: false },
-  ];
+  currentRoute = signal('');
 
-  settingsItem: NavItem = { label: 'Settings', icon: 'settings', route: '/settings', active: false };
+  navItems = computed(() => [
+    {
+      label: 'Inicio',
+      icon: 'home',
+      route: '/',
+      active: this.isRouteActive(this.currentRoute(), '/')
+    },
+    {
+      label: 'Biblioteca',
+      icon: 'library_music',
+      route: '/library',
+      active: this.isRouteActive(this.currentRoute(), '/library')
+    },
+    {
+      label: 'Historial',
+      icon: 'history',
+      route: '/history',
+      active: this.isRouteActive(this.currentRoute(), '/history')
+    },
+    {
+      label: 'Me gusta',
+      icon: 'favorite',
+      route: '/liked',
+      active: this.isRouteActive(this.currentRoute(), '/liked')
+    },
+  ]);
 
-  constructor(
-    rendererFactory: RendererFactory2,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    this.renderer = rendererFactory.createRenderer(null, null);
+  settingsItem = computed(() => ({
+    label: 'Ajustes',
+    icon: 'settings',
+    route: '/settings',
+    active: this.isRouteActive(this.currentRoute(), '/settings')
+  }));
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
-  ngOnInit() {
-    if (this.isBrowser) {
-      this.renderer.setStyle(document.documentElement, '--accent-color', this.accentColor);
-    }
-
-    this.themeService.dominantColor$.subscribe(color => {
-      if (this.isBrowser) {
-        this.renderer.setStyle(document.documentElement, '--accent-color', color);
-      }
-    });
-
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
-        this.updateActiveItem(event.urlAfterRedirects);
-      });
-
+  ngOnInit(): void {
+    this.setupRouterSubscription();
     this.updateActiveItem(this.router.url);
   }
 
-  updateActiveItem(url: string): void {
-    this.navItems.forEach(item => {
-      item.active = url === item.route || url.startsWith(item.route + '/');
-    });
-    this.settingsItem.active = url === this.settingsItem.route || url.startsWith(this.settingsItem.route + '/');
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupRouterSubscription(): void {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((event) => {
+        this.updateActiveItem(event.urlAfterRedirects);
+        this.currentRoute.set(event.urlAfterRedirects);
+      });
+  }
+
+  private updateActiveItem(url: string): void {
+    this.currentRoute.set(url);
+  }
+
+  private isRouteActive(currentUrl: string, itemRoute: string): boolean {
+    if (itemRoute === '/') {
+      return currentUrl === '/' || currentUrl === '';
+    }
+    return currentUrl.startsWith(itemRoute);
+  }
+
+  onNavItemClick(): void {
+    // En móvil, cerrar sidebar al hacer clic en un item
+    if (this.isBrowser && window.innerWidth <= 768) {
+      this.close.emit();
+    }
+  }
+
+  onToggle(): void {
+    this.toggleSidebar.emit();
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+    this.onNavItemClick();
+  }
+
+  getNavItemClasses(item: NavItem): string {
+    const classes = ['nav-link'];
+    if (item.active) classes.push('active');
+    return classes.join(' ');
+  }
+
+  trackByRoute(index: number, item: NavItem): string {
+    return item.route;
   }
 }

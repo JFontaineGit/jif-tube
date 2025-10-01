@@ -1,0 +1,14 @@
+// Mixins para transiciones comunes, reduciendo repetición del CSS original.
+// Uso: @include smooth-bg; para background/opacity suaves.
+
+@mixin smooth-bg {
+  transition: opacity 200ms, background-color 300ms cubic-bezier(0.2, 0, 0.6, 1) !important;
+}
+
+@mixin player-transform {
+  transition: transform 300ms, background-color 300ms cubic-bezier(0.2, 0, 0.6, 1) !important;
+}
+
+// Variable global para duraciones reutilizables
+$transition-duration: 300ms;
+$ease-cubic: cubic-bezier(0.2, 0, 0.6, 1);

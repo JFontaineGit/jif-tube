@@ -1,280 +1,180 @@
-import {
-  Injectable,
-  Renderer2,
-  RendererFactory2,
-  Inject,
-  PLATFORM_ID,
-} from '@angular/core';
-import { BehaviorSubject, map, Observable, debounceTime } from 'rxjs';
-import { FastAverageColor } from 'fast-average-color';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { FastAverageColor } from 'fast-average-color';
+import Color, { type ColorInstance } from 'color';
 
-interface ThemeColors {
-  primary: string;
-  primaryHover: string;
-  accent: string;
-  gradientStart: string;
-  gradientEnd: string;
+const COLOR_KEY = '--ytmusic-album-color';
+const DARK_COLOR_KEY = '--ytmusic-album-color-dark';
+const RATIO_KEY = '--ytmusic-album-color-ratio';
+
+declare global {
+  interface DocumentEventMap {
+    videodatachange: CustomEvent<{ videoId: string }>;
+  }
+}
+
+interface PluginConfig {
+  enabled: boolean;
+  ratio: number;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
-  private dominantColorSubject = new BehaviorSubject<string>('#6366f1');
-  dominantColor$ = this.dominantColorSubject.asObservable();
-
-  private themeColorsSubject = new BehaviorSubject<ThemeColors>({
-    primary: '#6366f1',
-    primaryHover: '#4f46e5',
-    accent: '#06b6d4',
-    gradientStart: '#6366f1',
-    gradientEnd: '#8b5cf6',
-  });
-  themeColors$ = this.themeColorsSubject.asObservable();
-
-  readonly gradient$: Observable<{ start: string; end: string }> =
-    this.dominantColor$.pipe(
-      debounceTime(100),
-      map((color) => {
-        const rgb = this.parseRGB(color);
-        const darkerRgb = this.adjustColor(rgb, -0.3);
-        const lighterRgb = this.adjustColor(rgb, 0.1);
-        return {
-          start: `rgb(${lighterRgb[0]}, ${lighterRgb[1]}, ${lighterRgb[2]})`,
-          end: `rgb(${darkerRgb[0]}, ${darkerRgb[1]}, ${darkerRgb[2]})`,
-        };
-      })
-    );
-
-  private renderer: Renderer2;
   private fac = new FastAverageColor();
-  private lastImageRequest: Promise<void> | null = null;
-  private currentImageUrl: string | null = null;
+  private color?: ColorInstance;
+  private darkColor?: ColorInstance;
+  private config: PluginConfig = { enabled: true, ratio: 0.5 };
+  private initialized = false;
+  private listenerRef: ((event: CustomEvent) => Promise<void>) | null = null;
 
-  constructor(
-    rendererFactory: RendererFactory2,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    this.renderer = rendererFactory.createRenderer(null, null);
-    this.setDefaultTheme();
-  }
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
-  setDefaultTheme(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      const defaultColors: ThemeColors = {
-        primary: '#6366f1',
-        primaryHover: '#4f46e5',
-        accent: '#06b6d4',
-        gradientStart: '#6366f1',
-        gradientEnd: '#8b5cf6',
-      };
-
-      this.applyTheme(defaultColors);
-      this.dominantColorSubject.next(defaultColors.primary);
-      this.themeColorsSubject.next(defaultColors);
+  init(playerApi: any): void {
+    if (!isPlatformBrowser(this.platformId) || this.initialized || !this.config.enabled) {
+      return;
     }
+
+    this.initialized = true;
+    this.setRatio(this.config.ratio);
+
+    const handler = async (event: CustomEvent) => {
+      if (event.detail.name !== 'dataloaded') return;
+
+      const playerResponse = playerApi.getPlayerResponse();
+      const thumbnail = playerResponse?.videoDetails?.thumbnail?.thumbnails?.at(0);
+      if (!thumbnail) return;
+
+      await this.updateFromThumbnail(thumbnail.url);
+    };
+
+    this.listenerRef = handler;
+    document.addEventListener('videodatachange', handler);
   }
 
-  updateThemeFromImage(
-    imageUrl: string,
-    song?: { artist?: string; type?: string }
-  ): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    // Evitar procesar la misma imagen múltiples veces
-    if (this.currentImageUrl === imageUrl) return;
-    this.currentImageUrl = imageUrl;
-
-    // Cancelar request anterior si existe
-    this.lastImageRequest = null;
+  async updateFromThumbnail(thumbnailUrl: string): Promise<void> {
+    if (!isPlatformBrowser(this.platformId) || !thumbnailUrl) return;
 
     const img = new Image();
-    img.crossOrigin = 'Anonymous';
+    img.crossOrigin = 'anonymous';
+    img.onload = async () => {
+      try {
+        const albumColor = await this.fac.getColorAsync(img);
+        if (albumColor) {
+          const target = Color(albumColor.hex);
+          this.darkColor = target.darken(0.3).rgb();
+          this.color = target.darken(0.15).rgb();
 
-    this.lastImageRequest = new Promise<void>((resolve) => {
-      img.onload = () => {
-        this.fac
-          .getColorAsync(img)
-          .then((color) => {
-            const themeColors = this.generateThemeFromColor(color);
-            this.applyTheme(themeColors);
-            this.dominantColorSubject.next(themeColors.primary);
-            this.themeColorsSubject.next(themeColors);
+          while (this.color?.luminosity()! > 0.5) {
+            this.color = this.color.darken(0.05);
+            this.darkColor = this.darkColor?.darken(0.05);
+          }
 
-            console.log('🎨 Theme updated from image:', themeColors);
-            resolve();
-          })
-          .catch((e) => {
-            console.error('❌ Error extracting average color:', e);
-            this.setDefaultTheme();
-            resolve();
-          });
-      };
+          document.documentElement.style.setProperty(
+            COLOR_KEY,
+            `${Math.round(this.color.red())}, ${Math.round(this.color.green())}, ${Math.round(this.color.blue())}`
+          );
+          document.documentElement.style.setProperty(
+            DARK_COLOR_KEY,
+            `${Math.round(this.darkColor!.red())}, ${Math.round(this.darkColor!.green())}, ${Math.round(this.darkColor!.blue())}`
+          );
 
-      img.onerror = () => {
-        console.error('❌ Error loading image:', imageUrl);
-        this.setDefaultTheme();
-        resolve();
-      };
-    });
-
-    img.src = imageUrl;
-  }
-
-  private generateThemeFromColor(color: any): ThemeColors {
-    const rgb = this.parseRGB(color.rgba);
-    const hsl = this.rgbToHsl(rgb[0], rgb[1], rgb[2]);
-
-    // Ajustar saturación y luminosidad para mejor contraste
-    const adjustedHsl = [
-      hsl[0], // Mantener el hue
-      Math.max(0.4, Math.min(0.8, hsl[1])), // Saturación entre 40-80%
-      color.isDark ? Math.max(0.3, hsl[2]) : Math.min(0.6, hsl[2]), // Ajustar luminosidad
-    ];
-
-    const primaryRgb = this.hslToRgb(
-      adjustedHsl[0],
-      adjustedHsl[1],
-      adjustedHsl[2]
-    );
-    const primary = `rgb(${primaryRgb[0]}, ${primaryRgb[1]}, ${primaryRgb[2]})`;
-
-    // Generar colores relacionados
-    const primaryHoverRgb = this.adjustColor(primaryRgb, -0.1);
-    const primaryHover = `rgb(${primaryHoverRgb[0]}, ${primaryHoverRgb[1]}, ${primaryHoverRgb[2]})`;
-
-    // Accent color con hue complementario
-    const accentHue = (adjustedHsl[0] + 0.5) % 1;
-    const accentRgb = this.hslToRgb(accentHue, adjustedHsl[1], adjustedHsl[2]);
-    const accent = `rgb(${accentRgb[0]}, ${accentRgb[1]}, ${accentRgb[2]})`;
-
-    // Gradiente
-    const gradientEndRgb = this.adjustColor(primaryRgb, 0.1);
-    const gradientEnd = `rgb(${gradientEndRgb[0]}, ${gradientEndRgb[1]}, ${gradientEndRgb[2]})`;
-
-    return {
-      primary,
-      primaryHover,
-      accent,
-      gradientStart: primary,
-      gradientEnd,
+          const alpha = await this.getAlpha() ?? 1;
+          this.updateColor(alpha);
+          console.log('Color dominante extraído de thumbnail:', albumColor.hex);
+        }
+      } catch (err) {
+        console.error('Error extracting color from thumbnail:', err);
+        document.documentElement.style.setProperty(COLOR_KEY, '0, 0, 0');
+        document.documentElement.style.setProperty(DARK_COLOR_KEY, '0, 0, 0');
+      }
     };
+    img.onerror = () => {
+      console.warn('Error loading thumbnail for color extraction:', thumbnailUrl);
+    };
+    img.src = thumbnailUrl;
   }
 
-  private applyTheme(colors: ThemeColors): void {
+  setConfig(newConfig: Partial<PluginConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    if (this.initialized && this.config.enabled) {
+      this.setRatio(this.config.ratio);
+    }
+  }
+
+  private setRatio(ratio: number): void {
+    document.documentElement.style.setProperty(RATIO_KEY, `${Math.round(ratio * 100)}%`);
+  }
+
+  private getMixedColor(color: string, key: string, alpha = 1, ratioMultiply?: number): string {
+    const keyColor = `rgba(var(${key}), ${alpha})`;
+    let colorRatio = `var(${RATIO_KEY}, 50%)`;
+    let originalRatio = `calc(100% - var(${RATIO_KEY}, 50%))`;
+    if (ratioMultiply) {
+      colorRatio = `calc(var(${RATIO_KEY}, 50%) * ${ratioMultiply})`;
+      originalRatio = `calc(100% - calc(var(${RATIO_KEY}, 50%) * ${ratioMultiply}))`;
+    }
+    return `color-mix(in srgb, ${color} ${originalRatio}, ${keyColor} ${colorRatio})`;
+  }
+
+  updateColor(alpha: number): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const root = document.documentElement;
-
-    // Aplicar colores dinámicos
-    this.safeSetStyle('--dynamic-primary', colors.primary);
-    this.safeSetStyle('--dynamic-primary-hover', colors.primaryHover);
-    this.safeSetStyle('--dynamic-accent', colors.accent);
-    this.safeSetStyle('--dynamic-gradient-start', colors.gradientStart);
-    this.safeSetStyle('--dynamic-gradient-end', colors.gradientEnd);
-
-    // Aplicar gradiente al fondo del body
-    const gradient = `radial-gradient(circle at top right, ${colors.gradientStart}, ${colors.gradientEnd} 40%, var(--bg-primary) 80%)`;
-    this.safeSetStyle('background', gradient, document.body);
-  }
-
-  getDominantColor(): string {
-    return this.dominantColorSubject.value;
-  }
-
-  getThemeColors(): ThemeColors {
-    return this.themeColorsSubject.value;
-  }
-
-  private parseRGB(rgb: string): number[] {
-    const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-    return match
-      ? [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])]
-      : [99, 102, 241]; // Fallback al primary color
-  }
-
-  private adjustColor(rgb: number[], factor: number): number[] {
-    return rgb.map((value) => {
-      const adjusted =
-        factor > 0 ? value + (255 - value) * factor : value * (1 + factor);
-      return Math.max(0, Math.min(255, Math.round(adjusted)));
-    });
-  }
-
-  private rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-    r /= 255;
-    g /= 255;
-    b /= 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0,
-      s = 0,
-      l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-      switch (max) {
-        case r:
-          h = (g - b) / d + (g < b ? 6 : 0);
-          break;
-        case g:
-          h = (b - r) / d + 2;
-          break;
-        case b:
-          h = (r - g) / d + 4;
-          break;
-      }
-      h /= 6;
-    }
-
-    return [h, s, l];
-  }
-
-  private hslToRgb(h: number, s: number, l: number): [number, number, number] {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
+    const variableMap = {
+      '--ytmusic-color-black1': '#212121',
+      '--ytmusic-color-black2': '#181818',
+      '--ytmusic-color-black3': '#030303',
+      '--ytmusic-color-black4': '#030303',
+      '--ytmusic-color-blackpure': '#000',
+      '--dark-theme-background-color': '#212121',
+      '--yt-spec-base-background': '#0f0f0f',
+      '--yt-spec-raised-background': '#212121',
+      '--yt-spec-menu-background': '#282828',
+      '--yt-spec-static-brand-black': '#212121',
+      '--yt-spec-static-overlay-background-solid': '#000',
+      '--yt-spec-static-overlay-background-heavy': 'rgba(0,0,0,0.8)',
+      '--yt-spec-static-overlay-background-medium': 'rgba(0,0,0,0.6)',
+      '--yt-spec-static-overlay-background-medium-light': 'rgba(0,0,0,0.3)',
+      '--yt-spec-static-overlay-background-light': 'rgba(0,0,0,0.1)',
+      '--yt-spec-general-background-a': '#181818',
+      '--yt-spec-general-background-b': '#0f0f0f',
+      '--yt-spec-general-background-c': '#030303',
+      '--yt-spec-snackbar-background': '#030303',
+      '--yt-spec-filled-button-text': '#030303',
+      '--yt-spec-black-1': '#282828',
+      '--yt-spec-black-2': '#1f1f1f',
+      '--yt-spec-black-3': '#161616',
+      '--yt-spec-black-4': '#0d0d0d',
+      '--yt-spec-black-pure': '#000',
+      '--yt-spec-black-pure-alpha-5': 'rgba(0,0,0,0.05)',
+      '--yt-spec-black-pure-alpha-10': 'rgba(0,0,0,0.1)',
+      '--yt-spec-black-pure-alpha-15': 'rgba(0,0,0,0.15)',
+      '--yt-spec-black-pure-alpha-30': 'rgba(0,0,0,0.3)',
+      '--yt-spec-black-pure-alpha-60': 'rgba(0,0,0,0.6)',
+      '--yt-spec-black-pure-alpha-80': 'rgba(0,0,0,0.8)',
+      '--yt-spec-black-1-alpha-98': 'rgba(40,40,40,0.98)',
+      '--yt-spec-black-1-alpha-95': 'rgba(40,40,40,0.95)',
     };
 
-    let r, g, b;
+    Object.entries(variableMap).forEach(([variable, baseColor]) => {
+      document.documentElement.style.setProperty(variable, this.getMixedColor(baseColor, COLOR_KEY, alpha), 'important');
+    });
 
-    if (s === 0) {
-      r = g = b = l;
-    } else {
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      const p = 2 * l - q;
-      r = hue2rgb(p, q, h + 1 / 3);
-      g = hue2rgb(p, q, h);
-      b = hue2rgb(p, q, h - 1 / 3);
-    }
-
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    document.body.style.setProperty('background', this.getMixedColor('rgba(3, 3, 3)', DARK_COLOR_KEY, alpha), 'important');
+    document.documentElement.style.setProperty('--ytmusic-background', this.getMixedColor('rgba(3, 3, 3)', DARK_COLOR_KEY, alpha), 'important');
   }
 
-  private safeSetStyle(
-    property: string,
-    value: string,
-    element: HTMLElement = document.documentElement
-  ): void {
-    if (!isPlatformBrowser(this.platformId)) return;
+  async getAlpha(): Promise<number | null> {
+    return null;
+  }
 
-    try {
-      const current = getComputedStyle(element)
-        .getPropertyValue(property)
-        .trim();
-      if (current !== value) {
-        this.renderer.setStyle(element, property, value);
-      }
-    } catch (error) {
-      console.warn(`⚠️ Error setting style ${property}:`, error);
+  destroy(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.initialized = false;
+    if (this.listenerRef) {
+      document.removeEventListener('videodatachange', this.listenerRef);
+      this.listenerRef = null;
     }
   }
 }

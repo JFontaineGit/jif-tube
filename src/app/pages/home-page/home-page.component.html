@@ -1,53 +1,91 @@
 <div class="home-container">
-  <div *ngIf="error" class="error-message" role="alert">
-    {{ error }}
-  </div>
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-message">
+      <span class="material-icons spinning">refresh</span>
+      <p>Cargando contenido...</p>
+    </div>
+  }
 
-  <!-- Sección: Videos Oficiales -->
-  <section class="songs-section" *ngIf="officialVideos.length > 0">
-    <div class="section-header">
-      <h2 class="section-title">Videos Oficiales</h2>
-      <div class="navigation-buttons">
-        <button class="nav-button prev-button" (click)="scrollLeftVideos()" [disabled]="isAtStartVideos">
-          <span class="material-icons">chevron_left</span>
-        </button>
-        <button class="nav-button next-button" (click)="scrollRightVideos()" [disabled]="isAtEndVideos">
-          <span class="material-icons">chevron_right</span>
-        </button>
+  <!-- Error State -->
+  @if (error()) {
+    <div class="error-message" role="alert">
+      <span class="material-icons">error_outline</span>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Videos Oficiales -->
+  @if (!isLoading() && officialVideos().length > 0) {
+    <section class="songs-section">
+      <div class="section-header">
+        <h2 class="section-title">Videos Oficiales</h2>
+        <div class="navigation-buttons">
+          <button 
+            class="nav-button prev-button" 
+            (click)="scrollLeftVideos()" 
+            [disabled]="isAtStartVideos()"
+            aria-label="Desplazar a la izquierda">
+            <span class="material-icons">chevron_left</span>
+          </button>
+          <button 
+            class="nav-button next-button" 
+            (click)="scrollRightVideos()" 
+            [disabled]="isAtEndVideos()"
+            aria-label="Desplazar a la derecha">
+            <span class="material-icons">chevron_right</span>
+          </button>
+        </div>
       </div>
-    </div>
-    <div class="songs-row" #videosRow>
-      <app-song-card
-        *ngFor="let song of officialVideos"
-        [song]="song"
-        (selected)="onSongSelected($event)">
-      </app-song-card>
-    </div>
-  </section>
-
-  <!-- Sección: Pistas de Álbum -->
-  <section class="songs-section" *ngIf="albumTracks.length > 0">
-    <div class="section-header">
-      <h2 class="section-title">Pistas de Álbum</h2>
-      <div class="navigation-buttons">
-        <button class="nav-button prev-button" (click)="scrollLeftTracks()" [disabled]="isAtStartTracks">
-          <span class="material-icons">chevron_left</span>
-        </button>
-        <button class="nav-button next-button" (click)="scrollRightTracks()" [disabled]="isAtEndTracks">
-          <span class="material-icons">chevron_right</span>
-        </button>
+      <div class="songs-row" #videosRow>
+        @for (song of officialVideos(); track trackBySongId($index, song)) {
+          <app-song-card
+            [song]="song"
+            (selected)="onSongSelected($event)">
+          </app-song-card>
+        }
       </div>
-    </div>
-    <div class="songs-row" #tracksRow>
-      <app-song-card
-        *ngFor="let song of albumTracks"
-        [song]="song"
-        (selected)="onSongSelected($event)">
-      </app-song-card>
-    </div>
-  </section>
+    </section>
+  }
 
-  <div *ngIf="officialVideos.length === 0 && albumTracks.length === 0" class="loading-message">
-    <p>Cargando...</p>
-  </div>
+  <!-- Pistas de Álbum -->
+  @if (!isLoading() && albumTracks().length > 0) {
+    <section class="songs-section">
+      <div class="section-header">
+        <h2 class="section-title">Pistas de Álbum</h2>
+        <div class="navigation-buttons">
+          <button 
+            class="nav-button prev-button" 
+            (click)="scrollLeftTracks()" 
+            [disabled]="isAtStartTracks()"
+            aria-label="Desplazar a la izquierda">
+            <span class="material-icons">chevron_left</span>
+          </button>
+          <button 
+            class="nav-button next-button" 
+            (click)="scrollRightTracks()" 
+            [disabled]="isAtEndTracks()"
+            aria-label="Desplazar a la derecha">
+            <span class="material-icons">chevron_right</span>
+          </button>
+        </div>
+      </div>
+      <div class="songs-row" #tracksRow>
+        @for (song of albumTracks(); track trackBySongId($index, song)) {
+          <app-song-card
+            [song]="song"
+            (selected)="onSongSelected($event)">
+          </app-song-card>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && officialVideos().length === 0 && albumTracks().length === 0 && !error()) {
+    <div class="empty-state">
+      <span class="material-icons">music_off</span>
+      <p>No se encontró contenido</p>
+    </div>
+  }
 </div>

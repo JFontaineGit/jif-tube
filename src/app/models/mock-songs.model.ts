@@ -1,4 +1,5 @@
-import { Song } from './song.model';
+// src/app/models/mock-songs.model.ts
+import { Song, SongType } from './song.model';
 
 export const mockSongs: Song[] = [
   {
@@ -8,7 +9,7 @@ export const mockSongs: Song[] = [
     artist: 'Mock Artist',
     thumbnailUrl: 'https://via.placeholder.com/150',
     album: 'Mock Album',
-    type: 'album-track',
+    type: SongType.AlbumTrack, // ✅ Cambio aquí
     duration: 180,
     relevanceScore: 0.5,
   },
@@ -19,7 +20,7 @@ export const mockSongs: Song[] = [
     artist: 'Mock Artist 2',
     thumbnailUrl: 'https://via.placeholder.com/150',
     album: 'Mock Album 2',
-    type: 'album-track',
+    type: SongType.AlbumTrack, // ✅ Cambio aquí
     duration: 240,
     relevanceScore: 0.7,
   },

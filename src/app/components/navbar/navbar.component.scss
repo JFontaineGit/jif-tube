@@ -1,228 +1,398 @@
-@use '../../../styles/_variables.scss' as *;
-@use '../../../styles/_mixins.scss' as *;
+@use '../../../styles/_variables.scss' as var;
+@use '../../../styles/_mixins.scss' as mix;
+@use '../../../styles/_media-queries.scss' as media;
+@use 'sass:color';
 
+// ========================================
+// NAVBAR PRINCIPAL
+// ========================================
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: $navbar-height;
-  background: transparent;
-  backdrop-filter: $blur-lg;
-  -webkit-backdrop-filter: $blur-lg;
-  border-bottom: 1px solid var(--border-color);
-  padding: 0 $spacing-xl;
-  z-index: $z-fixed + 1;
-  transition: all $transition-slow;
-  box-shadow: $shadow-sm;
-  @include flex-between;
+  z-index: var.$z-navbar;
+  transition: all var.$transition-normal;
 
-  @include tablet-only {
-    height: $navbar-height-mobile;
-    padding: 0 $spacing-lg;
+  // DESKTOP: Sin fondo, transparente
+  @include media.desktop-up {
+    background: transparent;
+    border-bottom: none;
   }
-  
-  @include mobile-only {
-    height: $navbar-height-mobile;
-    padding: 0 $spacing-md;
+
+  // MOBILE/TABLET: Siempre con fondo
+  @include media.mobile-only {
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: var.$blur-lg;
+    -webkit-backdrop-filter: var.$blur-lg;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
-  
+
+  @include media.tablet-only {
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: var.$blur-lg;
+    -webkit-backdrop-filter: var.$blur-lg;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  @include media.navbar-height;
+  @include media.navbar-spacing;
+
+  // Estado scrolled: DESKTOP obtiene fondo
+  &.scrolled {
+    @include media.desktop-up {
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: var.$blur-lg;
+      -webkit-backdrop-filter: var.$blur-lg;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var.$shadow-lg;
+    }
+  }
+
+  .navbar-container {
+    max-width: 100%;
+    margin: 0 auto;
+    height: 100%;
+
+    @include mix.flex-between;
+  }
+
   .navbar-brand {
-    padding-right: $spacing-lg;
-    @include flex-start;    
+    flex-shrink: 0;
+    margin-right: var.$spacing-2xl;
 
-    @include mobile-only {
-      padding-right: $spacing-sm;
+    @include media.mobile-only {
+      margin-right: var.$spacing-lg;
     }
-    
-    .app-logo h1 {
-      font-size: $font-size-2xl;
-      font-weight: $font-weight-bold;
-      margin: 0;
-      transition: all $transition-normal;
-      @include text-gradient(var(--dynamic-gradient-start), var(--dynamic-gradient-end));  
 
-      @include tablet-only {
-        font-size: $font-size-xl;
-      }
-      
-      @include mobile-only {
-        font-size: $font-size-lg;
-      }
-      
+    @include mix.flex-inline(var.$spacing-md);
+
+    .menu-btn {
+      width: 40px;
+      height: 40px;
+      background-color: transparent;
+      border: none;
+      border-radius: var.$radius-md;
+      color: #ffffff;
+      cursor: pointer;
+      transition: all var.$transition-fast;
+
+      @include mix.flex-center;
+
       &:hover {
-        transform: scale(1.05);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        stroke-width: 2.5;
+      }
+
+      @include mix.focus-ring(#ffffff);
+    }
+
+    .app-logo {
+      font-weight: var.$font-weight-extrabold;
+      margin: 0;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      transition: all var.$transition-fast;
+      font-size: var.$font-size-2xl;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-xl;
+      }
+
+      @include media.tablet-only {
+        font-size: var.$font-size-xl;
+      }
+
+      @include mix.flex-inline(var.$spacing-xs);
+
+      .logo-icon {
+        font-size: 1.2em;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+      }
+
+      &:hover {
+        transform: scale(1.02);
+        filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.2));
       }
     }
   }
-  
+
   .search-container {
     flex: 1;
     max-width: 600px;
-    margin: 0 $spacing-xxl;
     position: relative;
-    
-    @include tablet-only {
-      margin: 0 $spacing-lg;
-      max-width: 400px;
-    }
-    
-    @include mobile-only {
-      margin: 0 $spacing-md;
+
+    @include media.mobile-only {
       max-width: none;
     }
-    
+
     &.focused {
       .search-input-wrapper {
-        box-shadow: $shadow-lg;
-        border-color: var(--dynamic-primary);
-        transform: scale(1.02);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow:
+          0 0 0 3px rgba(255, 255, 255, 0.1),
+          var.$shadow-lg;
+        transform: scale(1.01);
       }
     }
-    
+
+    .search-form {
+      width: 100%;
+      position: relative;
+    }
+
     .search-input-wrapper {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: $border-radius-xl;
-      padding: 0 $spacing-lg;
-      transition: all $transition-slow;
-      backdrop-filter: $blur;
-      -webkit-backdrop-filter: $blur;
-      @include flex-start;
+      position: relative;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var.$radius-3xl;
+      padding: var.$spacing-sm var.$spacing-lg;
+      transition: all var.$transition-normal;
+      backdrop-filter: var.$blur-md;
+      -webkit-backdrop-filter: var.$blur-md;
+
+      @include mix.flex-inline(0, center, flex-start);
 
       &:hover {
-        background: var(--bg-tertiary);
-        border-color: var(--dynamic-accent);
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
       }
     }
-    
+
+    .search-icon-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.6);
+      padding: var.$spacing-sm;
+      border-radius: var.$radius-full;
+      transition: all var.$transition-fast;
+      cursor: default;
+
+      @include mix.flex-center;
+
+      .material-icons {
+        font-size: var.$font-size-lg;
+      }
+    }
+
     .search-input {
       flex: 1;
-      background: none;
+      background: transparent;
       border: none;
       outline: none;
-      color: var(--text-primary);
-      font-size: $font-size-base;
+      color: #ffffff;
       font-family: inherit;
-      padding: $spacing-md 0;
-      
-      @include mobile-only {
-        font-size: $font-size-sm;
-        padding: $spacing-sm 0;
+      font-weight: var.$font-weight-medium;
+      padding: var.$spacing-sm var.$spacing-md;
+      font-size: var.$font-size-base;
+
+      @include media.mobile-only {
+        padding: var.$spacing-xs var.$spacing-sm;
+        font-size: var.$font-size-sm;
       }
-      
+
       &::placeholder {
-        color: var(--text-tertiary);
+        color: rgba(255, 255, 255, 0.5);
+        opacity: 1;
+      }
+
+      &:focus {
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.3);
+        }
       }
     }
-    
-    .search-button {
+
+    .clear-btn,
+    .search-btn {
       background: none;
       border: none;
-      color: var(--text-secondary);
+      color: rgba(255, 255, 255, 0.7);
+      padding: var.$spacing-sm;
+      border-radius: var.$radius-full;
       cursor: pointer;
-      padding: $spacing-sm;
-      border-radius: $border-radius-full;
-      transition: all $transition-fast;
-      @include button-ghost;
+      transition: all var.$transition-fast;
+
+      @include mix.flex-center;
+
+      .material-icons {
+        font-size: var.$font-size-lg;
+
+        @include media.mobile-only {
+          font-size: var.$font-size-base;
+        }
+      }
 
       &:hover:not(:disabled) {
-        color: var(--text-primary);
-        background: var(--bg-tertiary);
-        transform: scale(1.1);
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        transform: scale(1.05);
       }
-      
+
       &:disabled {
         opacity: 0.4;
         cursor: not-allowed;
-      }
-      
-      .material-icons {
-        font-size: $font-size-xl;
-        
-        @include mobile-only {
-          font-size: $font-size-lg;
-        }
+        transform: none;
       }
     }
-    
-    .clear-button {
-      background: none;
-      border: none;
-      color: var(--text-tertiary);
-      cursor: pointer;
-      padding: $spacing-xs;
-      border-radius: $border-radius-full;
-      transition: all $transition-fast;
-      margin-left: $spacing-sm;
-      @include button-ghost;
 
-      &:hover {
-        color: var(--text-primary);
-        background: var(--bg-tertiary);
-        transform: scale(1.1);
-      }
-      
-      .material-icons {
-        font-size: $font-size-lg;
-        
-        @include mobile-only {
-          font-size: $font-size-base;
-        }
+    .search-btn {
+      color: #ffffff;
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
       }
     }
-    
-    .no-results {
+
+    .search-feedback {
       position: absolute;
-      top: calc(100% + #{$spacing-xs});
+      top: calc(100% + var.$spacing-sm);
       left: 0;
       right: 0;
-      background: var(--bg-card);
-      backdrop-filter: $blur-lg;
-      -webkit-backdrop-filter: $blur-lg;
-      border: 1px solid var(--border-color);
-      border-radius: $border-radius-lg;
-      padding: $spacing-lg;
-      color: var(--text-secondary);
-      font-size: $font-size-sm;
-      box-shadow: $shadow-xl;
-      z-index: $z-dropdown;
-      @include fade-in;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var.$radius-xl;
+      padding: var.$spacing-2xl;
+      text-align: center;
+      z-index: var.$z-dropdown;
+      backdrop-filter: var.$blur-lg;
+      -webkit-backdrop-filter: var.$blur-lg;
+
+      @include mix.fade-in;
+
+      .material-icons {
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: var.$spacing-md;
+        font-size: var.$font-size-4xl;
+      }
+
+      p {
+        margin: 0 0 var.$spacing-xs;
+        color: #ffffff;
+        font-weight: var.$font-weight-semibold;
+      }
+
+      .suggestion {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: var.$font-size-sm;
+      }
     }
   }
-  
-  .navbar-profile {
-    .profile-button {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: $border-radius-full;
-      width: 40px;
-      height: 40px;
-      cursor: pointer;
-      transition: all $transition-normal;
-      color: var(--text-secondary);
-      @include button-secondary;
 
-      @include mobile-only {
-        width: 36px;
-        height: 36px;
+  .navbar-actions {
+    flex-shrink: 0;
+    margin-left: var.$spacing-xl;
+
+    @include media.mobile-only {
+      margin-left: var.$spacing-lg;
+    }
+
+    @include mix.flex-inline(var.$spacing-md);
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var.$radius-full;
+      width: var.$spacing-3xl;
+      height: var.$spacing-3xl;
+      color: #ffffff;
+      cursor: pointer;
+      transition: all var.$transition-normal;
+
+      @include media.mobile-only {
+        width: var.$spacing-2xl;
+        height: var.$spacing-2xl;
       }
-      
-      &:hover {
-        background: var(--bg-tertiary);
-        border-color: var(--dynamic-primary);
-        color: var(--text-primary);
-        transform: scale(1.05);
-        box-shadow: $shadow-md;
-      }
-      
+
+      @include mix.flex-center;
+      @include mix.focus-ring(#ffffff);
+
       .material-icons {
-        font-size: $font-size-xl;
-        
-        @include mobile-only {
-          font-size: $font-size-lg;
+        font-size: var.$font-size-xl;
+
+        @include media.mobile-only {
+          font-size: var.$font-size-lg;
         }
       }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-1px);
+        box-shadow: var.$shadow-md;
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+@keyframes searchPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+  }
+}
+
+.search-container.searching .search-input-wrapper {
+  animation: searchPulse 1.5s infinite;
+}
+
+.search-input-wrapper {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:focus-within::before {
+    left: 100%;
+  }
+}
+
+@include media.reduce-motion {
+  .navbar {
+    * {
+      transition: none !important;
+      animation: none !important;
+      transform: none !important;
+    }
+  }
+}
+
+@include media.high-contrast {
+  .navbar {
+    background: #000000 !important;
+    border-bottom: 2px solid #ffffff !important;
+
+    .search-input-wrapper {
+      border: 2px solid #ffffff;
     }
   }
 }

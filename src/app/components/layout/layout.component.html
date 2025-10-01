@@ -1,13 +1,45 @@
 <div class="app-container">
-  <div id="youtube-player" class="invisible-player"></div> 
-  <app-navbar (search)="onSearch($event)"></app-navbar>
-  <app-sidebar [accentColor]="dominantColor"></app-sidebar>
-  <div class="main-content">
-    <main>
-      <router-outlet></router-outlet>
-    </main>
-    <div class="player-container" *ngIf="isPlayerVisible">
-      <app-player (close)="closePlayer()"></app-player>
+  <!-- Reproductor invisible para YouTube (SIEMPRE renderizado) -->
+  <div id="yt-player" class="invisible-player" aria-hidden="true"></div>
+
+  <!-- Navbar -->
+  <app-navbar
+    (search)="onSearch($event)"
+    (toggleSidebar)="onToggleSidebar()"
+    [isScrolled]="isScrolled()"
+    class="app-navbar">
+  </app-navbar>
+
+  <!-- Sidebar -->
+  <app-sidebar
+    [isOpen]="isSidebarOpen()"
+    [isCollapsed]="isSidebarCollapsed()"
+    (toggleSidebar)="onToggleSidebar()"
+    (close)="onCloseSidebar()"
+    class="app-sidebar">
+  </app-sidebar>
+
+  <!-- Overlay para móvil cuando sidebar está abierta -->
+  @if (isSidebarOpen() && isMobile()) {
+    <div
+      class="sidebar-overlay"
+      (click)="onCloseSidebar()"
+      aria-hidden="true">
     </div>
-  </div>
+  }
+
+  <!-- Contenido principal -->
+  <main
+    class="main-content"
+    [class.sidebar-collapsed]="isSidebarCollapsed() && !isMobile()"
+    [class.sidebar-expanded]="!isSidebarCollapsed() && !isMobile()">
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <!-- Player UI (visible solo si hay canción) -->
+  @if (isPlayerVisible()) {
+    <app-player class="app-player"></app-player>
+  }
 </div>

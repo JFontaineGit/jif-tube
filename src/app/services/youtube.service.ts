@@ -146,7 +146,7 @@ export class YoutubeService {
               videoId: item.id,
               title: item.snippet.title,
               artist: item.snippet.channelTitle,
-              thumbnailUrl: item.snippet.thumbnails?.high?.url || '',
+              thumbnailUrl: this.getBestThumbnail(item.snippet.thumbnails),
               album: this.extractAlbumFromDetails({ items: [item] }),
               type: item.snippet.title.toLowerCase().includes('official audio') ? 'official-video' : 'album-track',
               duration,
@@ -180,6 +180,19 @@ export class YoutubeService {
     );
   }
 
+
+  private getBestThumbnail(thumbnails: any): string {
+    if (!thumbnails) return '';
+
+    const priority = ['maxres', 'standard', 'high', 'medium', 'default'];
+    for (const key of priority) {
+      if (thumbnails[key]?.url) {
+        return thumbnails[key].url;
+      }
+    }
+
+    return '';
+  }
   private parseDuration(duration: string): number {
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) {

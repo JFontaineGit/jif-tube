@@ -1,69 +1,255 @@
-@use 'sass:color'; // Importamos variables globales si existen
-
-$bg-secondary: rgba(0, 0, 0, 0.7);
-$border-color: rgba(255, 255, 255, 0.1);
-$accent-color: #9c27b0;
-
-// Calcular ajustes de color basados en el fallback
-$accent-light: color.adjust($accent-color, $lightness: 20%);
-$accent-dark: color.adjust($accent-color, $lightness: -10%);
+@use '../../../styles/_variables.scss' as var;
+@use '../../../styles/_mixins.scss' as mix;
+@use '../../../styles/_media-queries.scss' as media;
 
 .search-page {
-  padding: 2rem 1.5rem;
-  color: var(--text-primary, white); // Fallback a blanco si no hay variable global
-
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: inherit; // Hereda de .search-page
+  padding: var.$spacing-3xl var.$spacing-2xl;
+  min-height: calc(100vh - var.$navbar-height);
+  
+  @include media.mobile-only {
+    padding: var.$spacing-xl var.$spacing-md;
   }
 
-  .best-result {
-    margin-bottom: 1rem;
-
-    app-song-card {
-      width: 100%;
+  .page-title {
+    font-size: var.$font-size-2xl;
+    font-weight: var.$font-weight-bold;
+    color: #ffffff;
+    margin-bottom: var.$spacing-xl;
+    
+    @include media.mobile-only {
+      font-size: var.$font-size-xl;
+      margin-bottom: var.$spacing-lg;
     }
   }
 
-  h3 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: inherit; // Hereda de .search-page
+  // ========================================
+  // MEJOR RESULTADO (Destacado tipo YT Music)
+  // ========================================
+  .best-result {
+    margin-bottom: var.$spacing-3xl;
+    
+    @include media.mobile-only {
+      margin-bottom: var.$spacing-2xl;
+    }
+
+    app-song-card {
+      display: block;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var.$radius-2xl;
+      padding: var.$spacing-2xl;
+      transition: all var.$transition-normal;
+      position: relative;
+      overflow: hidden;
+      
+      @include media.mobile-only {
+        padding: var.$spacing-lg;
+        border-radius: var.$radius-xl;
+      }
+
+      // Efecto de brillo sutil en el fondo
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          transparent 50%
+        );
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity var.$transition-normal;
+      }
+
+      &:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+
+        &::before {
+          opacity: 1;
+        }
+      }
+
+      &:active {
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  // ========================================
+  // SECCIÓN DE CANCIONES
+  // ========================================
+  .section-title {
+    font-size: var.$font-size-xl;
+    font-weight: var.$font-weight-bold;
+    color: #ffffff;
+    margin-bottom: var.$spacing-lg;
+    
+    @include media.mobile-only {
+      font-size: var.$font-size-lg;
+      margin-bottom: var.$spacing-md;
+    }
   }
 
   .song-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+    gap: var.$spacing-xl;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    
+    @include media.mobile-only {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: var.$spacing-lg;
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    @media (min-width: 1280px) {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
   }
 
+  // ========================================
+  // BOTÓN DE GUARDAR
+  // ========================================
   .save-button {
-    background-color: var(--accent-color, $accent-color);
-    border: none;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var.$spacing-sm var.$spacing-xl;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var.$radius-lg;
+    color: #ffffff;
+    font-weight: var.$font-weight-semibold;
+    font-size: var.$font-size-sm;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all var.$transition-fast;
+    position: relative;
+    overflow: hidden;
 
-    &:disabled {
-      background-color: var(--accent-color-disabled, $accent-light);
-      cursor: not-allowed;
+    @include media.mobile-only {
+      padding: var.$spacing-xs var.$spacing-lg;
+      font-size: var.$font-size-xs;
+    }
+
+    // Efecto de hover
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.05)
+      );
+      opacity: 0;
+      transition: opacity var.$transition-fast;
     }
 
     &:hover:not(:disabled) {
-      background-color: var(--accent-color-hover, $accent-dark);
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    // Estado deshabilitado (ya guardado)
+    &:disabled {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.4);
+      cursor: not-allowed;
+      transform: none;
+      
+      &:hover {
+        box-shadow: none;
+      }
+    }
+
+    // Focus para accesibilidad
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.5);
+      outline-offset: 2px;
     }
   }
 }
 
-@media (max-width: 768px) {
-  .search-page {
-    padding: 1rem;
+// ========================================
+// ESTADOS DE CARGA Y ERROR
+// ========================================
+.search-page {
+  .loading-state,
+  .error-state,
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var.$spacing-4xl;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    
+    @include media.mobile-only {
+      padding: var.$spacing-3xl var.$spacing-lg;
+    }
+  }
+}
 
-    .song-list {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+// ========================================
+// ACCESIBILIDAD Y MOTION
+// ========================================
+@include media.reduce-motion {
+  .search-page {
+    .best-result app-song-card,
+    .save-button {
+      transition: none !important;
+      animation: none !important;
+    }
+
+    .best-result app-song-card:hover {
+      transform: none;
+    }
+
+    .save-button:hover:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+@include media.high-contrast {
+  .search-page {
+    .best-result app-song-card {
+      border: 2px solid #ffffff;
+      background: #000000;
+    }
+
+    .save-button {
+      border: 2px solid #ffffff;
+      
+      &:disabled {
+        border-style: dashed;
+      }
     }
   }
 }

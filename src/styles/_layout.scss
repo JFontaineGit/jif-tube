@@ -1,0 +1,41 @@
+// Fixes de layout, bordes y máscaras.
+// Mantenidas las reglas exactas del CSS original, con nesting para legibilidad.
+
+#items {
+  border-radius: 10px !important;
+}
+
+// Fix para blur en navigation bar (nesting para claridad).
+ytmusic-app-layout {
+  > [slot="player-page"]:not([is-mweb-modernization-enabled]):not(:has(ytmusic-player[player-ui-state=FULLSCREEN])) {
+    padding-top: 90px;
+    margin-top: calc(-90px + var(--menu-bar-height, 0px)) !important;
+  }
+}
+
+// Fix para background image con máscara.
+ytmusic-fullbleed-thumbnail-renderer {
+  img {
+    mask: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+  }
+}
+
+// Overrides de fondos con vars dinámicas (compatibles con JS).
+.background-gradient.style-scope,
+ytmusic-app-layout[is-bauhaus-sidenav-enabled] {
+  #mini-guide-background.ytmusic-app-layout {
+    background: var(--ytmusic-background) !important;
+  }
+}
+
+ytmusic-browse-response {
+  &[has-background]:not([disable-gradient]) {
+    .background-gradient.ytmusic-browse-response {
+      background: unset !important;
+    }
+  }
+
+  #background.immersive-background.style-scope.ytmusic-browse-response {
+    opacity: 0.6;
+  }
+}

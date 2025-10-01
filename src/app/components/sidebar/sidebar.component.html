@@ -1,30 +1,64 @@
-<aside class="sidebar">
+<aside
+  class="sidebar"
+  [class.open]="isOpen"
+  [class.collapsed]="isCollapsed"
+  role="navigation"
+  aria-label="Main sidebar">
   <div class="sidebar-content">
-    <nav class="nav-menu">
-      <ul>
-        <li
-          *ngFor="let item of navItems"
-          class="nav-item"
-          [routerLink]="item.route"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.route === '/' }"
-        >
-          <span class="material-icons nav-icon">{{ item.icon }}</span>
-          <span class="nav-label">{{ item.label }}</span>
-        </li>
+    <!-- Navegación principal -->
+    <nav class="nav-menu" role="menu">
+      <ul class="nav-list">
+        @for (item of navItems(); track item.route) {
+          <li class="nav-item">
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+              class="nav-link"
+              role="menuitem"
+              [attr.aria-label]="item.label"
+              [attr.aria-current]="item.active ? 'page' : null"
+              (click)="onNavItemClick()">
+
+              <span class="nav-icon" [attr.aria-hidden]="true">
+                <span class="material-icons">{{ item.icon }}</span>
+              </span>
+
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          </li>
+        }
       </ul>
     </nav>
 
-    <div class="settings-menu">
-      <div
-        class="nav-item"
-        [routerLink]="settingsItem.route"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: settingsItem.route === '/' }"
-      >
-        <span class="material-icons nav-icon">{{ settingsItem.icon }}</span>
-        <span class="nav-label">{{ settingsItem.label }}</span>
-      </div>
-    </div>
+    <!-- Separador visual -->
+    <div class="nav-separator" aria-hidden="true"></div>
+
+    <!-- Configuración -->
+    <nav class="settings-menu" role="menu">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a
+            [routerLink]="settingsItem().route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: settingsItem().route === '/' }"
+            class="nav-link"
+            role="menuitem"
+            [attr.aria-label]="settingsItem().label"
+            [attr.aria-current]="settingsItem().active ? 'page' : null"
+            (click)="onNavItemClick()">
+
+            <span class="nav-icon" [attr.aria-hidden]="true">
+              <span class="material-icons">{{ settingsItem().icon }}</span>
+            </span>
+
+            <span class="nav-label">{{ settingsItem().label }}</span>
+
+            <!-- Indicador activo -->
+            <div class="active-indicator" aria-hidden="true"></div>
+          </a>
+        </li>
+      </ul>
+    </nav>
   </div>
 </aside>

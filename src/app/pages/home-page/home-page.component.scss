@@ -1,135 +1,192 @@
-$bg-secondary: rgba(15, 20, 25, 0.8); 
+@use '../../../styles/_variables.scss' as var;
+@use '../../../styles/_mixins.scss' as mix;
+@use '../../../styles/_media-queries.scss' as media;
 
 .home-container {
-  padding: 2rem 1.5rem;
-  min-height: calc(100vh - 4rem);
-  transition: background 0.5s ease;
+  padding: var.$spacing-3xl var.$spacing-2xl;
+  min-height: calc(100vh - var.$navbar-height);
+  transition: background var.$transition-slow;
+  gap: var.$spacing-3xl;
+  @include mix.flex-column;
 
-  .page-header {
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .loading-message {
+    text-align: center;
+    padding: var.$spacing-3xl;
+    gap: var.$spacing-md;
+    @include mix.flex-column-center;
 
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin: 0;
-      background: linear-gradient(90deg, #4a9eff, #00d4aa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      transition: background 0.5s ease;
+    .material-icons {
+      font-size: 3rem;
+      color: var(--ytmusic-album-color, var.$dynamic-primary);
+      
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+    }
+
+    p {
+      color: var.$text-secondary;
+      font-size: var.$font-size-lg;
     }
   }
 
+  // Error State
+  .error-message {
+    color: #fee;
+    background: color-mix(in srgb, #ef4444 20%, transparent);
+    border: 1px solid #ef4444;
+    text-align: center;
+    padding: var.$spacing-lg;
+    border-radius: var.$radius-lg;
+    justify-content: center;
+    @include mix.flex-inline(var.$spacing-sm);
+
+    .material-icons {
+      font-size: var.$font-size-xl;
+    }
+  }
+
+  // Empty State
+  .empty-state {
+    text-align: center;
+    padding: var.$spacing-3xl;
+    gap: var.$spacing-md;
+    @include mix.flex-column-center;
+
+    .material-icons {
+      font-size: 4rem;
+      color: var.$text-tertiary;
+    }
+
+    p {
+      color: var.$text-secondary;
+      font-size: var.$font-size-lg;
+    }
+  }
+
+  // Songs Section
   .songs-section {
-    margin-bottom: 2rem;
+    margin-bottom: var.$spacing-2xl;
 
     .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
+      margin-bottom: var.$spacing-xl;
+      @include mix.flex-between;
 
       .section-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary, #ffffff);
+        color: var(--text-primary, var.$text-primary);
+        @include mix.heading-secondary;
       }
 
       .navigation-buttons {
-        display: flex;
-        gap: 0.5rem;
+        @include mix.flex-inline(var.$spacing-sm);
 
         .nav-button {
-          background-color: $bg-secondary;
-          border: none;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-
+          width: var.$spacing-2xl;
+          height: var.$spacing-2xl;
+          border-radius: var.$radius-full;
+          transition: all var.$transition-fast;
+          @include mix.button-secondary;
+          @include mix.flex-center;
+          
           &:hover:not(:disabled) {
-            background-color: rgba(74, 158, 255, 0.2);
+            background-color: color-mix(in srgb, var(--ytmusic-album-color) 20%, var.$bg-secondary);
+            border-color: var(--ytmusic-album-color, var.$dynamic-primary);
+            transform: scale(1.1);
           }
 
           &:disabled {
-            background-color: rgba(15, 20, 25, 0.5);
+            background-color: var.$bg-tertiary;
             cursor: not-allowed;
             opacity: 0.5;
           }
 
           .material-icons {
-            font-size: 1.5rem;
-            color: var(--text-primary, #ffffff);
+            font-size: var.$font-size-lg;
+            color: var(--text-primary, var.$text-primary);
           }
         }
       }
     }
 
     .songs-row {
-      display: flex;
-      gap: 1rem;
+      gap: var.$spacing-lg;
       overflow-x: auto;
       scroll-behavior: smooth;
-      padding-bottom: 0.5rem;
+      padding-bottom: var.$spacing-sm;
+      @include mix.flex-start;
+      @include mix.custom-scrollbar;
 
       &::-webkit-scrollbar {
         display: none;
       }
-    }
-  }
 
-  .loading-message {
-    color: var(--text-secondary, #b3b3b3);
-    text-align: center;
-    margin: 2rem 0;
-
-    p {
-      font-size: 1rem;
+      & {  // Wrap pa' fix mixed-decls: scrollbar-width después del nested
+        scrollbar-width: none;
+      }
     }
   }
 }
 
-@media (max-width: 768px) {
+// Spinning animation
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Mobile
+@include media.mobile-only {
   .home-container {
-    padding: 1rem;
+    padding: var.$spacing-xl var.$spacing-md;
 
-    .page-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-
-      h1 {
-        font-size: 1.5rem;
-      }
+    .loading-message .material-icons {
+      font-size: 2rem;
     }
 
     .songs-section {
       .section-header {
         .section-title {
-          font-size: 1.2rem;
+          font-size: var.$font-size-lg;
         }
 
         .navigation-buttons {
           .nav-button {
-            width: 32px;
-            height: 32px;
+            width: var.$spacing-xl;
+            height: var.$spacing-xl;
 
             .material-icons {
-              font-size: 1.2rem;
+              font-size: var.$font-size-sm;
             }
           }
         }
       }
     }
+  }
+}
 
-    .loading-message p {
-      font-size: 0.9rem;
+// Tablet+
+@include media.tablet-up {
+  .home-container {
+    .songs-row {
+      gap: var.$spacing-xl;
+    }
+  }
+}
+
+// Reduce motion
+@include media.reduce-motion {
+  .home-container {
+    transition: none;
+
+    .loading-message .material-icons.spinning {
+      animation: none;
+    }
+
+    .songs-section .section-header .navigation-buttons .nav-button {
+      transition: none;
     }
   }
 }

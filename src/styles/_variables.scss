@@ -1,60 +1,114 @@
-// ===== BREAKPOINTS =====
-$mobile: 480px;
-$tablet: 768px;
-$desktop: 1024px;
-$large-desktop: 1200px;
-$xl-desktop: 1440px;
+@use 'sass:color';
 
-// ===== COLORES BASE =====
-$primary-color: #6366f1;
-$primary-hover: #4f46e5;
-$secondary-color: #8b5cf6;
-$accent-color: #06b6d4;
-$success-color: #10b981;
-$warning-color: #f59e0b;
-$error-color: #ef4444;
-$info-color: #3b82f6;
+// ========================================
+// COLORES PRINCIPALES MODERNOS
+// ========================================
+$primary-blue: #3b82f6;
+$primary-purple: #8b5cf6;
+$primary-teal: #14b8a6;
+$accent-orange: #f97316;
+$accent-pink: #ec4899;
 
-// ===== COLORES DE TEMA =====
-// Modo oscuro (por defecto)
-$dark-bg-primary: #0f0f0f;
-$dark-bg-secondary: #1a1a1a;
-$dark-bg-tertiary: #2a2a2a;
-$dark-bg-card: rgba(26, 26, 26, 0.8);
-$dark-bg-overlay: rgba(0, 0, 0, 0.8);
-$dark-text-primary: #ffffff;
-$dark-text-secondary: #b3b3b3;
-$dark-text-tertiary: #737373;
-$dark-border: #3a3a3a;
-$dark-shadow: rgba(0, 0, 0, 0.3);
-$dark-shadow-lg: rgba(0, 0, 0, 0.5);
+// Estados
+$success: #10b981;
+$warning: #f59e0b;
+$error: #ef4444;
+$info: #06b6d4;
 
-// Modo claro
-$light-bg-primary: #ffffff;
-$light-bg-secondary: #f8f9fa;
-$light-bg-tertiary: #e9ecef;
-$light-bg-card: rgba(255, 255, 255, 0.9);
-$light-bg-overlay: rgba(255, 255, 255, 0.9);
-$light-text-primary: #212529;
-$light-text-secondary: #6c757d;
-$light-text-tertiary: #adb5bd;
-$light-border: #dee2e6;
-$light-shadow: rgba(0, 0, 0, 0.1);
-$light-shadow-lg: rgba(0, 0, 0, 0.15);
+// Grises modernos
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+$gray-950: #030712;
 
-// ===== ESPACIADO =====
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 12px;
-$spacing-lg: 16px;
-$spacing-xl: 24px;
-$spacing-xxl: 32px;
-$spacing-3xl: 48px;
-$spacing-4xl: 64px;
+// ========================================
+// TEMA DINÁMICO
+// ========================================
+$dynamic-primary: var(--dynamic-primary, #{$primary-blue});
+$dynamic-secondary: var(--dynamic-secondary, #{$primary-purple});
+$dynamic-accent: var(--dynamic-accent, #{$accent-orange});
 
-// ===== TIPOGRAFÍA =====
-$font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-$font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+// ========================================
+// FONDOS Y SUPERFICIES
+// ========================================
+$bg-primary: #0a0a0a;
+$bg-secondary: #1a1a1a;
+$bg-tertiary: #2a2a2a;
+$bg-card: rgba(255, 255, 255, 0.05);
+$bg-overlay: rgba(0, 0, 0, 0.6);
+
+// ========================================
+// TEXTO
+// ========================================
+$text-primary: #ffffff;
+$text-secondary: rgba(255, 255, 255, 0.7);
+$text-tertiary: rgba(255, 255, 255, 0.5);
+$text-muted: rgba(255, 255, 255, 0.3);
+
+// ========================================
+// BORDES Y SOMBRAS
+// ========================================
+$border-color: rgba(255, 255, 255, 0.1);
+$border-color-light: rgba(255, 255, 255, 0.05);
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+$shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.3);
+$shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+// ========================================
+// DIMENSIONES Y ESPACIADO
+// ========================================
+$spacing-xs: 0.25rem;   // 4px
+$spacing-sm: 0.5rem;    // 8px
+$spacing-md: 0.75rem;   // 12px
+$spacing-lg: 1rem;      // 16px
+$spacing-xl: 1.25rem;   // 20px
+$spacing-2xl: 1.5rem;   // 24px
+$spacing-3xl: 2rem;     // 32px
+$spacing-4xl: 3rem;     // 48px
+
+// ========================================
+// LAYOUT
+// ========================================
+$navbar-height: 72px;
+$navbar-mobile-height: 64px;
+$sidebar-width: 280px;
+$sidebar-mobile-width: 80px;
+$player-height: 90px;
+$player-mobile-expanded-height: 100vh;
+
+// ========================================
+// BORDER RADIUS
+// ========================================
+$radius-sm: 0.25rem;    // 4px
+$radius-md: 0.5rem;     // 8px
+$radius-lg: 0.75rem;    // 12px
+$radius-xl: 1rem;       // 16px
+$radius-2xl: 1.5rem;    // 24px
+$radius-3xl: 2rem;      // 32px
+$radius-full: 9999px;
+
+// ========================================
+// TRANSICIONES Y ANIMACIONES
+// ========================================
+$transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slower: 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+// ========================================
+// TIPOGRAFÍA
+// ========================================
+$font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+$font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
 
 $font-size-xs: 0.75rem;   // 12px
 $font-size-sm: 0.875rem;  // 14px
@@ -73,110 +127,36 @@ $font-weight-bold: 700;
 $font-weight-extrabold: 800;
 
 $line-height-tight: 1.25;
+$line-height-snug: 1.375;
 $line-height-normal: 1.5;
-$line-height-relaxed: 1.75;
+$line-height-relaxed: 1.625;
 
-// ===== BORDES Y RADIOS =====
-$border-radius-sm: 6px;
-$border-radius: 8px;
-$border-radius-md: 10px;
-$border-radius-lg: 12px;
-$border-radius-xl: 16px;
-$border-radius-2xl: 20px;
-$border-radius-3xl: 24px;
-$border-radius-full: 9999px;
+// ========================================
+// Z-INDEX
+// ========================================
+$z-base: 1;
+$z-dropdown: 100;
+$z-overlay: 200;
+$z-modal: 300;
+$z-toast: 400;
+$z-tooltip: 500;
+$z-navbar: 1000;
+$z-sidebar: 900;
+$z-player: 800;
 
-$border-width: 1px;
-$border-width-2: 2px;
-$border-width-4: 4px;
 
-// ===== SOMBRAS =====
-$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-$shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-
-// ===== TRANSICIONES =====
-$transition-fast: 0.15s ease;
-$transition-normal: 0.2s ease;
-$transition-slow: 0.3s ease;
-$transition-slower: 0.5s ease;
-
-$transition-all: all 0.2s ease;
-$transition-colors: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
-$transition-transform: transform 0.2s ease;
-$transition-opacity: opacity 0.2s ease;
-
-// ===== LAYOUT =====
-$navbar-height: 64px;
-$navbar-height-mobile: 56px;
-$sidebar-width: 80px;
-$sidebar-width-mobile: 64px;
-$player-height: 90px;
-$player-height-mobile: 80px;
-
-// ===== Z-INDEX =====
-$z-dropdown: 1000;
-$z-sticky: 1020;
-$z-fixed: 1030;
-$z-modal-backdrop: 1040;
-$z-modal: 1050;
-$z-popover: 1060;
-$z-tooltip: 1070;
-$z-toast: 1080;
-
-// ===== GRADIENTES =====
-$gradient-primary: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
-$gradient-accent: linear-gradient(135deg, $accent-color 0%, $primary-color 100%);
-$gradient-dark: linear-gradient(135deg, $dark-bg-secondary 0%, $dark-bg-primary 100%);
-$gradient-light: linear-gradient(135deg, $light-bg-primary 0%, $light-bg-secondary 100%);
-
-// ===== EFECTOS =====
+// ========================================
+// EFECTOS Y FILTROS
+// ========================================
 $blur-sm: blur(4px);
-$blur: blur(8px);
-$blur-md: blur(12px);
+$blur-md: blur(8px);
 $blur-lg: blur(16px);
 $blur-xl: blur(24px);
 
-// ===== VARIABLES CSS DINÁMICAS =====
-:root {
-  // Colores dinámicos que cambian con el tema
-  --dynamic-primary: #{$primary-color};
-  --dynamic-primary-hover: #{$primary-hover};
-  --dynamic-accent: #{$accent-color};
-  --dynamic-gradient-start: #{$primary-color};
-  --dynamic-gradient-end: #{$secondary-color};
-  
-  // Colores base del tema
-  --bg-primary: #{$dark-bg-primary};
-  --bg-secondary: #{$dark-bg-secondary};
-  --bg-tertiary: #{$dark-bg-tertiary};
-  --bg-card: #{$dark-bg-card};
-  --bg-overlay: #{$dark-bg-overlay};
-  --text-primary: #{$dark-text-primary};
-  --text-secondary: #{$dark-text-secondary};
-  --text-tertiary: #{$dark-text-tertiary};
-  --border-color: #{$dark-border};
-  --shadow-color: #{$dark-shadow};
-  --shadow-color-lg: #{$dark-shadow-lg};
-}
-
-// Modo claro
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg-primary: #{$light-bg-primary};
-    --bg-secondary: #{$light-bg-secondary};
-    --bg-tertiary: #{$light-bg-tertiary};
-    --bg-card: #{$light-bg-card};
-    --bg-overlay: #{$light-bg-overlay};
-    --text-primary: #{$light-text-primary};
-    --text-secondary: #{$light-text-secondary};
-    --text-tertiary: #{$light-text-tertiary};
-    --border-color: #{$light-border};
-    --shadow-color: #{$light-shadow};
-    --shadow-color-lg: #{$light-shadow-lg};
-  }
-}
+// ========================================
+// BREAKPOINTS
+// ========================================
+$mobile-max: 768px;
+$tablet-min: 769px;
+$desktop-min: 1024px;
+$desktop-large-min: 1440px;

@@ -1,28 +1,32 @@
 <div class="search-page">
-  <h2>Mejor resultado</h2>
-  <div class="best-result" *ngIf="bestResult as result">
-    <app-song-card [song]="result" (selected)="playSong($event)">
-      <button 
-        class="save-button" 
-        (click)="saveSong(result); $event.stopPropagation()" 
-        [disabled]="isSongSaved(result)">
-        {{ isSongSaved(result) ? 'Guardado' : '+ Guardar' }}
-      </button>
-    </app-song-card>
-  </div>
-
-  <h3>Canciones</h3>
+  <h2 class="page-title">Mejor resultado</h2>
+  @if (bestResult(); as result) {
+    <div class="best-result">
+      <app-song-card [song]="result" (selected)="playSong($event)">
+        <button 
+          class="save-button" 
+          (click)="saveSong(result); $event.stopPropagation()" 
+          [disabled]="isSongSaved(result)"
+          [attr.aria-label]="isSongSaved(result) ? 'Canción ya guardada' : 'Guardar canción'">
+          {{ isSongSaved(result) ? 'Guardado' : '+ Guardar' }}
+        </button>
+      </app-song-card>
+    </div>
+  }
+  <h3 class="section-title">Canciones</h3>
   <div class="song-list">
-    <app-song-card 
-      *ngFor="let song of filteredSongs" 
-      [song]="song" 
-      (selected)="playSong($event)">
-      <button 
-        class="save-button" 
-        (click)="saveSong(song); $event.stopPropagation()" 
-        [disabled]="isSongSaved(song)">
-        {{ isSongSaved(song) ? 'Guardado' : '+ Guardar' }}
-      </button>
-    </app-song-card>
+    @for (song of filteredSongs(); track song.id) {
+      <app-song-card 
+        [song]="song" 
+        (selected)="playSong($event)">
+        <button 
+          class="save-button" 
+          (click)="saveSong(song); $event.stopPropagation()" 
+          [disabled]="isSongSaved(song)"
+          [attr.aria-label]="isSongSaved(song) ? 'Canción ya guardada' : 'Guardar canción'">
+          {{ isSongSaved(song) ? 'Guardado' : '+ Guardar' }}
+        </button>
+      </app-song-card>
+    }
   </div>
 </div>

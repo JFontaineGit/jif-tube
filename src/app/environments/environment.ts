@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
   demoMode: false,
-  youtubeApiKey: 'AIzaSyDhUFUrs5MbqkG_6RaRIWhIFWcyOEK8qhE',
+  youtubeApiKey: 'AIzaSyDX5EsatrHYiPbP0Q-1aSc2EfM2b2Y1Z-E',
 };

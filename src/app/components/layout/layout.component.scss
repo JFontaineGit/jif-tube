@@ -1,94 +1,223 @@
-@use '../../../styles/_variables.scss' as *;
-@use '../../../styles/_mixins.scss' as *;
+@use '../../../styles/_variables.scss' as var;
+@use '../../../styles/_mixins.scss' as mix;
+@use '../../../styles/_media-queries.scss' as media;
 
 .app-container {
   position: relative;
-  flex-direction: row;
   min-height: 100vh;
   width: 100vw;
-  background: transparent;
-  transition: background $transition-slower;
-  overflow: visible;
-  z-index: 1;
-  @include flex-start;
+  background: radial-gradient(
+    circle at top right,
+    color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent),
+    color-mix(
+      in srgb,
+      var(--ytmusic-album-color-dark) 30%,
+      var(--bg-primary, #{var.$bg-primary})
+    )
+    40%,
+    var(--ytmusic-background, #{var.$bg-primary}) 80%
+  );
+  transition: background var(--transition-slow, 500ms);
+  overflow-x: hidden;
+  animation: appLoad 0.6s ease-out;
 
-  &::after {
-    content: "";
-    background: transparent;
-    opacity: 0.1;
+  @include mix.flex-start;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.2) 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.1) 100%
+    );
     pointer-events: none;
-    z-index: -1;
-    @include absolute-fill;
+    z-index: var.$z-base;
   }
-  
+
+  .invisible-player {
+    @include mix.sr-only;
+  }
+
+  .app-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var.$z-navbar;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: var.$navbar-height;
+    left: 0;
+    bottom: 0;
+    z-index: var.$z-sidebar;
+
+    @include media.mobile-only {
+      top: var.$navbar-mobile-height;
+    }
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: var.$navbar-mobile-height;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: calc(var.$z-sidebar - 1);
+    cursor: pointer;
+    animation: fadeIn 0.2s ease;
+
+    @include media.desktop-up {
+      display: none;
+    }
+  }
+
+  // Contenido principal
   .main-content {
-    position: relative;
-    z-index: 2;
     flex: 1;
-    margin-left: $sidebar-width;
-    padding: $spacing-lg;
-    padding-top: $navbar-height;
-    overflow-y: auto;
-    min-width: 0;
+    padding-top: var.$navbar-height;
     min-height: 100vh;
-    transition: margin-left $transition-slow;
-    background: transparent;
-    @include flex-column;    
-    @include custom-scrollbar;
-    
-    @include tablet-only {
-      margin-left: $sidebar-width-mobile;
-      padding: $spacing-md;
+    position: relative;
+    z-index: calc(var.$z-base + 1);
+    transition: margin-left var.$transition-normal;
+
+    @include media.mobile-only {
+      margin-left: 0;
+      padding-top: var.$navbar-mobile-height;
+      padding-bottom: calc(var.$player-height + var.$spacing-lg);
     }
-    
-    @include mobile-only {
-      margin-left: $sidebar-width-mobile;
-      padding: $spacing-sm;
+
+    @include media.tablet-only {
+      margin-left: 0;
+      padding-bottom: calc(var.$player-height + var.$spacing-md);
     }
-    
-    main {
-      flex: 1;
-      padding: $spacing-lg;
-      
-      @include tablet-only {
-        padding: $spacing-md;
+
+    @include media.desktop-up {
+      &.sidebar-collapsed {
+        margin-left: var.$sidebar-mobile-width;
       }
-      
-      @include mobile-only {
-        padding: $spacing-sm;
+
+      &.sidebar-expanded {
+        margin-left: var.$sidebar-width;
       }
+    }
+
+    .content-wrapper {
+      padding: var.$spacing-2xl;
+      min-height: calc(100vh - var.$navbar-height);
+
+      @include media.mobile-only {
+        padding: var.$spacing-lg;
+        min-height: calc(
+          100vh - var.$navbar-mobile-height - var.$player-height - var.$spacing-lg
+        );
+      }
+
+      @include mix.custom-scrollbar;
     }
   }
-  
-  .player-container {
+
+  .app-player {
     position: fixed;
     bottom: 0;
-    left: $sidebar-width;
-    width: calc(100vw - $sidebar-width);
-    background: transparent;
-    backdrop-filter: $blur-lg;
-    -webkit-backdrop-filter: $blur-lg;
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -4px 20px var(--shadow-color-lg);
-    z-index: $z-fixed;
-    transition: all $transition-slow;
-    
-    @include tablet-only {
-      left: $sidebar-width-mobile;
-      width: calc(100vw - $sidebar-width-mobile);
+    right: 0;
+    z-index: var.$z-player;
+    background: var(--ytmusic-background);
+    border-top: 1px solid var(--ytmusic-border, #{var.$border-color});
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+    transition: left var.$transition-normal;
+
+    @include media.mobile-only {
+      left: 0;
     }
-    
-    @include mobile-only {
-      left: $sidebar-width-mobile;
-      width: calc(100vw - $sidebar-width-mobile);
+
+    @include media.tablet-only {
+      left: 0;
     }
-    
-    app-player {
-      width: 100%;
+
+    @include media.desktop-up {
+      .sidebar-collapsed ~ & {
+        left: var.$sidebar-mobile-width;
+      }
+
+      .sidebar-expanded ~ & {
+        left: var.$sidebar-width;
+      }
     }
-    
-    &[style*="display: none"] {
-      display: none !important;
+  }
+}
+
+.app-container:has(.app-player) {
+  .main-content {
+    @include media.desktop-up {
+      padding-bottom: calc(var.$player-height + var.$spacing-md);
+    }
+  }
+}
+
+@keyframes appLoad {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@include media.dark-mode {
+  .app-container {
+    &::before {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.4) 0%,
+        transparent 50%,
+        rgba(0, 0, 0, 0.2) 100%
+      );
+    }
+  }
+}
+
+@include media.high-contrast {
+  .app-container {
+    background: var(--ytmusic-background, var.$bg-primary);
+
+    &::before {
+      display: none;
+    }
+
+    .main-content,
+    .app-sidebar,
+    .app-navbar,
+    .app-player {
+      border: 2px solid var.$border-color;
+    }
+  }
+}
+
+@include media.reduce-motion {
+  .app-container {
+    * {
+      animation: none !important;
+      transition: none !important;
     }
   }
 }
