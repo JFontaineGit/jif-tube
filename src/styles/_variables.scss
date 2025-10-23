@@ -38,25 +38,30 @@ $dynamic-accent: var(--dynamic-accent, #{$accent-orange});
 // ========================================
 // FONDOS Y SUPERFICIES
 // ========================================
-$bg-primary: #0a0a0a;
-$bg-secondary: #1a1a1a;
-$bg-tertiary: #2a2a2a;
-$bg-card: rgba(255, 255, 255, 0.05);
-$bg-overlay: rgba(0, 0, 0, 0.6);
+$bg-gradient: var(
+  --app-dynamic-gradient,
+  linear-gradient(135deg, #0b1120 0%, #111827 45%, #030712 100%)
+);
+$bg-primary: var(--app-surface-solid, rgba(15, 23, 42, 0.94));
+$bg-secondary: var(--app-surface-muted, rgba(13, 20, 32, 0.88));
+$bg-tertiary: var(--app-surface-soft, rgba(8, 13, 23, 0.92));
+$bg-card: var(--app-card-surface, rgba(17, 25, 40, 0.78));
+$bg-overlay: var(--app-overlay, rgba(10, 15, 25, 0.7));
+$bg-glass: var(--app-glass, rgba(17, 25, 40, 0.55));
 
 // ========================================
 // TEXTO
 // ========================================
-$text-primary: #ffffff;
-$text-secondary: rgba(255, 255, 255, 0.7);
-$text-tertiary: rgba(255, 255, 255, 0.5);
-$text-muted: rgba(255, 255, 255, 0.3);
+$text-primary: var(--yt-spec-text-primary, rgba(255, 255, 255, 0.95));
+$text-secondary: var(--yt-spec-text-secondary, rgba(255, 255, 255, 0.7));
+$text-tertiary: var(--yt-spec-text-tertiary, rgba(255, 255, 255, 0.55));
+$text-muted: var(--yt-spec-text-disabled, rgba(255, 255, 255, 0.35));
 
 // ========================================
 // BORDES Y SOMBRAS
 // ========================================
-$border-color: rgba(255, 255, 255, 0.1);
-$border-color-light: rgba(255, 255, 255, 0.05);
+$border-color: var(--yt-spec-black-pure-alpha-15, rgba(255, 255, 255, 0.1));
+$border-color-light: var(--yt-spec-black-pure-alpha-10, rgba(255, 255, 255, 0.05));
 $shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
 $shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
 $shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -141,7 +146,7 @@ $z-modal: 300;
 $z-toast: 400;
 $z-tooltip: 500;
 $z-navbar: 1000;
-$z-sidebar: 900;
+$z-sidebar: 1100;
 $z-player: 800;
 
 

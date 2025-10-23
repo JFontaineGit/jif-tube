@@ -36,6 +36,8 @@ import { PlayerComponent } from '../player/player.component';
   styleUrls: ['./layout.component.scss'],
 })
 export class LayoutComponent implements OnInit, OnDestroy {
+  private static readonly MOBILE_MAX_WIDTH = 1023;
+
   private readonly playerService = inject(PlayerService);
   private readonly searchService = inject(SearchService);
   private readonly libraryService = inject(LibraryService);
@@ -115,7 +117,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   private checkMobile(): void {
     if (!this.isBrowser) return;
-    const isMobileView = window.innerWidth <= 768;
+    const isMobileView = window.matchMedia(`(max-width: ${LayoutComponent.MOBILE_MAX_WIDTH}px)`).matches;
     this.isMobile.set(isMobileView);
   }
 

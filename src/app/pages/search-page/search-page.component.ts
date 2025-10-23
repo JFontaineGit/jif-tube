@@ -79,11 +79,6 @@ export class SearchPageComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * Favoritos del usuario (para verificación rápida)
-   */
-  readonly favoriteIds = this.libraryService.favoriteIds;
-
-  /**
    * Indica si hay resultados
    */
   readonly hasResults = computed(() => this._searchResults().length > 0);
@@ -222,44 +217,6 @@ export class SearchPageComponent implements OnInit, OnDestroy {
         this._error.set('Error al reproducir la canción');
       },
     });
-  }
-
-  // =========================================================================
-  // LIBRARY MANAGEMENT
-  // =========================================================================
-
-  /**
-   * Guarda una canción en la biblioteca
-   */
-  saveSong(song: Song, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-
-    if (this.isSongSaved(song)) {
-      this.logger.info(`Canción ya guardada: ${song.title}`);
-      return;
-    }
-
-    this.logger.info(`💾 Guardando: ${song.title}`);
-
-    this.libraryService.addToLibrary(song.id).subscribe({
-      next: () => {
-        this.logger.info(`✅ ${song.title} agregada a la biblioteca`);
-      },
-      error: (err) => {
-        this.logger.error('❌ Error al guardar la canción:', err);
-        this._error.set(err.message || 'Error al guardar la canción');
-      },
-    });
-  }
-
-  /**
-   * Verifica si una canción está guardada en favoritos
-   */
-  isSongSaved(song: Song): boolean {
-    return this.favoriteIds().has(song.id);
   }
 
   // =========================================================================

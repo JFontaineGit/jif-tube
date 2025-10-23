@@ -1,9 +1,19 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  signal,
+  computed,
+  Input,
+  HostListener,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, fromEvent } from 'rxjs';
 import { PlayerService, QueueService, LibraryService, SongService, LoggerService } from '@services';
 import { Song } from '@interfaces';
+import { PLATFORM_ID } from '@angular/core';
 
 @Component({
   selector: 'app-player',
@@ -18,13 +28,22 @@ export class PlayerComponent implements OnInit, OnDestroy {
   private readonly libraryService = inject(LibraryService);
   private readonly songService = inject(SongService);
   private readonly logger = inject(LoggerService);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly destroy$ = new Subject<void>();
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   // Input para saber si sidebar está colapsada
   @Input() sidebarCollapsed = false;
 
   private readonly _isMinimized = signal(false);
+  private readonly _isMobileView = signal(false);
+  private readonly _isMobileExpanded = signal(false);
+  private readonly _isMobileMenuOpen = signal(false);
   readonly isMinimized = this._isMinimized.asReadonly();
+  readonly isMobileView = this._isMobileView.asReadonly();
+  readonly isMobileExpanded = this._isMobileExpanded.asReadonly();
+  readonly isMobileMenuOpen = this._isMobileMenuOpen.asReadonly();
+  readonly showMobileOverlay = computed(() => this.isMobileView() && this.isMobileExpanded());
 
   // Signals del player
   readonly currentSong = this.playerService.currentSong;
@@ -55,6 +74,13 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.libraryService.getLibrary().subscribe({
       error: (err) => this.logger.error('Error cargando biblioteca', err)
     });
+
+    if (this.isBrowser) {
+      this.updateViewportState();
+      fromEvent(window, 'resize')
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => this.updateViewportState());
+    }
   }
 
   ngOnDestroy(): void {
@@ -121,6 +147,46 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this._isMinimized.update(current => !current);
   }
 
+  openMobileExpanded(): void {
+    if (!this.isMobileView()) return;
+    this._isMobileExpanded.set(true);
+    this._isMobileMenuOpen.set(false);
+  }
+
+  closeMobileExpanded(): void {
+    if (!this.isMobileView()) return;
+    this._isMobileExpanded.set(false);
+    this._isMobileMenuOpen.set(false);
+  }
+
+  toggleMobileMenu(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    if (!this.isMobileExpanded()) return;
+    this._isMobileMenuOpen.update(open => !open);
+  }
+
+  closeMobileMenu(): void {
+    if (this._isMobileMenuOpen()) {
+      this._isMobileMenuOpen.set(false);
+    }
+  }
+
+  onMobileContainerClick(event: Event): void {
+    this.closeMobileMenu();
+    event.stopPropagation();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.isMobileExpanded()) {
+      this.closeMobileExpanded();
+    }
+  }
+
   onOptionsClick(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
@@ -140,5 +206,16 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   getSongArtist(): string {
     return this.currentSong()?.channel_title || 'Artista desconocido';
+  }
+
+  private updateViewportState(): void {
+    if (!this.isBrowser) return;
+    const isMobile = window.innerWidth <= 768;
+    this._isMobileView.set(isMobile);
+
+    if (!isMobile) {
+      this._isMobileExpanded.set(false);
+      this._isMobileMenuOpen.set(false);
+    }
   }
 }
