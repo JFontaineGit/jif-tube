@@ -10,9 +10,8 @@
   z-index: var.$z-navbar;
   transition: all var.$transition-normal;
   background: transparent;
-  backdrop-filter: var.$blur-lg;
-  -webkit-backdrop-filter: var.$blur-lg;
-  //border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: none;
+  box-shadow: none;
   height: 70px;
 
   // Desktop: Al lado del sidebar
@@ -31,6 +30,9 @@
   }
 
   &.scrolled {
+    background: var(--app-navbar-solid, rgba(15, 23, 42, 0.95));
+    backdrop-filter: var.$blur-lg;
+    -webkit-backdrop-filter: var.$blur-lg;
     box-shadow: var.$shadow-lg;
   }
 
@@ -57,7 +59,7 @@
 }
 
 .hamburger-btn {
-  background: rgba(255, 255, 255, 0.1);
+  background: var.$bg-glass;
   border: none;
   border-radius: var.$radius-lg;
   width: 44px;
@@ -78,7 +80,7 @@
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var.$bg-glass 70%, rgba(255, 255, 255, 0.12) 30%);
     transform: scale(1.05);
   }
 
@@ -166,8 +168,8 @@
 
   .search-input-wrapper {
     position: relative;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: var.$radius-3xl;
     padding: var.$spacing-sm var.$spacing-lg;
     transition: all var.$transition-normal;
@@ -181,8 +183,8 @@
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.28);
     }
   }
 
@@ -294,7 +296,6 @@
   }
 
   .login-btn {
-    background: linear-gradient(135deg, var.$primary-blue, var.$primary-purple);
     border: none;
     border-radius: var.$radius-full;
     padding: var.$spacing-md var.$spacing-xl;
@@ -302,15 +303,16 @@
     font-weight: var.$font-weight-semibold;
     font-size: var.$font-size-sm;
     cursor: pointer;
-    transition: all var.$transition-normal;
+    transition: transform var.$transition-fast, box-shadow var.$transition-fast;
     white-space: nowrap;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.85), rgba(129, 140, 248, 0.9));
 
     @include mix.flex-inline(var.$spacing-sm);
 
     @include media.mobile-only {
       padding: var.$spacing-sm var.$spacing-md;
       font-size: var.$font-size-xs;
-      
+
       span:not([class]) {
         display: none;
       }
@@ -322,7 +324,7 @@
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
     }
 
     &:active:not(:disabled) {

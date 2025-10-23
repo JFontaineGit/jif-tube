@@ -16,7 +16,7 @@
   transition: all var.$transition-normal;
 
   @include mix.glassmorphism(0.05);
-  @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
+  @include mix.focus-ring();
 
   @include media.mobile-only {
     max-width: 200px;
@@ -25,8 +25,8 @@
   &:hover,
   &:focus-visible {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 12px 40px color-mix(in srgb, var(--ytmusic-album-color) 30%, rgba(0, 0, 0, 0.4));
-    border-color: color-mix(in srgb, var(--ytmusic-album-color) 50%, transparent);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.16);
 
     .play-overlay {
       opacity: 1;
@@ -41,7 +41,7 @@
 
     .song-info {
       .song-title {
-        color: var(--ytmusic-album-color, var.$dynamic-primary);
+        color: var.$text-primary;
       }
     }
   }
@@ -114,11 +114,7 @@
   .play-button {
     width: 64px;
     height: 64px;
-    background: linear-gradient(
-      135deg,
-      var(--ytmusic-album-color, var.$dynamic-primary),
-      color-mix(in srgb, var(--ytmusic-album-color, var.$dynamic-secondary) 80%, black)
-    );
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.9), rgba(129, 140, 248, 0.92));
     border-radius: var.$radius-full;
     transform: scale(0.85);
     transition: all var.$transition-fast;
@@ -246,29 +242,35 @@
   top: var.$spacing-md;
   right: var.$spacing-md;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var.$spacing-sm;
+  padding: var.$spacing-xs;
+  border-radius: var.$radius-2xl;
+  background: var.$bg-glass;
+  backdrop-filter: var.$blur-md;
+  -webkit-backdrop-filter: var.$blur-md;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 
-  .options-btn {
-    width: 38px;
-    height: 38px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    border: none;
+  .action-btn {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: var.$radius-full;
+    border: 1px solid transparent;
+    background: rgba(0, 0, 0, 0.55);
+    color: var.$text-secondary;
     cursor: pointer;
-    opacity: 0;
-    transform: scale(0.85);
-    transition: all var.$transition-normal;
-    backdrop-filter: var.$blur-sm;
-    -webkit-backdrop-filter: var.$blur-sm;
-
-    @include mix.flex-center;
-    @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
+    transition: all var.$transition-fast;
+    position: relative;
+    overflow: hidden;
+    @include mix.focus-ring();
 
     @include media.mobile-only {
-      width: 34px;
-      height: 34px;
-      opacity: 1;
-      transform: scale(1);
+      width: 38px;
+      height: 38px;
     }
 
     .material-icons {
@@ -279,10 +281,62 @@
       }
     }
 
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), transparent);
+      opacity: 0;
+      transition: opacity var.$transition-fast;
+    }
+
     &:hover {
-      background: var(--ytmusic-album-color, var.$dynamic-primary);
-      transform: scale(1.15);
-      box-shadow: 0 4px 12px color-mix(in srgb, var(--ytmusic-album-color) 50%, rgba(0, 0, 0, 0.4));
+      transform: translateY(-1px) scale(1.05);
+      border-color: rgba(255, 255, 255, 0.22);
+      color: var.$text-primary;
+
+      &::after {
+        opacity: 0.2;
+      }
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  .favorite-btn {
+    background: rgba(255, 255, 255, 0.14);
+    color: var.$text-primary;
+    border-color: rgba(255, 255, 255, 0.24);
+
+    &.active {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.92), rgba(244, 114, 182, 0.88));
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+
+      .material-icons {
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      }
+    }
+  }
+
+  .options-btn {
+    background: rgba(0, 0, 0, 0.65);
+    opacity: 0;
+    transform: scale(0.85);
+    transition: all var.$transition-normal;
+
+    @include media.mobile-only {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .song-card:hover &,
+    .song-card:focus-visible & {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }
@@ -346,11 +400,7 @@
   left: 50%;
   width: 30px;
   height: 30px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--ytmusic-album-color) 60%, transparent) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.55) 0%, transparent 70%);
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0);
   pointer-events: none;
@@ -379,7 +429,7 @@
 
     &:hover,
     &:focus-visible {
-      border-color: var(--ytmusic-album-color, var.$dynamic-primary);
+      border-color: rgba(56, 189, 248, 0.65);
       background: var.$bg-secondary;
     }
 

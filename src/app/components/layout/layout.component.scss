@@ -6,12 +6,7 @@
   position: relative;
   min-height: 100vh;
   width: 100vw;
-  background: linear-gradient(
-    135deg,
-    #0a0a0a 0%,
-    #1a1a1a 50%,
-    #0a0a0a 100%
-  );
+  background: var.$bg-gradient;
   overflow-x: hidden;
   animation: appLoad 0.6s ease-out;
 
@@ -24,9 +19,9 @@
     bottom: 0;
     background: linear-gradient(
       135deg,
-      rgba(0, 0, 0, 0.2) 0%,
+      color-mix(in srgb, var.$bg-glass 45%, transparent) 0%,
       transparent 50%,
-      rgba(0, 0, 0, 0.1) 100%
+      color-mix(in srgb, var.$bg-overlay 65%, rgba(0, 0, 0, 0.08)) 100%
     );
     pointer-events: none;
     z-index: 0;
