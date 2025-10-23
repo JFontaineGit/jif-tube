@@ -5,20 +5,99 @@
 .search-page {
   padding: var.$spacing-3xl var.$spacing-2xl;
   min-height: calc(100vh - var.$navbar-height);
-  
+
   @include media.mobile-only {
     padding: var.$spacing-xl var.$spacing-md;
   }
 
-  .page-title {
-    font-size: var.$font-size-2xl;
-    font-weight: var.$font-weight-bold;
-    color: #ffffff;
-    margin-bottom: var.$spacing-xl;
-    
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var.$spacing-xl;
+    margin-bottom: var.$spacing-2xl;
+
     @include media.mobile-only {
-      font-size: var.$font-size-xl;
-      margin-bottom: var.$spacing-lg;
+      gap: var.$spacing-lg;
+      margin-bottom: var.$spacing-xl;
+    }
+
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      gap: var.$spacing-xs;
+    }
+
+    .page-title {
+      font-size: var.$font-size-2xl;
+      font-weight: var.$font-weight-bold;
+      color: var.$text-primary;
+      margin: 0;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-xl;
+      }
+    }
+
+    .page-subtitle {
+      font-size: var.$font-size-sm;
+      color: var.$text-secondary;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-xs;
+      }
+    }
+
+    .reload-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: var.$radius-full;
+      border: 1px solid color-mix(in srgb, var(--ytmusic-album-color, var.$dynamic-primary) 50%, transparent);
+      background: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 32, 32, 32), 0.85) 65%,
+        rgba(0, 0, 0, 0.75) 35%
+      );
+      color: var.$text-primary;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var.$transition-fast;
+      backdrop-filter: var.$blur-sm;
+      -webkit-backdrop-filter: var.$blur-sm;
+
+      @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
+
+      @include media.mobile-only {
+        width: 42px;
+        height: 42px;
+      }
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px) scale(1.05);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+        border-color: color-mix(in srgb, var(--ytmusic-album-color, var.$dynamic-primary) 70%, transparent);
+      }
+
+      &:active:not(:disabled) {
+        transform: scale(0.94);
+      }
+
+      &:disabled {
+        cursor: wait;
+        opacity: 0.6;
+        transform: none;
+      }
+
+      .material-icons {
+        font-size: var.$font-size-lg;
+        transition: transform var.$transition-fast;
+
+        &.spinning {
+          animation: spin 1s linear infinite;
+        }
+      }
     }
   }
 
@@ -34,16 +113,24 @@
 
     app-song-card {
       display: block;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 30, 30, 30), 0.72) 65%,
+        rgba(6, 6, 6, 0.86) 35%
+      );
+      border: 1px solid color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 255, 255, 255), 0.25) 55%,
+        rgba(255, 255, 255, 0.1) 45%
+      );
       border-radius: var.$radius-2xl;
       padding: var.$spacing-2xl;
       transition: all var.$transition-normal;
       position: relative;
       overflow: hidden;
-      
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
       @include media.mobile-only {
         padding: var.$spacing-lg;
         border-radius: var.$radius-xl;
@@ -59,8 +146,8 @@
         bottom: 0;
         background: linear-gradient(
           135deg,
-          rgba(255, 255, 255, 0.05) 0%,
-          transparent 50%
+          color-mix(in srgb, rgba(var(--ytmusic-album-color, 255, 255, 255), 0.25) 40%, transparent) 0%,
+          transparent 55%
         );
         pointer-events: none;
         opacity: 0;
@@ -69,9 +156,12 @@
 
       &:hover {
         transform: translateY(-4px);
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        border-color: color-mix(
+          in srgb,
+          rgba(var(--ytmusic-album-color, 255, 255, 255), 0.35) 60%,
+          rgba(255, 255, 255, 0.15) 40%
+        );
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
 
         &::before {
           opacity: 1;
@@ -90,9 +180,9 @@
   .section-title {
     font-size: var.$font-size-xl;
     font-weight: var.$font-weight-bold;
-    color: #ffffff;
+    color: var.$text-primary;
     margin-bottom: var.$spacing-lg;
-    
+
     @include media.mobile-only {
       font-size: var.$font-size-lg;
       margin-bottom: var.$spacing-md;
@@ -117,82 +207,6 @@
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     }
   }
-
-  // ========================================
-  // BOTÓN DE GUARDAR
-  // ========================================
-  .save-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var.$spacing-sm var.$spacing-xl;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: var.$radius-lg;
-    color: #ffffff;
-    font-weight: var.$font-weight-semibold;
-    font-size: var.$font-size-sm;
-    cursor: pointer;
-    transition: all var.$transition-fast;
-    position: relative;
-    overflow: hidden;
-
-    @include media.mobile-only {
-      padding: var.$spacing-xs var.$spacing-lg;
-      font-size: var.$font-size-xs;
-    }
-
-    // Efecto de hover
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.1),
-        rgba(255, 255, 255, 0.05)
-      );
-      opacity: 0;
-      transition: opacity var.$transition-fast;
-    }
-
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-
-      &::before {
-        opacity: 1;
-      }
-    }
-
-    &:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    // Estado deshabilitado (ya guardado)
-    &:disabled {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.4);
-      cursor: not-allowed;
-      transform: none;
-      
-      &:hover {
-        box-shadow: none;
-      }
-    }
-
-    // Focus para accesibilidad
-    &:focus-visible {
-      outline: 2px solid rgba(255, 255, 255, 0.5);
-      outline-offset: 2px;
-    }
-  }
 }
 
 // ========================================
@@ -208,11 +222,21 @@
     justify-content: center;
     padding: var.$spacing-4xl;
     text-align: center;
-    color: rgba(255, 255, 255, 0.6);
-    
+    color: var.$text-secondary;
+
     @include media.mobile-only {
       padding: var.$spacing-3xl var.$spacing-lg;
     }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -222,16 +246,12 @@
 @include media.reduce-motion {
   .search-page {
     .best-result app-song-card,
-    .save-button {
+    .reload-btn {
       transition: none !important;
       animation: none !important;
     }
 
     .best-result app-song-card:hover {
-      transform: none;
-    }
-
-    .save-button:hover:not(:disabled) {
       transform: none;
     }
   }
@@ -242,14 +262,6 @@
     .best-result app-song-card {
       border: 2px solid #ffffff;
       background: #000000;
-    }
-
-    .save-button {
-      border: 2px solid #ffffff;
-      
-      &:disabled {
-        border-style: dashed;
-      }
     }
   }
 }
