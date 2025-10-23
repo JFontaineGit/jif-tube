@@ -1,8 +1,13 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@services": ["src/app/services/barrels/services.ts"],
+      "@services/*": ["src/app/services/*"],
+      "@interfaces": ["src/app/services/barrels/interfaces.ts"],
+      "@constants": ["src/app/services/barrels/constants.ts"]
+    },
     "outDir": "./dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,

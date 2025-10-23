@@ -2,15 +2,7 @@
   <!-- Reproductor invisible para YouTube (SIEMPRE renderizado) -->
   <div id="yt-player" class="invisible-player" aria-hidden="true"></div>
 
-  <!-- Navbar -->
-  <app-navbar
-    (search)="onSearch($event)"
-    (toggleSidebar)="onToggleSidebar()"
-    [isScrolled]="isScrolled()"
-    class="app-navbar">
-  </app-navbar>
-
-  <!-- Sidebar -->
+  <!-- Sidebar (full height desde top:0) -->
   <app-sidebar
     [isOpen]="isSidebarOpen()"
     [isCollapsed]="isSidebarCollapsed()"
@@ -18,6 +10,15 @@
     (close)="onCloseSidebar()"
     class="app-sidebar">
   </app-sidebar>
+
+  <!-- Navbar (al lado del sidebar) -->
+  <app-navbar
+    [sidebarCollapsed]="isSidebarCollapsed()"
+    [isScrolled]="isScrolled()"
+    (search)="onSearch($event)"
+    (toggleSidebar)="onToggleSidebar()"
+    class="app-navbar">
+  </app-navbar>
 
   <!-- Overlay para móvil cuando sidebar está abierta -->
   @if (isSidebarOpen() && isMobile()) {
@@ -38,8 +39,9 @@
     </div>
   </main>
 
-  <!-- Player UI (visible solo si hay canción) -->
-  @if (isPlayerVisible()) {
-    <app-player class="app-player"></app-player>
-  }
+  <!-- Player UI (siempre visible, se minimiza cuando no hay canción) -->
+  <app-player 
+    [sidebarCollapsed]="isSidebarCollapsed()"
+    class="app-player">
+  </app-player>
 </div>

@@ -1,44 +1,53 @@
-<div class="player-wrapper" [class.minimized]="isMinimized()">
-  <div class="player-container" [class.playing]="isPlaying()" [class.has-error]="hasError()">
+<!-- Sólo mostrar el reproductor si hay una canción -->
+@if (currentSong()) {
+  <div class="player-wrapper" 
+       [class.minimized]="isMinimized()"
+       [class.sidebar-collapsed]="sidebarCollapsed">
+    <div class="player-container" 
+         [class.playing]="isPlaying()" 
+         [class.has-error]="hasError()">
 
-    <!-- Toggle minimize button -->
-    <button
-      class="minimize-toggle"
-      (click)="toggleMinimize()"
-      [attr.aria-label]="isMinimized() ? 'Expandir reproductor' : 'Minimizar reproductor'"
-    >
-      <span class="material-icons">
-        {{ isMinimized() ? 'expand_less' : 'expand_more' }}
-      </span>
-    </button>
+      <!-- Toggle minimize button -->
+      <button
+        class="minimize-toggle"
+        (click)="toggleMinimize()"
+        [attr.aria-label]="isMinimized() ? 'Expandir reproductor' : 'Minimizar reproductor'">
+        <span class="material-icons">
+          {{ isMinimized() ? 'expand_less' : 'expand_more' }}
+        </span>
+      </button>
 
-    <!-- Error banner -->
-    @if (hasError()) {
-      <div class="error-banner">
-        <span class="material-icons">error_outline</span>
-        <span>{{ errorMessage() }}</span>
+      <!-- Error banner -->
+      @if (hasError()) {
+        <div class="error-banner">
+          <span class="material-icons">error_outline</span>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Buffering indicator -->
+      @if (isBuffering()) {
+        <div class="buffering-indicator">
+          <span class="material-icons spinning">refresh</span>
+          <span>Cargando...</span>
+        </div>
+      }
+
+      <!-- Album Art -->
+      <div class="player-artwork">
+        <div class="artwork-wrapper">
+          <img
+            [src]="getThumbnailUrl()"
+            [alt]="getSongTitle()"
+            loading="lazy" />
+        </div>
       </div>
-    }
 
-    <!-- Album Art -->
-    <div class="player-artwork">
-      <div class="artwork-wrapper">
-        <img
-          [src]="currentSong()?.thumbnailUrl || '/assets/default-art.jpg'"
-          [alt]="currentSong()?.title || 'Sin canción'"
-          loading="lazy"
-        />
+      <!-- Song Info -->
+      <div class="player-info">
+        <h3 class="title">{{ getSongTitle() }}</h3>
+        <p class="artist">{{ getSongArtist() }}</p>
       </div>
-    </div>
-
-    <!-- Song Info -->
-    <div class="player-info">
-      <h3 class="title">{{ currentSong()?.title || 'Sin canción' }}</h3>
-      <p class="artist">{{ currentSong()?.artist || 'Artista desconocido' }}</p>
-    </div>
-
-    <!-- Main Controls -->
-    <div class="player-controls">
 
       <!-- Action buttons (like, options) -->
       <div class="action-buttons">
@@ -47,8 +56,7 @@
           [class.active]="isLiked()"
           (click)="onLikeToggle()"
           [disabled]="!currentSong()"
-          [attr.aria-label]="isLiked() ? 'Quitar me gusta' : 'Me gusta'"
-        >
+          [attr.aria-label]="isLiked() ? 'Quitar me gusta' : 'Me gusta'">
           <span class="material-icons">
             {{ isLiked() ? 'favorite' : 'favorite_border' }}
           </span>
@@ -58,8 +66,7 @@
           class="action-btn options-btn"
           (click)="onOptionsClick($event)"
           [disabled]="!currentSong()"
-          [attr.aria-label]="'Más opciones'"
-        >
+          [attr.aria-label]="'Más opciones'">
           <span class="material-icons">more_vert</span>
         </button>
       </div>
@@ -69,9 +76,8 @@
         <button
           class="control-btn prev-btn"
           (click)="onPrevious()"
-          [disabled]="!currentSong()"
-          [attr.aria-label]="'Anterior'"
-        >
+          [disabled]="!hasPrevious()"
+          [attr.aria-label]="'Anterior'">
           <span class="material-icons">skip_previous</span>
         </button>
 
@@ -79,53 +85,25 @@
           class="control-btn play-pause"
           (click)="onPlayPause()"
           [disabled]="!currentSong()"
-          [attr.aria-label]="isPlaying() ? 'Pausar' : 'Reproducir'"
-        >
+          [attr.aria-label]="isPlaying() ? 'Pausar' : 'Reproducir'">
           <span class="material-icons">{{ isPlaying() ? 'pause' : 'play_arrow' }}</span>
         </button>
 
         <button
           class="control-btn next-btn"
           (click)="onNext()"
-          [disabled]="!currentSong()"
-          [attr.aria-label]="'Siguiente'"
-        >
+          [disabled]="!hasNext()"
+          [attr.aria-label]="'Siguiente'">
           <span class="material-icons">skip_next</span>
         </button>
       </div>
 
-      <!-- Progress Bar Section -->
-      <div class="progress-section">
-        <span class="time time-elapsed">{{ timeElapsed() }}</span>
-
-        <div class="seek-container">
-          <div class="progress-track">
-            <div class="progress-fill" [style.width.%]="progress()"></div>
-            <div class="progress-handle" [style.left.%]="progress()"></div>
-          </div>
-          <input
-            type="range"
-            class="seek-bar"
-            [value]="progress()"
-            [disabled]="!currentSong()"
-            (input)="onSeek($event)"
-            min="0"
-            max="100"
-            step="0.1"
-            aria-label="Barra de progreso"
-          />
-        </div>
-
-        <span class="time time-total">{{ timeTotal() }}</span>
-      </div>
-
-      <!-- Volume Control -->
+      <!-- Volume Control (desktop only) -->
       <div class="volume-section">
         <button
           class="control-btn volume-btn"
           (click)="onMuteToggle()"
-          [attr.aria-label]="isMuted() ? 'Activar sonido' : 'Silenciar'"
-        >
+          [attr.aria-label]="isMuted() ? 'Activar sonido' : 'Silenciar'">
           <span class="material-icons">
             {{ isMuted() ? 'volume_off' : volume() > 50 ? 'volume_up' : 'volume_down' }}
           </span>
@@ -143,10 +121,33 @@
             min="0"
             max="100"
             step="1"
-            aria-label="Control de volumen"
-          />
+            aria-label="Control de volumen" />
         </div>
+      </div>
+
+      <!-- Progress Bar (mobile/tablet only) -->
+      <div class="progress-section">
+        <span class="time time-elapsed">{{ timeElapsed() }}</span>
+
+        <div class="seek-container">
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="progress()"></div>
+            <div class="progress-handle" [style.left.%]="progress()"></div>
+          </div>
+          <input
+            type="range"
+            class="seek-bar"
+            [value]="progress()"
+            [disabled]="!currentSong()"
+            (input)="onSeek($event)"
+            min="0"
+            max="100"
+            step="0.1"
+            aria-label="Barra de progreso" />
+        </div>
+
+        <span class="time time-total">{{ timeTotal() }}</span>
       </div>
     </div>
   </div>
-</div>
+}

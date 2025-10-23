@@ -1,32 +1,152 @@
 <div class="search-page">
-  <h2 class="page-title">Mejor resultado</h2>
-  @if (bestResult(); as result) {
-    <div class="best-result">
-      <app-song-card [song]="result" (selected)="playSong($event)">
-        <button 
-          class="save-button" 
-          (click)="saveSong(result); $event.stopPropagation()" 
-          [disabled]="isSongSaved(result)"
-          [attr.aria-label]="isSongSaved(result) ? 'Canción ya guardada' : 'Guardar canción'">
-          {{ isSongSaved(result) ? 'Guardado' : '+ Guardar' }}
-        </button>
-      </app-song-card>
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        Resultados de búsqueda
+      </h1>
+      @if (query()) {
+        <p class="page-subtitle">
+          {{ hasResults() ? songs().length + ' resultados' : 'Sin resultados' }} para "{{ query() }}"
+        </p>
+      }
+    </div>
+
+    <!-- Refresh Button -->
+    @if (hasResults()) {
+      <button 
+        class="reload-btn"
+        (click)="refreshSearch()"
+        [disabled]="isSearching()"
+        [attr.aria-label]="'Recargar búsqueda'">
+        <span class="material-icons" [class.spinning]="isSearching()">refresh</span>
+      </button>
+    }
+  </header>
+
+  <!-- Loading State -->
+  @if (isSearching()) {
+    <div class="loading-state">
+      <div class="spinner-wrapper">
+        <span class="material-icons spinning">search</span>
+        <p>Buscando canciones...</p>
+      </div>
     </div>
   }
-  <h3 class="section-title">Canciones</h3>
-  <div class="song-list">
-    @for (song of filteredSongs(); track song.id) {
-      <app-song-card 
-        [song]="song" 
-        (selected)="playSong($event)">
+
+  <!-- Error Banner -->
+  @if (error()) {
+    <div class="error-banner" role="alert">
+      <span class="material-icons">error_outline</span>
+      <div class="error-content">
+        <p class="error-message">{{ error() }}</p>
         <button 
-          class="save-button" 
-          (click)="saveSong(song); $event.stopPropagation()" 
-          [disabled]="isSongSaved(song)"
-          [attr.aria-label]="isSongSaved(song) ? 'Canción ya guardada' : 'Guardar canción'">
-          {{ isSongSaved(song) ? 'Guardado' : '+ Guardar' }}
+          class="retry-btn" 
+          (click)="refreshSearch()">
+          Reintentar
         </button>
-      </app-song-card>
-    }
-  </div>
+      </div>
+      <button 
+        class="close-error-btn"
+        (click)="clearError()"
+        aria-label="Cerrar mensaje de error">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  }
+
+  <!-- Best Result Section -->
+  @if (bestResult() && !isSearching()) {
+    <section class="best-result-section">
+      <h2 class="section-title">
+        <span class="material-icons">star</span>
+        Mejor resultado
+      </h2>
+      
+      <div class="best-result">
+        <app-song-card 
+          [song]="bestResult()!" 
+          [size]="'large'"
+          (selected)="playSong($event)">
+          
+          <!-- Custom Action Button (usando ng-content) -->
+          <button 
+            class="save-button" 
+            (click)="saveSong(bestResult()!, $event)" 
+            [disabled]="isSongSaved(bestResult()!)"
+            [class.saved]="isSongSaved(bestResult()!)"
+            [attr.aria-label]="isSongSaved(bestResult()!) ? 'Canción ya guardada' : 'Guardar canción'">
+            <span class="material-icons">
+              {{ isSongSaved(bestResult()!) ? 'check_circle' : 'add_circle_outline' }}
+            </span>
+            <span class="button-text">
+              {{ isSongSaved(bestResult()!) ? 'Guardado' : 'Guardar' }}
+            </span>
+          </button>
+        </app-song-card>
+      </div>
+    </section>
+  }
+
+  <!-- Other Results Section -->
+  @if (filteredSongs().length > 0 && !isSearching()) {
+    <section class="results-section">
+      <h3 class="section-title">
+        <span class="material-icons">library_music</span>
+        Todas las canciones
+      </h3>
+      
+      <div class="song-list">
+        @for (song of filteredSongs(); track trackBySongId($index, song)) {
+          <app-song-card 
+            [song]="song" 
+            (selected)="playSong($event)">
+            
+            <!-- Save Button -->
+            <button 
+              class="save-button" 
+              (click)="saveSong(song, $event)" 
+              [disabled]="isSongSaved(song)"
+              [class.saved]="isSongSaved(song)"
+              [attr.aria-label]="isSongSaved(song) ? 'Canción ya guardada' : 'Guardar canción'">
+              <span class="material-icons">
+                {{ isSongSaved(song) ? 'check_circle' : 'add_circle_outline' }}
+              </span>
+              <span class="button-text">
+                {{ isSongSaved(song) ? 'Guardado' : 'Guardar' }}
+              </span>
+            </button>
+          </app-song-card>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Empty State -->
+  @if (isEmpty()) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        @if (error()) {
+          <span class="material-icons">search_off</span>
+        } @else {
+          <span class="material-icons">music_off</span>
+        }
+      </div>
+      
+      <h3>{{ getEmptyStateMessage() }}</h3>
+      <p>{{ getEmptyStateSubtitle() }}</p>
+
+      @if (error()) {
+        <button class="primary-btn" (click)="refreshSearch()">
+          <span class="material-icons">refresh</span>
+          Intentar de nuevo
+        </button>
+      } @else {
+        <a href="/search" class="primary-btn">
+          <span class="material-icons">search</span>
+          Nueva búsqueda
+        </a>
+      }
+    </div>
+  }
 </div>

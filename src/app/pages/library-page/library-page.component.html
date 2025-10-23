@@ -1,51 +1,127 @@
 <div class="library-page">
-  <!-- Header -->
-  <header class="page-header">
-    <h1 class="page-title">Biblioteca</h1>
-    <p class="page-subtitle">Tu colección de música</p>
-  </header>
-
-  <!-- Loading State -->
-  @if (isLoading()) {
-    <div class="loading-state">
-      <span class="material-icons spinning">refresh</span>
-      <p>Cargando biblioteca...</p>
-    </div>
-  }
-
-  <!-- Error State -->
-  @if (error()) {
-    <div class="error-banner" role="alert">
-      <span class="material-icons">error_outline</span>
-      <span>{{ error() }}</span>
-    </div>
-  }
-
-  <!-- Songs Grid -->
-  @if (!isLoading() && songs().length > 0) {
-    <div class="songs-grid">
-      @for (song of songs(); track trackBySongId($index, song)) {
-        <div class="song-card-wrapper">
-          <app-song-card
-            [song]="song"
-            (selected)="onSongSelected($event)">
-          </app-song-card>
-          
-          <button 
-            class="remove-button" 
-            (click)="removeSong(song.id, $event)"
-            [attr.aria-label]="'Eliminar ' + song.title">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-      }
-    </div>
-  } @else if (!isLoading()) {
-    <!-- Empty State -->
+  <!-- Caso: usuario NO autenticado -->
+  @if (!isAuthenticated()) {
     <div class="empty-state">
-      <span class="material-icons">library_music</span>
-      <h3>Tu biblioteca está vacía</h3>
-      <p>Guarda canciones para acceder a ellas fácilmente</p>
+      <div class="empty-icon">
+        <span class="material-icons">lock</span>
+      </div>
+      <h3>Inicia sesión para ver tu biblioteca</h3>
+      <p>Necesitas una cuenta para guardar y acceder a tus canciones favoritas.</p>
+      <!-- Botón que abre el AuthDialog -->
+      <button class="primary-btn" (click)="openLoginDialog()">
+        <span class="material-icons">login</span>
+        Iniciar sesión
+      </button>
     </div>
+    <!-- Diálogo de autenticación (se monta aunque el usuario no esté logueado) -->
+    <app-auth-dialog
+      [isOpen]="isAuthDialogOpen()"
+      (close)="isAuthDialogOpen.set(false)"
+      (authSuccess)="onAuthSuccess()"
+    ></app-auth-dialog>
+  } @else {
+    <!-- ===== HEADER ===== -->
+    <header class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">
+          <span class="material-icons">library_music</span>
+          Biblioteca
+        </h1>
+        <p class="page-subtitle">
+          @if (songCount() > 0) {
+            {{ songCount() }} {{ songCount() === 1 ? 'canción' : 'canciones' }} guardadas
+          } @else {
+            Tu colección de música
+          }
+        </p>
+      </div>
+
+      @if (songCount() > 0) {
+        <button 
+          class="reload-btn"
+          (click)="reloadLibrary()"
+          [disabled]="isLoading()"
+          [attr.aria-label]="'Recargar biblioteca'">
+          <span class="material-icons" [class.spinning]="isLoading()">refresh</span>
+        </button>
+      }
+    </header>
+
+    <!-- ===== ESTADO DE CARGA ===== -->
+    @if (isLoading() && songs().length === 0) {
+      <div class="loading-state">
+        <div class="spinner-wrapper">
+          <span class="material-icons spinning">refresh</span>
+          <p>Cargando biblioteca...</p>
+        </div>
+      </div>
+    }
+
+    <!-- ===== ERROR ===== -->
+    @if (error()) {
+      <div class="error-banner" role="alert">
+        <span class="material-icons">error_outline</span>
+        <div class="error-content">
+          <p class="error-message">{{ error() }}</p>
+          <button class="retry-btn" (click)="reloadLibrary()">Reintentar</button>
+        </div>
+        <button 
+          class="close-error-btn"
+          (click)="clearError()"
+          aria-label="Cerrar mensaje de error">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    }
+
+    <!-- ===== GRID DE CANCIONES ===== -->
+    @if (!isLoading() && songs().length > 0) {
+      <div class="songs-grid">
+        @for (song of songs(); track trackBySongId($index, song)) {
+          <div class="song-card-wrapper">
+            <app-song-card
+              [song]="song"
+              [showActions]="true"
+              [showDuration]="true"
+              [showArtist]="true"
+              (selected)="onSongSelected($event)">
+            </app-song-card>
+            <button 
+              class="remove-button" 
+              (click)="removeSong(song.id, $event)"
+              [attr.aria-label]="'Eliminar ' + song.title + ' de la biblioteca'">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ===== ESTADO VACÍO ===== -->
+    @if (isEmpty()) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          @if (error()) {
+            <span class="material-icons">error_outline</span>
+          } @else {
+            <span class="material-icons">library_music</span>
+          }
+        </div>
+        <h3>{{ getEmptyStateMessage() }}</h3>
+        <p>{{ getEmptyStateSubtitle() }}</p>
+
+        @if (error()) {
+          <button class="primary-btn" (click)="reloadLibrary()">
+            <span class="material-icons">refresh</span>
+            Reintentar
+          </button>
+        } @else {
+          <a href="/search" class="primary-btn">
+            <span class="material-icons">search</span>
+            Buscar música
+          </a>
+        }
+      </div>
+    }
   }
 </div>

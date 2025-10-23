@@ -1,11 +1,9 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { PlayerService, PlayerState } from '../../services/player.service';
-import { LibraryService } from '../../services/library.service';
-import { LoggerService } from '../../services/core/logger.service';
-import { Song } from '../../models/song.model';
+import { PlayerService, QueueService, LibraryService, SongService, LoggerService } from '@services';
+import { Song } from '@interfaces';
 
 @Component({
   selector: 'app-player',
@@ -15,46 +13,48 @@ import { Song } from '../../models/song.model';
   styleUrls: ['./player.component.scss'],
 })
 export class PlayerComponent implements OnInit, OnDestroy {
-  private playerService = inject(PlayerService);
-  private libraryService = inject(LibraryService);
-  private logger = inject(LoggerService);
-  private destroy$ = new Subject<void>();
+  private readonly playerService = inject(PlayerService);
+  private readonly queueService = inject(QueueService);
+  private readonly libraryService = inject(LibraryService);
+  private readonly songService = inject(SongService);
+  private readonly logger = inject(LoggerService);
+  private readonly destroy$ = new Subject<void>();
 
-  // Estado del player
-  private playerState = signal<PlayerState>({
-    playing: false,
-    currentTime: 0,
-    duration: 0,
-    videoId: null,
-    volume: 100,
-    isMuted: false,
-    error: null,
-    currentSong: null,
+  // Input para saber si sidebar está colapsada
+  @Input() sidebarCollapsed = false;
+
+  private readonly _isMinimized = signal(false);
+  readonly isMinimized = this._isMinimized.asReadonly();
+
+  // Signals del player
+  readonly currentSong = this.playerService.currentSong;
+  readonly isPlaying = this.playerService.playing;
+  readonly currentTime = this.playerService.currentTime;
+  readonly duration = this.playerService.duration;
+  readonly volume = this.playerService.volume;
+  readonly isMuted = this.playerService.isMuted;
+  readonly error = this.playerService.error;
+  readonly isBuffering = this.playerService.isBuffering;
+  readonly progress = this.playerService.progress;
+  readonly timeElapsed = this.playerService.formattedCurrentTime;
+  readonly timeTotal = this.playerService.formattedDuration;
+
+  // Computed signals
+  readonly isLiked = computed(() => {
+    const song = this.currentSong();
+    return song ? this.libraryService.isFavorite(song.id) : false;
   });
 
-  private minimized = signal(false);
-  private liked = signal(false);
-
-  currentSong = computed(() => this.playerState().currentSong);
-  isPlaying = computed(() => this.playerState().playing);
-  progress = computed(() => {
-    const state = this.playerState();
-    return state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
-  });
-  timeElapsed = computed(() => this.formatTime(this.playerState().currentTime));
-  timeTotal = computed(() => this.formatTime(this.playerState().duration));
-  volume = computed(() => this.playerState().volume);
-  isMuted = computed(() => this.playerState().isMuted);
-  hasError = computed(() => !!this.playerState().error);
-  errorMessage = computed(() => this.playerState().error);
-
-  // Computeds de UI
-  isLiked = computed(() => this.liked());
-  isMinimized = computed(() => this.minimized());
+  readonly hasError = computed(() => !!this.error());
+  readonly errorMessage = computed(() => this.error() || '');
+  readonly hasNext = this.queueService.hasNext;
+  readonly hasPrevious = this.queueService.hasPrevious;
 
   ngOnInit(): void {
-    this.subscribeToPlayerState();
-    this.checkIfLiked();
+    this.logger.info('PlayerComponent initialized');
+    this.libraryService.getLibrary().subscribe({
+      error: (err) => this.logger.error('Error cargando biblioteca', err)
+    });
   }
 
   ngOnDestroy(): void {
@@ -62,26 +62,32 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // Playback controls
   onPlayPause(): void {
-    if (this.isPlaying()) {
-      this.playerService.pause();
-    } else {
-      this.playerService.play();
-    }
+    this.playerService.togglePlayPause();
   }
 
   onPrevious(): void {
-    this.logger.info('Anterior canción (no implementado aún)');
+    const prevSong = this.queueService.previous();
+    if (prevSong) {
+      this.logger.info('Reproduciendo canción anterior', { title: prevSong.title });
+      this.playerService.loadAndPlay(prevSong.id, { autoplay: true }).subscribe();
+    }
   }
 
   onNext(): void {
-    this.logger.info('Siguiente canción (no implementado aún)');
+    const nextSong = this.queueService.next();
+    if (nextSong) {
+      this.logger.info('Reproduciendo siguiente canción', { title: nextSong.title });
+      this.playerService.loadAndPlay(nextSong.id, { autoplay: true }).subscribe();
+    }
   }
 
   onSeek(event: Event): void {
     const target = event.target as HTMLInputElement;
     const percentage = parseFloat(target.value);
-    const seconds = (percentage / 100) * this.playerState().duration;
+    const duration = this.duration();
+    const seconds = (percentage / 100) * duration;
     this.playerService.seek(seconds);
   }
 
@@ -92,96 +98,47 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   onMuteToggle(): void {
-    this.playerService.setMuted(!this.isMuted());
+    this.playerService.toggleMute();
   }
 
   onLikeToggle(): void {
     const song = this.currentSong();
     if (!song) return;
 
-    if (this.liked()) {
-      // Eliminar de biblioteca
-      this.libraryService.removeSong(song.id).pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: () => {
-          this.liked.set(false);
-          this.logger.info(`Canción eliminada de biblioteca: ${song.title}`);
-        },
-        error: (err) => this.logger.error('Error eliminando canción', err),
-      });
-    } else {
-      this.libraryService.saveSong(song).pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: () => {
-          this.liked.set(true);
-          this.logger.info(`Canción guardada en biblioteca: ${song.title}`);
-        },
-        error: (err) => this.logger.error('Error guardando canción', err),
-      });
-    }
+    this.libraryService.toggleFavorite(song.id).subscribe({
+      next: () => {
+        const isNowLiked = this.libraryService.isFavorite(song.id);
+        this.logger.info(
+          isNowLiked ? 'Canción agregada a favoritos' : 'Canción eliminada de favoritos',
+          { title: song.title }
+        );
+      },
+      error: (err) => this.logger.error('Error al cambiar favorito', err)
+    });
+  }
+
+  toggleMinimize(): void {
+    this._isMinimized.update(current => !current);
   }
 
   onOptionsClick(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    // TODO: Abrir menú contextual (compartir, añadir a playlist, etc.)
-    this.logger.info('Opciones clickeadas');
+    this.logger.info('Opciones clickeadas (no implementado)');
   }
 
-  toggleMinimize(): void {
-    this.minimized.update(current => !current);
-  }
-
-  /* ----------------------------
-   * Public Methods (para Layout/componentes padre)
-   * ---------------------------- */
-  loadSong(song: Song): void {
-    if (!song?.videoId) {
-      this.logger.error('Canción sin videoId', song);
-      return;
-    }
-    this.playerService.loadVideo(song.videoId, 0, song);
-  }
-
-  /* ----------------------------
-   * Private Methods
-   * ---------------------------- */
-  private subscribeToPlayerState(): void {
-    this.playerService.state$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(state => {
-      this.playerState.set(state);
-      
-      if (state.currentSong) {
-        this.checkIfLiked();
-      }
-    });
-  }
-
-  private checkIfLiked(): void {
+  // Helpers
+  getThumbnailUrl(): string {
     const song = this.currentSong();
-    if (!song) {
-      this.liked.set(false);
-      return;
-    }
-
-    this.libraryService.getSavedSongs().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (savedSongs) => {
-        const isInLibrary = savedSongs.some(s => s.id === song.id);
-        this.liked.set(isInLibrary);
-      },
-      error: (err) => this.logger.error('Error verificando biblioteca', err),
-    });
+    if (!song) return '/assets/default-art.jpg';
+    return this.songService.getBestThumbnail(song.thumbnails) || '/assets/default-art.jpg';
   }
 
-  private formatTime(seconds: number): string {
-    if (!seconds || isNaN(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
+  getSongTitle(): string {
+    return this.currentSong()?.title || 'Sin canción';
+  }
+
+  getSongArtist(): string {
+    return this.currentSong()?.channel_title || 'Artista desconocido';
   }
 }

@@ -1,10 +1,37 @@
+<!-- sidebar.component.html -->
 <aside
   class="sidebar"
   [class.open]="isOpen"
   [class.collapsed]="isCollapsed"
   role="navigation"
   aria-label="Main sidebar">
+  
   <div class="sidebar-content">
+    <!-- Header con logo y hamburger -->
+    <div class="sidebar-header">
+      <a href="/" class="app-brand">
+        <span class="logo-icon">🎵</span>
+        <span class="app-brand-text">JifTube</span>
+      </a>
+
+      <!-- Hamburger button (mobile/tablet) -->
+      <button
+        class="hamburger-btn"
+        (click)="onClose()"
+        aria-label="Cerrar menú">
+        <span class="material-icons">close</span>
+      </button>
+
+      <!-- Collapse button (desktop) -->
+      <button
+        class="collapse-btn"
+        [class.collapsed]="isCollapsed"
+        (click)="onToggle()"
+        aria-label="Colapsar sidebar">
+        <span class="material-icons">chevron_left</span>
+      </button>
+    </div>
+
     <!-- Navegación principal -->
     <nav class="nav-menu" role="menu">
       <ul class="nav-list">
@@ -25,6 +52,8 @@
               </span>
 
               <span class="nav-label">{{ item.label }}</span>
+
+              <div class="active-indicator" aria-hidden="true"></div>
             </a>
           </li>
         }
@@ -34,31 +63,14 @@
     <!-- Separador visual -->
     <div class="nav-separator" aria-hidden="true"></div>
 
-    <!-- Configuración -->
-    <nav class="settings-menu" role="menu">
-      <ul class="nav-list">
-        <li class="nav-item">
-          <a
-            [routerLink]="settingsItem().route"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: settingsItem().route === '/' }"
-            class="nav-link"
-            role="menuitem"
-            [attr.aria-label]="settingsItem().label"
-            [attr.aria-current]="settingsItem().active ? 'page' : null"
-            (click)="onNavItemClick()">
 
-            <span class="nav-icon" [attr.aria-hidden]="true">
-              <span class="material-icons">{{ settingsItem().icon }}</span>
-            </span>
-
-            <span class="nav-label">{{ settingsItem().label }}</span>
-
-            <!-- Indicador activo -->
-            <div class="active-indicator" aria-hidden="true"></div>
-          </a>
-        </li>
-      </ul>
-    </nav>
   </div>
 </aside>
+
+<!-- Overlay para mobile/tablet -->
+<div
+  class="sidebar-overlay"
+  [class.visible]="isOpen"
+  (click)="onClose()"
+  aria-hidden="true">
+</div>

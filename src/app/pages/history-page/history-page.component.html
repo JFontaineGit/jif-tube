@@ -2,42 +2,79 @@
   <!-- Header -->
   <header class="page-header">
     <div class="header-content">
-      <h1 class="page-title">Historial</h1>
-      <p class="page-subtitle">Canciones reproducidas recientemente</p>
+      <h1 class="page-title">
+        <span class="material-icons">history</span>
+        Historial
+      </h1>
+      <p class="page-subtitle">
+        @if (historyCount() > 0) {
+          {{ historyCount() }} {{ historyCount() === 1 ? 'canción reproducida' : 'canciones reproducidas' }}
+        } @else {
+          Canciones reproducidas recientemente
+        }
+      </p>
     </div>
     
-    @if (recentSongs().length > 0) {
-      <button class="clear-button" (click)="clearHistory()">
+    @if (historyCount() > 0) {
+      <button 
+        class="clear-button" 
+        (click)="clearHistory()"
+        [attr.aria-label]="'Limpiar historial de ' + historyCount() + ' canciones'">
         <span class="material-icons">delete_outline</span>
         <span>Limpiar historial</span>
       </button>
     }
   </header>
 
-  <!-- Error State -->
+  <!-- Error Banner -->
   @if (error()) {
     <div class="error-banner" role="alert">
       <span class="material-icons">error_outline</span>
-      <span>{{ error() }}</span>
+      <div class="error-content">
+        <span>{{ error() }}</span>
+      </div>
+      <button 
+        class="close-error-btn"
+        (click)="clearError()"
+        aria-label="Cerrar mensaje de error">
+        <span class="material-icons">close</span>
+      </button>
     </div>
   }
 
   <!-- Songs Grid -->
-  @if (recentSongs().length > 0) {
+  @if (!isEmpty()) {
     <div class="songs-grid">
       @for (song of recentSongs(); track trackBySongId($index, song)) {
-        <app-song-card
-          [song]="song"
-          (selected)="onSongSelected($event)">
-        </app-song-card>
+        <div class="song-card-wrapper">
+          <app-song-card
+            [song]="song"
+            [showActions]="true"
+            [showDuration]="true"
+            [showArtist]="true"
+            (selected)="onSongSelected($event)">
+          </app-song-card>
+          
+          <!-- Time Badge (optional) -->
+          <div class="played-badge">
+            <span class="material-icons">play_circle</span>
+            <span>{{ getLastPlayedTime(song) }}</span>
+          </div>
+        </div>
       }
     </div>
   } @else {
     <!-- Empty State -->
     <div class="empty-state">
-      <span class="material-icons">history</span>
+      <div class="empty-icon">
+        <span class="material-icons">history</span>
+      </div>
       <h3>Tu historial está vacío</h3>
       <p>Las canciones que reproduzcas aparecerán aquí</p>
+      <a href="/search" class="primary-btn">
+        <span class="material-icons">search</span>
+        Buscar música
+      </a>
     </div>
   }
 </div>

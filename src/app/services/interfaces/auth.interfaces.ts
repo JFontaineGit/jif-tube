@@ -1,25 +1,40 @@
-export interface UserRegister {
-    username: string;
-    email: string;
-    password: string;
+import { UserRead } from '@interfaces'
+
+/**
+ * Modelos para autenticación y tokens
+ */
+
+export interface UserCreate {
+  username: string;
+  email: string;
+  password: string;
 }
 
-export interface UserLogin {
-    username_or_email: string;
-    password: string;
+export interface Token {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number; // segundos
 }
 
-export interface MeUser {
-    id: number;
-    username: string;
-    email: string;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
+export interface TokenPayload {
+  sub: string; // username
+  user_id: number;
+  scopes: string[]; 
+  exp: number;
+  iat: number;
+  jti: string;
+  type: 'access' | 'refresh';
 }
 
-export interface TokenUserResponse {
-    access_token: string;
-    refresh_token: string;
-    token_type: string;
+export interface LoginCredentials {
+  username: string;   // username o email
+  password: string;
+}
+
+export interface AuthState {
+  user: UserRead | null;
+  tokens: Token | null;
+  isAuthenticated: boolean;
+  loading: boolean;
 }

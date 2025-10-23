@@ -1,190 +1,489 @@
 @use '../../../styles/_variables.scss' as var;
 @use '../../../styles/_mixins.scss' as mix;
 @use '../../../styles/_media-queries.scss' as media;
+@use 'sass:color';
 
 .library-page {
   padding: var.$spacing-3xl var.$spacing-2xl;
-  min-height: calc(100vh - var.$navbar-height);
+  min-height: calc(100vh - var.$navbar-height - var.$player-height);
   gap: var.$spacing-3xl;
-  @include mix.flex-column;
 
-  // Header
-  .page-header {
+  @include mix.flex-column;
+  @include media.container-responsive;
+
+  @include media.mobile-only {
+    padding: var.$spacing-xl var.$spacing-md;
+    gap: var.$spacing-2xl;
+  }
+}
+
+// ========================================
+// HEADER
+// ========================================
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var.$spacing-xl;
+  padding-bottom: var.$spacing-xl;
+  border-bottom: 1px solid var.$border-color-light;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var.$spacing-lg;
+  }
+
+  .header-content {
+    flex: 1;
+
     .page-title {
-      margin-bottom: var.$spacing-sm;
-      @include mix.heading-primary;
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-md;
+      margin: 0 0 var.$spacing-sm;
+      font-size: var.$font-size-3xl;
+      font-weight: var.$font-weight-bold;
+      line-height: var.$line-height-tight;
+
+      @include mix.gradient-text(var.$dynamic-primary, var.$dynamic-secondary);
+
+      @include media.mobile-only {
+        font-size: var.$font-size-2xl;
+      }
+
+      .material-icons {
+        font-size: 2.5rem;
+        color: var.$dynamic-primary;
+
+        @include media.mobile-only {
+          font-size: 2rem;
+        }
+      }
     }
 
     .page-subtitle {
       color: var.$text-secondary;
       font-size: var.$font-size-base;
       margin: 0;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-sm;
+      }
     }
   }
 
-  .loading-state {
-    text-align: center;
-    padding: var.$spacing-4xl;
-    gap: var.$spacing-md;
-    @include mix.flex-column-center;
+  .reload-btn {
+    width: 48px;
+    height: 48px;
+    background: var.$bg-secondary;
+    border: 1px solid var.$border-color;
+    border-radius: var.$radius-full;
+    color: var.$text-primary;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+
+    @include mix.flex-center;
+    @include mix.focus-ring(var.$dynamic-primary);
+
+    @include media.mobile-only {
+      width: 40px;
+      height: 40px;
+    }
 
     .material-icons {
-      font-size: 3rem;
-      color: var(--ytmusic-album-color, var.$dynamic-primary);
+      font-size: var.$font-size-xl;
+      transition: transform var.$transition-normal;
 
       &.spinning {
         animation: spin 1s linear infinite;
       }
     }
 
+    &:hover:not(:disabled) {
+      background: var.$bg-tertiary;
+      border-color: var.$dynamic-primary;
+      transform: translateY(-2px);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ========================================
+// LOADING STATE
+// ========================================
+
+.loading-state {
+  padding: var.$spacing-4xl;
+
+  @include mix.flex-center;
+
+  @include media.mobile-only {
+    padding: var.$spacing-3xl var.$spacing-md;
+  }
+
+  .spinner-wrapper {
+    text-align: center;
+    gap: var.$spacing-xl;
+
+    @include mix.flex-column-center;
+
+    .material-icons {
+      font-size: 4rem;
+      color: var.$dynamic-primary;
+
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+
+      @include media.mobile-only {
+        font-size: 3rem;
+      }
+    }
+
     p {
       color: var.$text-secondary;
       font-size: var.$font-size-lg;
+      font-weight: var.$font-weight-medium;
+      margin: 0;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-base;
+      }
+    }
+  }
+}
+
+// ========================================
+// ERROR BANNER
+// ========================================
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: var.$spacing-lg;
+  padding: var.$spacing-lg var.$spacing-xl;
+  background: color-mix(in srgb, var.$error 15%, transparent);
+  border: 1px solid var.$error;
+  border-radius: var.$radius-xl;
+  animation: slideDown 0.3s ease;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var.$spacing-md var.$spacing-lg;
+  }
+
+  > .material-icons {
+    font-size: var.$font-size-2xl;
+    color: var.$error;
+    flex-shrink: 0;
+  }
+
+  .error-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var.$spacing-lg;
+
+    @include media.mobile-only {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .error-message {
+      flex: 1;
+      margin: 0;
+      color: var.$text-primary;
+      font-size: var.$font-size-sm;
+    }
+
+    .retry-btn {
+      padding: var.$spacing-sm var.$spacing-lg;
+      background: var.$error;
+      color: white;
+      border: none;
+      border-radius: var.$radius-md;
+      font-size: var.$font-size-sm;
+      font-weight: var.$font-weight-medium;
+      cursor: pointer;
+      transition: all var.$transition-fast;
+      white-space: nowrap;
+
+      &:hover {
+        background: color.adjust(var.$error, $lightness: -10%);
+        transform: translateY(-1px);
+      }
     }
   }
 
-  .error-banner {
-    background: color-mix(in srgb, #ef4444 20%, transparent);
-    border: 1px solid #ef4444;
-    color: #fee;
-    padding: var.$spacing-md var.$spacing-lg;
-    border-radius: var.$radius-lg;
-    @include mix.flex-inline(var.$spacing-sm);
+  .close-error-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: var.$radius-sm;
+    color: var.$text-secondary;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+    flex-shrink: 0;
+
+    @include mix.flex-center;
 
     .material-icons {
-      font-size: var.$font-size-xl;
+      font-size: var.$font-size-lg;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.2);
+      color: var.$text-primary;
     }
   }
+}
 
-  // Songs Grid
-  .songs-grid {
-    @include media.cards-grid-responsive;
+// ========================================
+// SONGS GRID
+// ========================================
 
-    .song-card-wrapper {
-      position: relative;
+.songs-grid {
+  @include media.cards-grid-responsive;
 
-      .remove-button {
-        position: absolute;
-        top: var.$spacing-sm;
-        right: var.$spacing-sm;
+  .song-card-wrapper {
+    position: relative;
+    animation: cardFadeIn 0.4s ease backwards;
+
+    @for $i from 1 through 20 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.05}s;
+      }
+    }
+
+    .remove-button {
+      position: absolute;
+      top: var.$spacing-md;
+      right: var.$spacing-md;
+      width: 36px;
+      height: 36px;
+      border-radius: var.$radius-full;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      cursor: pointer;
+      opacity: 0;
+      transform: scale(0.85);
+      transition: all var.$transition-fast;
+      z-index: 10;
+      backdrop-filter: var.$blur-sm;
+
+      @include mix.flex-center;
+      @include mix.focus-ring(var.$error);
+
+      @include media.mobile-only {
         width: 32px;
         height: 32px;
-        border-radius: var.$radius-full;
-        background: rgba(0, 0, 0, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        cursor: pointer;
-        opacity: 0;
-        transition: all var.$transition-fast;
-        z-index: 10;
-        @include mix.flex-center;
+        opacity: 1;
+        transform: scale(1);
+      }
 
-        .material-icons {
+      .material-icons {
+        font-size: 1.25rem;
+
+        @include media.mobile-only {
           font-size: 1.125rem;
         }
-
-        &:hover {
-          background: #ef4444;
-          border-color: #ef4444;
-          transform: scale(1.1);
-        }
       }
 
-      &:hover .remove-button {
-        opacity: 1;
+      &:hover {
+        background: var.$error;
+        border-color: var.$error;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(var.$error, 0.4);
+      }
+
+      &:active {
+        transform: scale(1.05);
       }
     }
+
+    &:hover .remove-button {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+// ========================================
+// EMPTY STATE
+// ========================================
+
+.empty-state {
+  text-align: center;
+  padding: var.$spacing-4xl var.$spacing-2xl;
+  gap: var.$spacing-2xl;
+  min-height: 400px;
+
+  @include mix.flex-column-center;
+
+  @include media.mobile-only {
+    padding: var.$spacing-3xl var.$spacing-md;
+    min-height: 300px;
   }
 
-  .empty-state {
-    text-align: center;
-    padding: var.$spacing-4xl;
-    gap: var.$spacing-lg;
-    @include mix.flex-column-center;
+  .empty-icon {
+    width: 120px;
+    height: 120px;
+    background: var.$bg-secondary;
+    border-radius: var.$radius-full;
+    margin-bottom: var.$spacing-lg;
+
+    @include mix.flex-center;
+
+    @include media.mobile-only {
+      width: 100px;
+      height: 100px;
+    }
 
     .material-icons {
       font-size: 5rem;
       color: var.$text-tertiary;
-      opacity: 0.5;
-    }
+      opacity: 0.6;
 
-    h3 {
-      font-size: var.$font-size-2xl;
-      font-weight: var.$font-weight-semibold;
-      color: var.$text-primary;
-      margin: 0;
-    }
-
-    p {
-      font-size: var.$font-size-base;
-      color: var.$text-secondary;
-      margin: 0;
-    }
-  }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@include media.mobile-only {
-  .library-page {
-    padding: var.$spacing-xl var.$spacing-md;
-
-    .page-header {
-      .page-title {
-        font-size: var.$font-size-2xl;
-      }
-
-      .page-subtitle {
-        font-size: var.$font-size-sm;
-      }
-    }
-
-    .loading-state {
-      padding: var.$spacing-3xl var.$spacing-md;
-
-      .material-icons {
-        font-size: 2rem;
-      }
-    }
-
-    .empty-state {
-      padding: var.$spacing-3xl var.$spacing-md;
-
-      .material-icons {
+      @include media.mobile-only {
         font-size: 4rem;
       }
+    }
+  }
 
-      h3 {
-        font-size: var.$font-size-xl;
-      }
+  h3 {
+    font-size: var.$font-size-2xl;
+    font-weight: var.$font-weight-bold;
+    color: var.$text-primary;
+    margin: 0;
 
-      p {
-        font-size: var.$font-size-sm;
-      }
+    @include media.mobile-only {
+      font-size: var.$font-size-xl;
+    }
+  }
+
+  p {
+    font-size: var.$font-size-base;
+    color: var.$text-secondary;
+    margin: 0 0 var.$spacing-xl;
+    max-width: 400px;
+
+    @include media.mobile-only {
+      font-size: var.$font-size-sm;
+    }
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var.$spacing-sm;
+    padding: var.$spacing-md var.$spacing-2xl;
+    background: linear-gradient(135deg, var.$dynamic-primary, var.$dynamic-secondary);
+    color: white;
+    border: none;
+    border-radius: var.$radius-xl;
+    font-size: var.$font-size-base;
+    font-weight: var.$font-weight-semibold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+
+    .material-icons {
+      font-size: var.$font-size-lg;
     }
 
-    .songs-grid {
-      .song-card-wrapper {
-        .remove-button {
-          opacity: 1;
-        }
-      }
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var.$shadow-lg;
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 }
 
-// Reduce motion
+// ========================================
+// ANIMATIONS
+// ========================================
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ========================================
+// ACCESSIBILITY
+// ========================================
+
 @include media.reduce-motion {
   .library-page {
-    .loading-state .material-icons.spinning {
-      animation: none;
+    * {
+      animation: none !important;
+      transition: none !important;
     }
+  }
 
-    .songs-grid .song-card-wrapper .remove-button {
-      transition: none;
-    }
+  .loading-state .material-icons.spinning,
+  .reload-btn .material-icons.spinning {
+    animation: none !important;
+  }
+}
+
+@include media.high-contrast {
+  .error-banner {
+    border-width: 2px;
+    background: var.$bg-secondary;
+  }
+
+  .songs-grid .song-card-wrapper .remove-button {
+    border-width: 2px;
+    opacity: 1;
+  }
+}
+
+@include media.touch-device {
+  .songs-grid .song-card-wrapper .remove-button {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .reload-btn:hover {
+    transform: none;
   }
 }

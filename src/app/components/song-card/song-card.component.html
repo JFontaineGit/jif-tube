@@ -1,73 +1,112 @@
 <article
-  class="song-card"
-  [class]="getCardClasses()"
+  [class]="cardClasses()"
+  [style]="getCardStyle()"
   (click)="onSelect()"
   (keyup.enter)="onSelect()"
   (keyup.space)="onSelect()"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
   tabindex="0"
   role="button"
   [attr.aria-label]="getAriaLabel()">
 
+  <!-- Thumbnail Container -->
   <div class="thumbnail-container">
-    <div class="thumbnail" [class]="getThumbnailClasses()">
+    <div class="thumbnail">
       <div class="thumbnail-wrapper">
         <img
           class="thumbnail-image"
-          [src]="song.thumbnailUrl || '/assets/images/default-thumbnail.jpg'"
-          [alt]="song.title"
+          [src]="thumbnailUrl()"
+          [alt]="song.title || 'Canción'"
           loading="lazy"
           (error)="onImageError($event)"
           (load)="onImageLoad()">
       </div>
 
+      <!-- Play Overlay -->
       <div class="play-overlay" aria-hidden="true">
         <div class="play-button">
-          <span class="material-icons">play_circle</span>
+          @if (isPlaying()) {
+            <span class="material-icons">pause_circle</span>
+          } @else {
+            <span class="material-icons">play_circle</span>
+          }
         </div>
       </div>
 
-      @if (song.type === SongType.OfficialVideo) {
-        <div class="official-badge" aria-label="Official video">
+      <!-- Official Video Badge -->
+      @if (isOfficialVideo()) {
+        <div class="official-badge" aria-label="Video oficial">
           <span class="material-icons">verified</span>
           <span class="badge-text">OFICIAL</span>
         </div>
       }
 
-      @if (song.duration) {
+      <!-- Duration Badge -->
+      @if (showDuration && formattedDuration()) {
         <div class="duration-badge">
-          {{ formatDuration(song.duration) }}
+          {{ formattedDuration() }}
+        </div>
+      }
+
+      <!-- Playing Indicator -->
+      @if (isPlaying()) {
+        <div class="playing-indicator" aria-label="Reproduciendo ahora">
+          <div class="bar bar-1"></div>
+          <div class="bar bar-2"></div>
+          <div class="bar bar-3"></div>
         </div>
       }
     </div>
   </div>
 
+  <!-- Song Info -->
   <div class="song-info">
     <h3 class="song-title" [title]="song.title">
-      {{ song.title }}
+      {{ song.title || 'Título desconocido' }}
     </h3>
 
-    @if (song.artist && song.artist !== 'Artista desconocido' && song.artist !== 'Desconocido') {
-      <p class="song-artist" [title]="song.artist">
-        {{ song.artist }}
+    @if (showArtist && formattedArtist()) {
+      <p class="song-artist" [title]="formattedArtist()!">
+        {{ formattedArtist() }}
       </p>
     }
 
-    @if (song.album) {
-      <p class="song-album" [title]="song.album">
-        {{ song.album }}
+    @if (showAlbum && song.published_at) {
+      <p class="song-album" [title]="getPublishedDate()">
+        {{ getPublishedDate() }}
       </p>
     }
   </div>
 
-  <div class="card-actions">
-    <button
-      class="options-btn"
-      (click)="onOptionsClick($event)"
-      [attr.aria-label]="'Más opciones para ' + song.title"
-      type="button">
-      <span class="material-icons">more_vert</span>
-    </button>
-  </div>
+  <!-- Card Actions -->
+  @if (showActions) {
+    <div class="card-actions">
+      <!-- Favorite Button -->
+      <button
+        class="action-btn favorite-btn"
+        [class.active]="isFavorite()"
+        (click)="onToggleFavorite($event)"
+        [attr.aria-label]="isFavorite() ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+        type="button">
+        @if (isFavorite()) {
+          <span class="material-icons">favorite</span>
+        } @else {
+          <span class="material-icons">favorite_border</span>
+        }
+      </button>
 
+      <!-- Options Button -->
+      <button
+        class="action-btn options-btn"
+        (click)="onOptionsClick($event)"
+        [attr.aria-label]="'Más opciones para ' + song.title"
+        type="button">
+        <span class="material-icons">more_vert</span>
+      </button>
+    </div>
+  }
+
+  <!-- Slot for custom content -->
   <ng-content></ng-content>
 </article>

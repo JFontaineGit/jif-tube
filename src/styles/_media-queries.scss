@@ -1,7 +1,8 @@
 @use "./_variables.scss" as var;
 
 // ========================================
-// BREAKPOINTS MODERNOS
+// BREAKPOINTS MODERNOS (opcionales)
+// Se mantienen por si quieres usarlos de forma directa
 // ========================================
 $mobile-small: 360px;
 $mobile: 480px;
@@ -15,46 +16,72 @@ $desktop-xl: 1920px;
 // ========================================
 // MOBILE FIRST APPROACH
 // ========================================
+
+// Hasta 359px
 @mixin mobile-small {
   @media (max-width: #{$mobile-small - 1px}) {
     @content;
   }
 }
+
+// A partir de 480px
 @mixin mobile-up {
   @media (min-width: $mobile) {
     @content;
   }
 }
+
+// Solo móviles según tu variable (hasta 768px)
 @mixin mobile-only {
   @media (max-width: #{var.$mobile-max}) {
     @content;
   }
 }
+
+// A partir de 769px
 @mixin tablet-up {
   @media (min-width: #{var.$tablet-min}) {
     @content;
   }
 }
+
+// Hasta justo antes del escritorio (0–1023px)
+// Este mixin es el que faltaba y que originaba el error
+@mixin tablet-down {
+  @media (max-width: #{var.$desktop-min - 1px}) {
+    @content;
+  }
+}
+
+// Rango 769–1023px
 @mixin tablet-only {
-  @media (min-width: #{var.$tablet-min}) and (max-width: #{$tablet-large - 1px}) {
+  @media (min-width: #{var.$tablet-min}) and (max-width: #{var.$desktop-min - 1px}) {
     @content;
   }
 }
+
+// A partir de 1024px
 @mixin desktop-up {
-  @media (min-width: $tablet-large) {
+  @media (min-width: #{var.$desktop-min}) {
     @content;
   }
 }
+
+// Rango 1024–1439px
 @mixin desktop-only {
-  @media (min-width: $tablet-large) and (max-width: #{$desktop - 1px}) {
+  @media (min-width: #{var.$desktop-min}) and (max-width: #{var.$desktop-large-min - 1px}) {
     @content;
   }
 }
+
+// A partir de 1024px (redundante con desktop-up, pero lo mantengo por claridad)
 @mixin desktop-large-up {
-  @media (min-width: $desktop) {
+  @media (min-width: #{var.$desktop-min}) {
     @content;
   }
 }
+
+// A partir de 1920px, por si necesitas pantallas extra grandes
 @mixin desktop-xl-up {
   @media (min-width: $desktop-xl) {
     @content;
@@ -64,21 +91,25 @@ $desktop-xl: 1920px;
 // ========================================
 // ORIENTACIÓN Y CARACTERÍSTICAS
 // ========================================
+
 @mixin landscape {
   @media (orientation: landscape) {
     @content;
   }
 }
+
 @mixin portrait {
   @media (orientation: portrait) {
     @content;
   }
 }
+
 @mixin touch-device {
   @media (hover: none) and (pointer: coarse) {
     @content;
   }
 }
+
 @mixin hover-device {
   @media (hover: hover) and (pointer: fine) {
     @content;
@@ -88,21 +119,25 @@ $desktop-xl: 1920px;
 // ========================================
 // PREFERENCIAS DEL USUARIO
 // ========================================
+
 @mixin dark-mode {
   @media (prefers-color-scheme: dark) {
     @content;
   }
 }
+
 @mixin light-mode {
   @media (prefers-color-scheme: light) {
     @content;
   }
 }
+
 @mixin high-contrast {
   @media (prefers-contrast: high) {
     @content;
   }
 }
+
 @mixin reduce-motion {
   @media (prefers-reduced-motion: reduce) {
     @content;
@@ -110,8 +145,11 @@ $desktop-xl: 1920px;
 }
 
 // ========================================
-// MIXINS ESPECÍFICOS PARA MÚSICA APP
+// MIXINS ESPECÍFICOS PARA TU APP
+// Mantengo los que ya tenías, solo ajustando si usan
+// los nuevos mixins de breakpoints
 // ========================================
+
 @mixin player-mobile {
   @include mobile-only {
     position: fixed;
@@ -122,6 +160,7 @@ $desktop-xl: 1920px;
     z-index: var.$z-player;
   }
 }
+
 @mixin player-desktop {
   @include tablet-up {
     position: fixed;
@@ -132,45 +171,55 @@ $desktop-xl: 1920px;
     z-index: var.$z-player;
   }
 }
+
 @mixin sidebar-responsive {
   width: var.$sidebar-width;
   @include mobile-only {
     width: var.$sidebar-mobile-width;
   }
 }
+
 @mixin main-content-responsive {
   margin-left: var.$sidebar-width;
   @include mobile-only {
     margin-left: var.$sidebar-mobile-width;
   }
 }
+
 @mixin cards-grid-responsive {
   display: grid;
   gap: var.$spacing-2xl;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
   @include mobile-only {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: var.$spacing-lg;
   }
-  @media (min-width: $tablet-large) {
+
+  @media (min-width: #{$tablet-large}) {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
-  @media (min-width: $desktop) {
+
+  @media (min-width: #{$desktop}) {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 }
+
 @mixin container-responsive {
   width: 100%;
   margin: 0 auto;
   padding: 0 var.$spacing-lg;
+
   @include mobile-only {
     padding: 0 var.$spacing-md;
   }
-  @media (min-width: $tablet-large) {
+
+  @media (min-width: #{$tablet-large}) {
     padding: 0 var.$spacing-2xl;
     max-width: 1400px;
   }
-  @media (min-width: $desktop) {
+
+  @media (min-width: #{$desktop}) {
     max-width: 1600px;
   }
 }
@@ -178,21 +227,24 @@ $desktop-xl: 1920px;
 // ========================================
 // NAVBAR RESPONSIVE
 // ========================================
+
 @mixin navbar-height {
   height: var.$navbar-height;
+
   @include mobile-only {
     height: var.$navbar-mobile-height;
   }
 }
+
 @mixin navbar-spacing {
-  &{
+  & {
     padding: 0 var.$spacing-2xl;
   }
-  
+
   @include mobile-only {
     padding: 0 var.$spacing-lg;
   }
-  
+
   @media (min-width: #{var.$tablet-min}) and (max-width: #{$tablet-large - 1px}) {
     padding: 0 var.$spacing-xl;
   }
@@ -201,17 +253,21 @@ $desktop-xl: 1920px;
 // ========================================
 // UTILIDADES ESPECÍFICAS
 // ========================================
+
 @mixin hide-mobile {
   @include mobile-only {
     display: none !important;
   }
 }
+
 @mixin show-mobile-only {
   display: none;
+
   @include mobile-only {
     display: block;
   }
 }
+
 @mixin expand-mobile {
   @include mobile-only {
     position: fixed;

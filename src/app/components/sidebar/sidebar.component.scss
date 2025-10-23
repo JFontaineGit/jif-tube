@@ -5,21 +5,31 @@
 
 .sidebar {
   width: var.$sidebar-width;
-  height: calc(100vh - var.$navbar-height);
+  height: 100vh;
   position: fixed;
-  top: var.$navbar-height;
+  top: 0;
   left: 0;
   overflow-y: auto;
   overflow-x: hidden;
   transition: all var.$transition-normal;
   z-index: var.$z-sidebar;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: var.$blur-lg;
+  -webkit-backdrop-filter: var.$blur-lg;
+  //border-right: 1px solid rgba(255, 255, 255, 0.1);
 
   @include media.desktop-up {
-    background: transparent;
-    border-right: none;
-
     &.collapsed {
       width: 85px;
+
+      .sidebar-header {
+        padding: var.$spacing-md;
+        justify-content: center;
+      }
+
+      .app-brand-text {
+        display: none;
+      }
 
       .nav-link {
         flex-direction: column;
@@ -32,48 +42,15 @@
         font-size: var.$font-size-xs;
       }
 
-      .settings-menu {
-        display: none;
-      }
-
       .nav-separator {
         display: none;
       }
     }
-
-    &:not(.collapsed) {
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: var.$blur-lg;
-      -webkit-backdrop-filter: var.$blur-lg;
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
   }
 
-  // MOBILE: Overlay desde la izquierda
-  @include media.mobile-only {
-    width: var.$sidebar-width;
-    height: calc(100vh - var.$navbar-mobile-height);
-    top: var.$navbar-mobile-height;
+  // MOBILE/TABLET: Overlay desde la izquierda
+  @include media.tablet-down {
     left: -100%;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: var.$blur-lg;
-    -webkit-backdrop-filter: var.$blur-lg;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: var.$shadow-xl;
-
-    &.open {
-      left: 0;
-    }
-  }
-
-  // TABLET: Similar a móvil
-  @include media.tablet-only {
-    width: var.$sidebar-width;
-    left: -100%;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: var.$blur-lg;
-    -webkit-backdrop-filter: var.$blur-lg;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: var.$shadow-xl;
 
     &.open {
@@ -83,201 +60,344 @@
 
   .sidebar-content {
     height: 100%;
-    padding: var.$spacing-2xl 0;
-    position: relative;
-
-    @include media.mobile-only {
-      padding: var.$spacing-lg 0;
-    }
-
-    @include mix.flex-column;
-  }
-
-  .nav-menu,
-  .settings-menu {
-    .nav-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    .nav-item {
-      margin: 0 var.$spacing-md var.$spacing-xs;
-
-      @include media.mobile-only {
-        margin: 0 var.$spacing-sm var.$spacing-xs;
-      }
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: var.$spacing-lg;
-      padding: var.$spacing-lg;
-      color: #ffffff;
-      font-weight: var.$font-weight-bold;
-      text-decoration: none;
-      border-radius: var.$radius-xl;
-      position: relative;
-      transition: all var.$transition-normal;
-      overflow: hidden;
-
-      @include mix.focus-ring(#ffffff);
-
-      // Efecto de hover
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(
-          135deg,
-          rgba(255, 255, 255, 0.05),
-          rgba(255, 255, 255, 0.02)
-        );
-        opacity: 0;
-        transition: opacity var.$transition-normal;
-      }
-
-      &:hover {
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateX(4px);
-
-        @include media.mobile-only {
-          transform: translateY(-2px);
-        }
-
-        &::before {
-          opacity: 1;
-        }
-
-        .nav-icon {
-          transform: scale(1.1);
-        }
-      }
-
-      &.active {
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.15);
-        font-weight: var.$font-weight-bold;
-
-        .nav-icon {
-          transform: scale(1.05);
-        }
-
-        .active-indicator {
-          opacity: 1;
-          transform: scaleY(1);
-        }
-
-        &::before {
-          opacity: 1;
-        }
-      }
-    }
-
-    .nav-icon {
-      flex-shrink: 0;
-      transition: all var.$transition-normal;
-      position: relative;
-      z-index: 1;
-
-      @include mix.flex-center;
-
-      .material-icons {
-        font-size: var.$font-size-2xl;
-
-        @include media.mobile-only {
-          font-size: var.$font-size-xl;
-        }
-      }
-
-      // Efecto de resplandor para iconos activos
-      &::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.3),
-          transparent 70%
-        );
-        transform: translate(-50%, -50%);
-        transition: all var.$transition-normal;
-        border-radius: 50%;
-        opacity: 0;
-      }
-    }
-
-    .nav-label {
-      font-weight: var.$font-weight-bold;
-      line-height: var.$line-height-snug;
-      position: relative;
-      z-index: 1;
-      font-size: var.$font-size-sm;
-      color: #ffffff;
-
-      @include media.mobile-only {
-        font-size: var.$font-size-sm;
-      }
-    }
-
-    .active-indicator {
-      position: absolute;
-      left: 0;
-      top: var.$spacing-sm;
-      bottom: var.$spacing-sm;
-      width: 4px;
-      background: linear-gradient(
-        180deg,
-        #ffffff,
-        rgba(255, 255, 255, 0.8)
-      );
-      border-radius: 0 var.$radius-md var.$radius-md 0;
-      opacity: 0;
-      transform: scaleY(0);
-      transform-origin: center;
-      transition: all var.$transition-normal;
-      box-shadow:
-        0 0 8px rgba(255, 255, 255, 0.4),
-        0 0 16px rgba(255, 255, 255, 0.2);
-    }
-  }
-
-  .nav-menu {
-    flex: 1;
-    padding-bottom: var.$spacing-2xl;
-  }
-
-  .nav-separator {
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    margin: var.$spacing-xl var.$spacing-2xl;
-
-    @include media.mobile-only {
-      margin: var.$spacing-lg var.$spacing-md;
-    }
-  }
-
-  .settings-menu {
-    padding-top: var.$spacing-lg;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 120px; // Espacio para el player
   }
 
   @include mix.custom-scrollbar;
 }
 
-// Animaciones específicas
+// ============================================================================
+// SIDEBAR HEADER (con logo y hamburger)
+// ============================================================================
+
+.sidebar-header {
+  padding: var.$spacing-xl;
+  //border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var.$spacing-md;
+  flex-shrink: 0;
+
+  @include media.mobile-only {
+    padding: var.$spacing-lg var.$spacing-md;
+  }
+
+  .app-brand {
+    display: flex;
+    align-items: center;
+    gap: var.$spacing-sm;
+    color: var.$text-primary;
+    text-decoration: none;
+    transition: all var.$transition-fast;
+
+    &:hover {
+      transform: scale(1.02);
+    }
+
+    .logo-icon {
+      font-size: var.$font-size-2xl;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .app-brand-text {
+      font-weight: var.$font-weight-extrabold;
+      font-size: var.$font-size-xl;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-lg;
+      }
+    }
+  }
+
+  .hamburger-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var.$radius-lg;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+    display: none;
+
+    @include mix.flex-center;
+
+    @include media.tablet-down {
+      display: flex;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    .material-icons {
+      font-size: 24px;
+      color: var.$text-primary;
+    }
+  }
+
+  .collapse-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: var.$radius-lg;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+
+    @include mix.flex-center;
+
+    @include media.tablet-down {
+      display: none;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    .material-icons {
+      font-size: 24px;
+      color: var.$text-secondary;
+      transition: transform var.$transition-fast;
+    }
+
+    &.collapsed .material-icons {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// ============================================================================
+// NAV MENU
+// ============================================================================
+
+.nav-menu,
+.settings-menu {
+  .nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-item {
+    margin: 0 var.$spacing-md var.$spacing-xs;
+
+    @include media.mobile-only {
+      margin: 0 var.$spacing-sm var.$spacing-xs;
+    }
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: var.$spacing-lg;
+    padding: var.$spacing-lg;
+    color: var.$text-secondary;
+    font-weight: var.$font-weight-semibold;
+    text-decoration: none;
+    border-radius: var.$radius-xl;
+    position: relative;
+    transition: all var.$transition-normal;
+    overflow: hidden;
+
+    @include mix.focus-ring(#ffffff);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.02)
+      );
+      opacity: 0;
+      transition: opacity var.$transition-normal;
+    }
+
+    &:hover {
+      color: var.$text-primary;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(4px);
+
+      @include media.mobile-only {
+        transform: translateY(-2px);
+      }
+
+      &::before {
+        opacity: 1;
+      }
+
+      .nav-icon {
+        transform: scale(1.1);
+      }
+    }
+
+    &.active {
+      color: var.$text-primary;
+      background: rgba(255, 255, 255, 0.15);
+      font-weight: var.$font-weight-bold;
+
+      .nav-icon {
+        transform: scale(1.05);
+      }
+
+      .active-indicator {
+        opacity: 1;
+        transform: scaleY(1);
+      }
+
+      &::before {
+        opacity: 1;
+      }
+    }
+  }
+
+  .nav-icon {
+    flex-shrink: 0;
+    transition: all var.$transition-normal;
+    position: relative;
+    z-index: 1;
+
+    @include mix.flex-center;
+
+    .material-icons {
+      font-size: var.$font-size-2xl;
+
+      @include media.mobile-only {
+        font-size: var.$font-size-xl;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.3),
+        transparent 70%
+      );
+      transform: translate(-50%, -50%);
+      transition: all var.$transition-normal;
+      border-radius: 50%;
+      opacity: 0;
+    }
+  }
+
+  .nav-label {
+    font-weight: inherit;
+    line-height: var.$line-height-snug;
+    position: relative;
+    z-index: 1;
+    font-size: var.$font-size-sm;
+
+    @include media.mobile-only {
+      font-size: var.$font-size-sm;
+    }
+  }
+
+  .active-indicator {
+    position: absolute;
+    left: 0;
+    top: var.$spacing-sm;
+    bottom: var.$spacing-sm;
+    width: 4px;
+    background: linear-gradient(
+      180deg,
+      var.$primary-blue,
+      var.$primary-purple
+    );
+    border-radius: 0 var.$radius-md var.$radius-md 0;
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: all var.$transition-normal;
+    box-shadow:
+      0 0 8px rgba(59, 130, 246, 0.4),
+      0 0 16px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.nav-menu {
+  flex: 1;
+  padding: var.$spacing-2xl 0;
+  overflow-y: auto;
+
+  @include media.mobile-only {
+    padding: var.$spacing-lg 0;
+  }
+}
+
+.nav-separator {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  margin: var.$spacing-xl var.$spacing-2xl;
+
+  @include media.mobile-only {
+    margin: var.$spacing-lg var.$spacing-md;
+  }
+}
+
+.settings-menu {
+  padding: var.$spacing-lg 0 var.$spacing-2xl;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  @include media.mobile-only {
+    padding: var.$spacing-md 0 var.$spacing-lg;
+  }
+}
+
+// ============================================================================
+// OVERLAY (mobile/tablet)
+// ============================================================================
+
+.sidebar-overlay {
+  display: none;
+
+  @include media.tablet-down {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: calc(var.$z-sidebar - 1);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var.$transition-normal;
+
+    &.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+  }
+}
+
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
 @keyframes navItemSlide {
   from {
     opacity: 0;
@@ -301,7 +421,6 @@
   }
 }
 
-// Efectos de hover mejorados
 .nav-link {
   &:hover .nav-icon::after {
     width: 40px;
@@ -316,27 +435,15 @@
   }
 }
 
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 10px 10px;
-  opacity: 0.5;
-  pointer-events: none;
-}
+// ============================================================================
+// ACCESSIBILITY
+// ============================================================================
 
 @include media.reduce-motion {
-  .sidebar {
-    * {
-      animation: none !important;
-      transition: none !important;
-    }
+  .sidebar,
+  .sidebar * {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

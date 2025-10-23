@@ -1,4 +1,3 @@
-// navbar.component.ts
 import {
   Component,
   Output,
@@ -13,7 +12,7 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   BehaviorSubject,
@@ -22,11 +21,9 @@ import {
   Subject,
   takeUntil
 } from 'rxjs';
-import { AuthService } from '../../services/auth/auth.service';
-import { StorageService } from '../../services/core/storage.service';
-import { LoggerService } from '../../services/core/logger.service';
+import { AuthService, StorageService, LoggerService } from '@services';
+import { UserRead } from '@interfaces';
 import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
-import { MeUser } from '../../services/interfaces/auth.interfaces';
 
 interface SearchEvent {
   query: string;
@@ -44,28 +41,39 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly storage = inject(StorageService);
   private readonly logger = inject(LoggerService);
+  private readonly router = inject(Router);
   
-  private destroy$ = new Subject<void>();
-  private searchSubject = new BehaviorSubject<string>('');
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchSubject = new BehaviorSubject<string>('');
 
   @Input() isScrolled = false;
+  @Input() sidebarCollapsed = false;
   @Output() search = new EventEmitter<SearchEvent>();
   @Output() toggleSidebar = new EventEmitter<void>();
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
-  // Search signals
-  searchQuery = signal('');
-  isFocused = signal(false);
-  noResults = signal(false);
-  activeTab = signal('all');
+  private readonly _searchQuery = signal<string>('');
+  private readonly _isFocused = signal<boolean>(false);
+  private readonly _noResults = signal<boolean>(false);
+  private readonly _activeTab = signal<string>('all');
 
-  // Auth signals
-  isAuthDialogOpen = signal(false);
-  isUserMenuOpen = signal(false);
-  currentUser = signal<MeUser | null>(null);
-  isLoadingUser = signal(false);
+  readonly searchQuery = this._searchQuery.asReadonly();
+  readonly isFocused = this._isFocused.asReadonly();
+  readonly noResults = this._noResults.asReadonly();
+  readonly activeTab = this._activeTab.asReadonly();
+
+  private readonly _isAuthDialogOpen = signal(false);
+  private readonly _isUserMenuOpen = signal(false);
+  private readonly _currentUser = signal<UserRead | null>(null);
+  private readonly _isLoadingUser = signal(false);
+
+  readonly isAuthDialogOpen = this._isAuthDialogOpen.asReadonly();
+  readonly isUserMenuOpen = this._isUserMenuOpen.asReadonly();
+  readonly currentUser = this._currentUser.asReadonly();
+  readonly isLoadingUser = this._isLoadingUser.asReadonly();
 
   constructor() {
+    // Debounce search input
     this.searchSubject
       .pipe(
         debounceTime(300),
@@ -91,35 +99,191 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ============ AUTH METHODS ============
-  
   private loadCurrentUser(): void {
-    const accessToken = this.storage.getAccessToken();
-    
-    if (!accessToken) {
-      this.currentUser.set(null);
-      return;
-    }
-
-    this.isLoadingUser.set(true);
-    
-    this.authService.me().subscribe({
-      next: (user) => {
-        this.logger.debug('Usuario cargado:', user);
-        this.currentUser.set(user);
-        this.isLoadingUser.set(false);
-      },
-      error: (error) => {
-        this.logger.error('Error al cargar usuario:', error);
-        this.currentUser.set(null);
-        this.isLoadingUser.set(false);
-        
-        // If token is invalid, clear it
-        if (error.status === 401) {
-          this.storage.removeTokens();
+    this.storage.getAccessToken().subscribe({
+      next: (token) => {
+        if (!token) {
+          this._currentUser.set(null);
+          return;
         }
+
+        this._isLoadingUser.set(true);
+        
+        this.authService.loadUserProfile().subscribe({
+          next: (user) => {
+            this.logger.debug('Usuario cargado en navbar', { username: user.username });
+            this._currentUser.set(user);
+          },
+          error: (error) => {
+            this.logger.error('Error cargando usuario en navbar', error);
+            this._currentUser.set(null);
+            
+            // Si token inválido, limpiar
+            if (error.status === 401) {
+              this.storage.clearTokens().subscribe();
+            }
+          },
+          complete: () => {
+            this._isLoadingUser.set(false);
+          }
+        });
+      },
+      error: (err) => {
+        this.logger.error('Error leyendo token', err);
+        this._currentUser.set(null);
       }
     });
+  }
+
+  openAuthDialog(): void {
+    this._isAuthDialogOpen.set(true);
+  }
+
+  closeUserMenu(): void {
+    this._isUserMenuOpen.set(false);
+  }
+  
+  closeAuthDialog(): void {
+    this._isAuthDialogOpen.set(false);
+  }
+
+  onAuthSuccess(): void {
+    this.logger.info('Auth exitoso, recargando usuario');
+    this.loadCurrentUser();
+    this.router.navigate(['/home']);
+  }
+
+  toggleUserMenu(): void {
+    this._isUserMenuOpen.update(current => !current);
+  }
+
+  logout(): void {
+    this.logger.info('Iniciando logout desde navbar');
+    this._isLoadingUser.set(true);
+    
+    this.authService.logout().subscribe({
+      next: () => {
+        this.logger.info('Logout exitoso');
+        this._currentUser.set(null);
+        this._isUserMenuOpen.set(false);
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        this.logger.error('Error en logout', error);
+        // Limpiar estado local aunque falle el backend
+        this._currentUser.set(null);
+        this._isUserMenuOpen.set(false);
+        this.router.navigate(['/']);
+      },
+      complete: () => {
+        this._isLoadingUser.set(false);
+      }
+    });
+  }
+
+  getUserInitials(): string {
+    const user = this.currentUser();
+    if (!user) return 'U';
+    
+    if (user.username) {
+      const initials = user.username.substring(0, 2).toUpperCase();
+      return initials;
+    }
+    
+    if (user.email) {
+      return user.email
+        .split('@')[0]
+        .substring(0, 2)
+        .toUpperCase();
+    }
+    
+    return 'U';
+  }
+
+  getUserDisplayName(): string {
+    const user = this.currentUser();
+    if (!user) return '';
+    
+    return user.username || user.email?.split('@')[0] || 'Usuario';
+  }
+
+  onToggleSidebar(): void {
+    this.toggleSidebar.emit();
+  }
+
+  onFocus(): void {
+    this._isFocused.set(true);
+    this._noResults.set(false);
+  }
+
+  onBlur(): void {
+    setTimeout(() => {
+      this._isFocused.set(false);
+    }, 150);
+  }
+
+  onInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    this._searchQuery.set(value);
+    this._noResults.set(false);
+    
+    if (value.trim()) {
+      this.searchSubject.next(value);
+    }
+  }
+
+  searchSongs(): void {
+    const query = this.searchQuery().trim();
+    if (!query) return;
+
+    this.search.emit({
+      query,
+      tab: this.activeTab()
+    });
+
+    // Blur input after search
+    if (this.searchInput?.nativeElement) {
+      this.searchInput.nativeElement.blur();
+    }
+  }
+
+  clearSearch(): void {
+    this._searchQuery.set('');
+    this._noResults.set(false);
+    
+    if (this.searchInput?.nativeElement) {
+      this.searchInput.nativeElement.focus();
+    }
+  }
+
+  setActiveTab(tab: string): void {
+    this._activeTab.set(tab);
+    const query = this.searchQuery().trim();
+    
+    if (query) {
+      this.search.emit({ query, tab });
+    }
+  }
+
+  onSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.clearSearch();
+      event.preventDefault();
+    }
+  }
+
+  onSearchFormKeydown(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'ArrowDown':
+      case 'ArrowUp':
+        event.preventDefault();
+        break;
+      case 'Enter':
+        event.preventDefault();
+        this.searchSongs();
+        break;
+    }
   }
 
   @HostListener('window:scroll')
@@ -130,153 +294,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
+    
     if (!target.closest('.user-menu-container')) {
-      this.isUserMenuOpen.set(false);
-    }
-  }
-
-  openAuthDialog(): void {
-    this.isAuthDialogOpen.set(true);
-  }
-
-  closeAuthDialog(): void {
-    this.isAuthDialogOpen.set(false);
-  }
-
-  onAuthSuccess(): void {
-    this.loadCurrentUser();
-  }
-
-  toggleUserMenu(): void {
-    this.isUserMenuOpen.set(!this.isUserMenuOpen());
-  }
-
-  logout(): void {
-    this.isLoadingUser.set(true);
-    
-    this.authService.logout().subscribe({
-      next: () => {
-        this.logger.debug('Logout exitoso');
-        this.storage.removeTokens();
-        this.currentUser.set(null);
-        this.isUserMenuOpen.set(false);
-        this.isLoadingUser.set(false);
-      },
-      error: (error) => {
-        this.logger.error('Error en logout:', error);
-        // Even if logout fails, clear local tokens
-        this.storage.removeTokens();
-        this.currentUser.set(null);
-        this.isUserMenuOpen.set(false);
-        this.isLoadingUser.set(false);
-      }
-    });
-  }
-
-  getUserInitials(): string {
-    const user = this.currentUser();
-    if (!user) return 'U';
-    
-    if (user.username) {
-      return user.username.substring(0, 2).toUpperCase();
-    }
-    
-    if (user.email) {
-      return user.email
-        .split('@')[0]
-        .split('.')
-        .map((part: string) => part[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
-    }
-    
-    return 'U';
-  }
-
-  getUserDisplayName(): string {
-    const user = this.currentUser();
-    if (!user) return '';
-    
-    return user.username || user.email?.split('@')[0] || '';
-  }
-
-  // ============ SEARCH METHODS ============
-
-  onToggleSidebar(): void {
-    this.toggleSidebar.emit();
-  }
-
-  onFocus(): void {
-    this.isFocused.set(true);
-    this.noResults.set(false);
-  }
-
-  onBlur(): void {
-    setTimeout(() => {
-      this.isFocused.set(false);
-    }, 150);
-  }
-
-  onInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchQuery.set(target.value);
-    const query = this.searchQuery();
-    this.noResults.set(false);
-    
-    if (query.trim()) {
-      this.searchSubject.next(query);
-    }
-  }
-
-  searchSongs(): void {
-    const query = this.searchQuery().trim();
-    if (query) {
-      this.search.emit({
-        query,
-        tab: this.activeTab()
-      });
-      this.searchInput.nativeElement.blur();
-    }
-  }
-
-  clearSearch(): void {
-    this.searchQuery.set('');
-    this.noResults.set(false);
-    if (this.searchInput) {
-      this.searchInput.nativeElement.focus();
-    }
-  }
-
-  setActiveTab(tab: string): void {
-    this.activeTab.set(tab);
-    const query = this.searchQuery();
-    if (query.trim()) {
-      this.search.emit({
-        query: query.trim(),
-        tab
-      });
-    }
-  }
-
-  onSearchKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
-      this.clearSearch();
-    }
-  }
-
-  onSearchFormKeydown(event: KeyboardEvent): void {
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        break;
-      case 'Enter':
-        event.preventDefault();
-        this.searchSongs();
-        break;
+      this._isUserMenuOpen.set(false);
     }
   }
 }

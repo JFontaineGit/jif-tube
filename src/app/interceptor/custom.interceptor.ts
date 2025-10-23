@@ -1,113 +1,103 @@
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject, Injector } from '@angular/core';
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, switchMap, throwError, BehaviorSubject } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { catchError, switchMap, throwError, of } from 'rxjs';
 import { AuthService } from '../services/auth/auth.service';
-import { TokenUserResponse } from '../services/interfaces/auth.interfaces';
 import { LoggerService } from '../services/core/logger.service';
 import { StorageService } from '../services/core/storage.service';
+import { AUTH_ENDPOINTS } from '../services/constants/endpoints';
 
+/**
+ * Endpoints públicos que NO requieren token
+ */
 const PUBLIC_ENDPOINTS = [
-  'auth/register',
-  'auth/login',
-  'auth/refresh'
+  AUTH_ENDPOINTS.REGISTER,
+  AUTH_ENDPOINTS.LOGIN,
+  AUTH_ENDPOINTS.REFRESH,
+  '/health',
+  '/',
 ];
 
-let isRefreshing = false;
-const refreshSubject = new BehaviorSubject<string | null>(null);
-
+/**
+ * Interceptor HTTP para:
+ * - Agregar token de autorización a requests protegidos
+ * - Manejar errores 401 (Unauthorized)
+ * - Refrescar token automáticamente si expira
+ * - Redirigir a login si el refresh falla
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const logger = inject(LoggerService);
   const router = inject(Router);
   const storage = inject(StorageService);
-  const injector = inject(Injector);
+  const authService = inject(AuthService);
 
-  // Check if the request is to a public endpoint
   const isPublic = PUBLIC_ENDPOINTS.some(endpoint => req.url.includes(endpoint));
   
   if (isPublic) {
+    logger.debug(`Request público: ${req.url}`);
     return next(req);
   }
 
-  // Get tokens from storage
-  const accessToken = storage.getAccessToken();
-  const refreshToken = storage.getRefreshToken();
-
-  // If no access token, proceed without authorization
-  if (!accessToken) {
-    return next(req);
-  }
-
-  // Clone request with authorization header
-  const clonedReq = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  });
-
-  return next(clonedReq).pipe(
-    catchError((error) => {
-      // Handle 401 Unauthorized errors
-      if (error.status === 401 && refreshToken) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-          refreshSubject.next(null);
-
-          const authService = injector.get(AuthService);
-
-          return authService.refresh(refreshToken).pipe(
-            switchMap((response: TokenUserResponse) => {
-              isRefreshing = false;
-              
-              // Store new tokens
-              storage.setAccessToken(response.access_token);
-              storage.setRefreshToken(response.refresh_token);
-              
-              // Notify waiting requests
-              refreshSubject.next(response.access_token);
-
-              // Retry original request with new token
-              const newClonedReq = req.clone({
-                setHeaders: {
-                  Authorization: `Bearer ${response.access_token}`
-                }
-              });
-              
-              return next(newClonedReq);
-            }),
-            catchError((refreshError) => {
-              isRefreshing = false;
-              refreshSubject.next(null);
-              
-              // Clear tokens and redirect to login
-              storage.removeTokens();
-              router.navigate(['/login']);
-              
-              logger.error('Error al refrescar el token:', refreshError);
-              return throwError(() => new Error('Sesión expirada, por favor inicia sesión nuevamente.'));
-            })
-          );
-        } else {
-          // Wait for refresh to complete
-          return refreshSubject.pipe(
-            filter(token => token !== null),
-            take(1),
-            switchMap((newToken) => {
-              const newClonedReq = req.clone({
-                setHeaders: { 
-                  Authorization: `Bearer ${newToken}` 
-                }
-              });
-              return next(newClonedReq);
-            })
-          );
-        }
+  return storage.getAccessToken().pipe(
+    switchMap((accessToken) => {
+      if (!accessToken) {
+        logger.debug(`Sin token: ${req.url}`);
+        return next(req);
       }
 
-      // Log and propagate other errors
-      logger.error(`Error en la petición ${req.url}:`, error.message || error);
-      return throwError(() => error);
+      // Clonar request con authorization header
+      const clonedReq = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      logger.debug(`Request con token: ${req.url}`);
+
+      return next(clonedReq).pipe(
+        catchError((error: HttpErrorResponse) => {
+          if (error.status === 401) {
+            logger.warn(`401 detectado en: ${req.url}, intentando refresh...`);
+
+            return authService.refreshAccessToken().pipe(
+              switchMap((newAccessToken) => {
+                logger.info('Token refrescado, reintentando request original');
+
+                const retryReq = req.clone({
+                  setHeaders: {
+                    Authorization: `Bearer ${newAccessToken}`,
+                  },
+                });
+
+                return next(retryReq);
+              }),
+              catchError((refreshError) => {
+                logger.error('Refresh falló, redirigiendo a login', refreshError);
+
+                // Limpiar estado y redirigir
+                storage.clearTokens().subscribe();
+                router.navigate(['/login'], {
+                  queryParams: { sessionExpired: true },
+                });
+
+                return throwError(() => 
+                  new Error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+                );
+              })
+            );
+          }
+
+          if (error.status === 403) {
+            logger.warn(`403 Forbidden: ${req.url}`);
+          } else if (error.status >= 500) {
+            logger.error(`Error del servidor (${error.status}): ${req.url}`, error);
+          } else {
+            logger.error(`Error HTTP (${error.status}): ${req.url}`, error);
+          }
+
+          return throwError(() => error);
+        })
+      );
     })
   );
 };

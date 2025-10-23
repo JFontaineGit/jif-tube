@@ -6,22 +6,14 @@
   position: relative;
   min-height: 100vh;
   width: 100vw;
-  background: radial-gradient(
-    circle at top right,
-    color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent),
-    color-mix(
-      in srgb,
-      var(--ytmusic-album-color-dark) 30%,
-      var(--bg-primary, #{var.$bg-primary})
-    )
-    40%,
-    var(--ytmusic-background, #{var.$bg-primary}) 80%
+  background: linear-gradient(
+    135deg,
+    #0a0a0a 0%,
+    #1a1a1a 50%,
+    #0a0a0a 100%
   );
-  transition: background var(--transition-slow, 500ms);
   overflow-x: hidden;
   animation: appLoad 0.6s ease-out;
-
-  @include mix.flex-start;
 
   &::before {
     content: '';
@@ -37,40 +29,66 @@
       rgba(0, 0, 0, 0.1) 100%
     );
     pointer-events: none;
-    z-index: var.$z-base;
+    z-index: 0;
   }
 
   .invisible-player {
     @include mix.sr-only;
   }
 
+  // ========================================================================
+  // SIDEBAR (full height desde top:0)
+  // ========================================================================
+
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: var.$z-sidebar;
+    height: 100vh;
+  }
+
+  // ========================================================================
+  // NAVBAR (al lado del sidebar)
+  // ========================================================================
+
   .app-navbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: var.$z-navbar;
+    height: 70px;
+
+    // Desktop: empieza donde termina el sidebar
+    @include media.desktop-up {
+      left: var.$sidebar-width;
+
+      .sidebar-collapsed ~ & {
+        left: 85px;
+      }
+    }
+
+    // Mobile/Tablet: full width
+    @include media.tablet-down {
+      left: 0;
+      height: 60px;
+    }
+  }
+
+  // ========================================================================
+  // SIDEBAR OVERLAY (mobile/tablet)
+  // ========================================================================
+
+  .sidebar-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: var.$z-navbar;
-  }
-
-  .app-sidebar {
-    position: fixed;
-    top: var.$navbar-height;
-    left: 0;
     bottom: 0;
-    z-index: var.$z-sidebar;
-
-    @include media.mobile-only {
-      top: var.$navbar-mobile-height;
-    }
-  }
-
-  .sidebar-overlay {
-    position: fixed;
-    top: var.$navbar-mobile-height;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: calc(var.$z-sidebar - 1);
     cursor: pointer;
     animation: fadeIn 0.2s ease;
@@ -80,88 +98,84 @@
     }
   }
 
-  // Contenido principal
+  // ========================================================================
+  // MAIN CONTENT
+  // ========================================================================
+
   .main-content {
-    flex: 1;
-    padding-top: var.$navbar-height;
     min-height: 100vh;
     position: relative;
-    z-index: calc(var.$z-base + 1);
+    z-index: 1;
     transition: margin-left var.$transition-normal;
 
-    @include media.mobile-only {
-      margin-left: 0;
-      padding-top: var.$navbar-mobile-height;
-      padding-bottom: calc(var.$player-height + var.$spacing-lg);
-    }
-
-    @include media.tablet-only {
-      margin-left: 0;
-      padding-bottom: calc(var.$player-height + var.$spacing-md);
-    }
-
+    // Desktop: ajustado al sidebar + navbar + player
     @include media.desktop-up {
-      &.sidebar-collapsed {
-        margin-left: var.$sidebar-mobile-width;
-      }
+      padding-top: 70px;
+      padding-bottom: 120px;
 
       &.sidebar-expanded {
         margin-left: var.$sidebar-width;
       }
+
+      &.sidebar-collapsed {
+        margin-left: 85px;
+      }
+    }
+
+    // Mobile/Tablet: sin margen del sidebar
+    @include media.tablet-down {
+      margin-left: 0;
+      padding-top: 60px;
+      padding-bottom: 150px;
     }
 
     .content-wrapper {
       padding: var.$spacing-2xl;
-      min-height: calc(100vh - var.$navbar-height);
+      max-width: 1400px;
+      margin: 0 auto;
+
+      @include media.tablet-only {
+        padding: var.$spacing-xl;
+      }
 
       @include media.mobile-only {
-        padding: var.$spacing-lg;
-        min-height: calc(
-          100vh - var.$navbar-mobile-height - var.$player-height - var.$spacing-lg
-        );
+        padding: var.$spacing-lg var.$spacing-md;
       }
 
       @include mix.custom-scrollbar;
     }
   }
 
+  // ========================================================================
+  // PLAYER (fixed bottom, ajustado al sidebar)
+  // ========================================================================
+
   .app-player {
     position: fixed;
     bottom: 0;
     right: 0;
     z-index: var.$z-player;
-    background: var(--ytmusic-background);
-    border-top: 1px solid var(--ytmusic-border, #{var.$border-color});
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
     transition: left var.$transition-normal;
 
-    @include media.mobile-only {
-      left: 0;
-    }
-
-    @include media.tablet-only {
-      left: 0;
-    }
-
+    // Desktop: ajustado al sidebar
     @include media.desktop-up {
+      left: var.$sidebar-width;
+
       .sidebar-collapsed ~ & {
-        left: var.$sidebar-mobile-width;
+        left: 85px;
       }
+    }
 
-      .sidebar-expanded ~ & {
-        left: var.$sidebar-width;
-      }
+    // Mobile/Tablet: full width
+    @include media.tablet-down {
+      left: 0;
     }
   }
 }
 
-.app-container:has(.app-player) {
-  .main-content {
-    @include media.desktop-up {
-      padding-bottom: calc(var.$player-height + var.$spacing-md);
-    }
-  }
-}
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
 
 @keyframes appLoad {
   from {
@@ -183,22 +197,24 @@
   }
 }
 
-@include media.dark-mode {
+// ============================================================================
+// ACCESSIBILITY
+// ============================================================================
+
+@include media.reduce-motion {
   .app-container {
-    &::before {
-      background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.4) 0%,
-        transparent 50%,
-        rgba(0, 0, 0, 0.2) 100%
-      );
+    animation: none !important;
+    
+    * {
+      animation: none !important;
+      transition: none !important;
     }
   }
 }
 
 @include media.high-contrast {
   .app-container {
-    background: var(--ytmusic-background, var.$bg-primary);
+    background: #000000;
 
     &::before {
       display: none;
@@ -208,16 +224,27 @@
     .app-sidebar,
     .app-navbar,
     .app-player {
-      border: 2px solid var.$border-color;
+      border: 2px solid #ffffff;
     }
   }
 }
 
-@include media.reduce-motion {
+// ============================================================================
+// PRINT STYLES
+// ============================================================================
+
+@media print {
   .app-container {
-    * {
-      animation: none !important;
-      transition: none !important;
+    .app-navbar,
+    .app-sidebar,
+    .app-player,
+    .sidebar-overlay {
+      display: none !important;
+    }
+
+    .main-content {
+      margin: 0;
+      padding: 0;
     }
   }
 }

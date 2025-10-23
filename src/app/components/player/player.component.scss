@@ -1,11 +1,8 @@
-@use "../../../styles/_mixins.scss" as mix;
-@use "../../../styles/_variables.scss" as var;
-@use "../../../styles/_media-queries.scss" as media;
-@use "sass:color";
+// player.component.scss - Diseño completamente rediseñado
+@use '../../../styles/_variables.scss' as var;
+@use '../../../styles/_mixins.scss' as mix;
+@use '../../../styles/_media-queries.scss' as media;
 
-// ========================================
-// PLAYER WRAPPER - Controla el layout principal
-// ========================================
 .player-wrapper {
   position: fixed;
   bottom: 0;
@@ -13,654 +10,615 @@
   right: 0;
   z-index: var.$z-player;
   transition: all var.$transition-normal;
-  background: var(--ytmusic-background);
-
-  // En desktop, dejar espacio para la sidebar
+  
+  // El player debe ajustarse al sidebar en desktop
   @include media.desktop-up {
     left: var.$sidebar-width;
-
+    
     &.sidebar-collapsed {
-      left: 85px; // ancho de sidebar colapsada
-    }
-
-    // Forzar que solo se vea minimizado en desktop
-    height: 72px !important;
-
-    &:not(.minimized) {
-      display: none; // ocultar expandido en desktop
-    }
-
-    &.minimized {
-      display: block;
+      left: 85px;
     }
   }
 
-  // ========================================
-  // MODO MINIMIZADO - Barra horizontal compacta
-  // ========================================
+  // En mobile/tablet, ocupa todo el ancho
+  @include media.tablet-down {
+    left: 0;
+  }
+
   &.minimized {
-    /* reset de top por si venía del expandido */
-    top: auto;
-    bottom: 0;
-    height: 72px;
-    background: var(--ytmusic-background);
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.5);
-
     .player-container {
-      width: 100%;
-      display: grid;
-      grid-template-columns: auto 1fr auto auto;
-      grid-template-areas: "artwork info playback volume";
-      gap: var.$spacing-lg;
-      padding: var.$spacing-sm var.$spacing-xl;
-      max-height: 72px;
-      height: 72px;
-      background: transparent;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-
-      @include media.tablet-up {
-        padding: var.$spacing-sm var.$spacing-2xl;
-        gap: var.$spacing-xl;
-      }
-
-      @include media.mobile-only {
-        grid-template-columns: auto 1fr auto;
-        grid-template-areas: "artwork info playback";
-        padding: var.$spacing-sm var.$spacing-md;
-        gap: var.$spacing-md;
-      }
-
-      // ocultar elementos que no se muestran en modo minimizado
-      .action-buttons,
+      height: 64px;
+      
+      .player-artwork,
       .progress-section,
-      .playback-controls .prev-btn,
-      .playback-controls .next-btn {
+      .volume-section,
+      .action-buttons {
         display: none;
-      }
-    }
-
-    /* artwork reducido y alineado a la izquierda dentro de la barra */
-    .player-artwork {
-      width: 56px;
-      height: 56px;
-      max-width: none;
-      margin: 0;
-      border-radius: var.$radius-md;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-      z-index: 1;
-    }
-
-    /* ajustar info para que no se superponga */
-    .player-info {
-      padding-left: var.$spacing-md;
-      text-align: left;
-      
-      .title {
-        margin-bottom: 2px;
-        @include mix.text-truncate;
-      }
-      
-      .artist {
-        font-size: var.$font-size-xs;
-        @include mix.text-truncate;
-      }
-    }
-  }
-
-  // ========================================
-  // MODO EXPANDIDO EN MOBILE - Pantalla completa
-  // ========================================
-  @include media.mobile-only {
-    &:not(.minimized) {
-      // arrancar justo debajo del navbar (no debajo de 0)
-      top: var.$navbar-height;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0, 0, 0, 0.98);
-      backdrop-filter: var.$blur-xl;
-      z-index: var.$z-modal;
-
-      .player-container {
-        max-width: 480px;
-        margin: 0 auto;
-        padding: var.$spacing-2xl var.$spacing-xl;
-        padding-top: calc(var.$spacing-3xl + var.$spacing-md);
-        height: calc(100vh - var.$navbar-height);
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        border-top: none;
-      }
-
-      .player-artwork {
-        width: 100%;
-        max-width: 320px;
-        aspect-ratio: 1;
-        margin: 0 auto var.$spacing-2xl;
-        z-index: 1;
       }
 
       .player-info {
-        text-align: center;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .playback-controls {
+        margin: 0;
       }
     }
   }
 }
 
-/* ========================================
-   PLAYER CONTAINER - Contenedor principal
-   ======================================== */
 .player-container {
-  position: relative;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--ytmusic-album-color) 25%, #1a2332),
-    color-mix(in srgb, var(--ytmusic-album-color) 15%, #0f1419)
-  );
-  border-top: 1px solid
-    color-mix(
-      in srgb,
-      var(--ytmusic-album-color) 40%,
-      rgba(255, 255, 255, 0.06)
-    );
-  padding: var.$spacing-3xl var.$spacing-2xl var.$spacing-2xl;
-  transition: all var.$transition-normal;
+  background: rgba(10, 10, 10, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+  height: 110px;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-areas: "artwork info actions playback volume";
+  align-items: center;
+  gap: var.$spacing-lg;
+  padding: 0 var.$spacing-xl;
+  position: relative;
+  transition: all var.$transition-normal;
 
-  /* en mobile el padding se hace más pequeño (pero ya controlado por estado expandido/minimizado) */
-  @include media.mobile-only {
-    padding: var.$spacing-2xl var.$spacing-xl;
-  }
-}
-
-/* ========================================
-   BOTÓN MINIMIZAR/EXPANDIR (toggle)
-   ======================================== */
-.minimize-toggle {
-  position: absolute;
-  width: 36px;
-  height: 36px;
-  background: color-mix(in srgb, var(--ytmusic-album-color) 20%);
-  backdrop-filter: var.$blur-xl;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var.$radius-full;
-  cursor: pointer;
-  transition: all var.$transition-fast;
-  z-index: 9999;
-  pointer-events: auto;
-  @include mix.flex-center;
-  @include mix.focus-ring;
-
-  .material-icons {
-    font-size: var.$font-size-xl;
-    color: var.$text-primary;
-  }
-
-  &:hover {
-    transform: scale(1.08);
-    border-color: var(--ytmusic-album-color);
-  }
-
-  /* ----- posición cuando está minimizado (barra) ----- */
-  .player-wrapper.minimized & {
-    top: 50%;
-    right: var.$spacing-md;
-    transform: translateY(-50%);
-  }
-
-  /* ----- posición cuando está expandido en mobile ----- */
-  @include media.mobile-only {
-    .player-wrapper:not(.minimized) & {
-      top: calc(var.$spacing-md + 4px); // justo debajo del navbar
-      left: var.$spacing-md;
-      transform: none;
+  @include media.tablet-only {
+    height: 90px;
+    padding: 0 var.$spacing-lg;
+    gap: var.$spacing-md;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 
+      "artwork info playback"
+      "progress progress progress";
+    
+    .action-buttons,
+    .volume-section {
+      display: none;
     }
   }
+
+  @include media.mobile-only {
+    height: 140px;
+    padding: var.$spacing-md;
+    gap: var.$spacing-sm;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "artwork info minimize"
+      "progress progress progress"
+      "playback playback playback";
+    
+    .action-buttons,
+    .volume-section {
+      display: none;
+    }
+  }
+
+  &.playing {
+    .player-artwork img {
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
+
+  &.has-error {
+    border-top-color: rgba(239, 68, 68, 0.5);
+  }
 }
 
-/* ========================================
-   ARTWORK - Imagen del álbum
-   ======================================== */
-.player-artwork {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 320px;
-  aspect-ratio: 1;
-  border-radius: var.$radius-2xl;
-  overflow: hidden;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
-  transition: all var.$transition-normal;
-  margin: 0 auto var.$spacing-2xl;
+// ============================================================================
+// MINIMIZE TOGGLE
+// ============================================================================
 
-  /* en minimizado arriba lo ajustamos con reglas específicas (ver sección .minimized) */
+.minimize-toggle {
+  position: absolute;
+  top: var.$spacing-xs;
+  right: var.$spacing-xs;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: var.$radius-full;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: all var.$transition-fast;
+  z-index: 10;
+
+  @include mix.flex-center;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+
+  .material-icons {
+    font-size: 20px;
+    color: var.$text-secondary;
+  }
+
   @include media.mobile-only {
-    max-width: 280px;
-    margin-bottom: var.$spacing-xl;
+    grid-area: minimize;
+    position: static;
+  }
+}
+
+// ============================================================================
+// ERROR & BUFFERING
+// ============================================================================
+
+.error-banner,
+.buffering-indicator {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  padding: var.$spacing-sm var.$spacing-lg;
+  border-radius: var.$radius-lg;
+  font-size: var.$font-size-sm;
+  font-weight: var.$font-weight-semibold;
+  box-shadow: var.$shadow-lg;
+  z-index: 20;
+
+  @include mix.flex-inline(var.$spacing-sm);
+
+  .material-icons {
+    font-size: 18px;
+  }
+}
+
+.buffering-indicator {
+  background: rgba(59, 130, 246, 0.95);
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+}
+
+// ============================================================================
+// ARTWORK
+// ============================================================================
+
+.player-artwork {
+  grid-area: artwork;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: var.$radius-lg;
+  overflow: hidden;
+  box-shadow: var.$shadow-lg;
+
+  @include media.tablet-down {
+    width: 56px;
+    height: 56px;
   }
 
   .artwork-wrapper {
+    width: 100%;
+    height: 100%;
     position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    border-radius: var.$radius-2xl;
-  }
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2));
 
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    transform: scale(1.15);
-    transition: all var.$transition-slow;
-    display: block;
-  }
-}
-
-@keyframes soundWave {
-  0%,
-  100% {
-    height: 16px;
-  }
-  50% {
-    height: 6px;
-  }
-}
-
-// ========================================
-// INFORMACIÓN DE LA CANCIÓN
-// ========================================
-.player-info {
-  text-align: center;
-  margin-bottom: var.$spacing-xl;
-
-  .title {
-    font-weight: var.$font-weight-bold;
-    color: var.$text-primary;
-    margin: 0 0 var.$spacing-sm;
-    font-size: var.$font-size-xl;
-    @include mix.text-clamp(2);
-
-    @include media.mobile-only {
-      font-size: var.$font-size-lg;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform var.$transition-normal;
     }
   }
 
-  .artist {
+  &:hover img {
+    transform: scale(1.05);
+  }
+}
+
+// ============================================================================
+// SONG INFO
+// ============================================================================
+
+.player-info {
+  grid-area: info;
+  min-width: 0;
+  padding-right: var.$spacing-md;
+
+  @include media.mobile-only {
+    padding-right: 0;
+  }
+
+  .title {
+    margin: 0 0 var.$spacing-xs;
     font-size: var.$font-size-base;
-    color: var.$text-secondary;
-    margin: 0;
-    @include mix.text-clamp(1);
+    font-weight: var.$font-weight-semibold;
+    color: var.$text-primary;
+    line-height: var.$line-height-tight;
+
+    @include mix.text-truncate;
 
     @include media.mobile-only {
       font-size: var.$font-size-sm;
     }
   }
-}
 
-// ========================================
-// CONTROLES PRINCIPALES
-// ========================================
-.player-controls {
-  gap: var.$spacing-xl;
-  @include mix.flex-column;
-}
-
-// ========================================
-// BARRA DE PROGRESO - VISIBLE
-// ========================================
-.progress-section {
-  width: 100%;
-  order: 2;
-  @include mix.flex-inline(var.$spacing-md, center);
-
-  .time {
-    color: var.$text-secondary;
+  .artist {
+    margin: 0;
     font-size: var.$font-size-sm;
-    font-variant-numeric: tabular-nums;
-    min-width: 3rem;
-    text-align: center;
-    font-weight: var.$font-weight-medium;
+    color: var.$text-secondary;
+    line-height: var.$line-height-tight;
+
+    @include mix.text-truncate;
 
     @include media.mobile-only {
       font-size: var.$font-size-xs;
-      min-width: 2.5rem;
     }
   }
 }
 
-.seek-container {
-  flex: 1;
-  position: relative;
-  height: 40px;
-  @include mix.flex-center;
+// ============================================================================
+// CONTROLS CONTAINER
+// ============================================================================
+
+.player-controls {
+  display: contents;
 }
 
-.progress-track {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var.$radius-full;
-  overflow: visible;
-  pointer-events: none;
-
-  @include media.mobile-only {
-    height: 4px;
-  }
-}
-
-.progress-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  background: var(--ytmusic-album-color, var.$dynamic-primary);
-  border-radius: var.$radius-full;
-  transition: width 0.1s linear;
-  box-shadow: 0 0 12px
-    color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent);
-}
-
-.progress-handle {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 50%;
-  pointer-events: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  transition: left 0.1s linear, transform 0.15s ease;
-  opacity: 1;
-
-  @include media.mobile-only {
-    width: 10px;
-    height: 10px;
-  }
-}
-
-.seek-bar {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 2;
-
-  &:hover ~ .progress-track {
-    height: 6px;
-  }
-
-  &:hover ~ .progress-handle {
-    transform: translate(-50%, -50%) scale(1.4);
-  }
-
-  &:active ~ .progress-handle {
-    transform: translate(-50%, -50%) scale(1.2);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-  }
-}
+// ============================================================================
+// ACTION BUTTONS
+// ============================================================================
 
 .action-buttons {
-  gap: var.$spacing-lg;
-  order: 3;
-  padding-top: var.$spacing-md;
-  @include mix.flex-center;
-}
+  grid-area: actions;
 
-.action-btn {
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var.$text-secondary;
-  border-radius: var.$radius-full;
-  cursor: pointer;
-  transition: all var.$transition-fast;
+  @include mix.flex-inline(var.$spacing-sm);
 
-  @include mix.flex-center;
-  @include mix.focus-ring;
-
-  .material-icons {
-    font-size: var.$font-size-xl;
-  }
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: var(--ytmusic-album-color);
-    color: var.$text-primary;
-    transform: scale(1.1);
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
-  &.like-btn.active {
-    background: color-mix(in srgb, #ef4444 20%, transparent);
-    border-color: #ef4444;
-    color: #ef4444;
-
-    .material-icons {
-      animation: heartBeat 0.3s ease;
-    }
-
-    &:hover {
-      background: color-mix(in srgb, #ef4444 30%, transparent);
-    }
-  }
-
-  @include media.mobile-only {
+  .action-btn {
+    background: transparent;
+    border: none;
+    border-radius: var.$radius-full;
     width: 40px;
     height: 40px;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+    color: var.$text-secondary;
+
+    @include mix.flex-center;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      color: var.$text-primary;
+      transform: scale(1.1);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
 
     .material-icons {
-      font-size: var.$font-size-lg;
+      font-size: 22px;
+    }
+
+    &.like-btn.active {
+      color: #ef4444;
+
+      &:hover {
+        color: #dc2626;
+      }
     }
   }
 }
 
-@keyframes heartBeat {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  25% {
-    transform: scale(1.3);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
+// ============================================================================
+// PLAYBACK CONTROLS
+// ============================================================================
 
 .playback-controls {
-  gap: var.$spacing-xl;
-  order: 1;
-  @include mix.flex-center;
+  grid-area: playback;
+
+  @include mix.flex-inline(var.$spacing-md, center);
 
   @include media.mobile-only {
+    justify-content: center;
     gap: var.$spacing-lg;
   }
-}
 
-.control-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var.$text-primary;
-  border-radius: var.$radius-full;
-  cursor: pointer;
-  transition: all var.$transition-fast;
-
-  @include mix.flex-center;
-  @include mix.focus-ring;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: var(--ytmusic-album-color);
-    transform: scale(1.08);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-
-  &.play-pause {
-    width: 64px;
-    height: 64px;
-    background: rgba(255, 255, 255, 0.15);
+  .control-btn {
+    background: transparent;
     border: none;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-radius: var.$radius-full;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+    color: var.$text-primary;
+
+    @include mix.flex-center;
 
     .material-icons {
-      font-size: 2.5rem;
-      color: #ffffff;
+      font-size: 24px;
     }
 
     &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.1);
       transform: scale(1.1);
-      box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
     }
 
-    &:active:not(:disabled) {
-      transform: scale(1.05);
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
     }
 
-    @include media.mobile-only {
-      width: 56px;
-      height: 56px;
+    &.play-pause {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var.$primary-blue, var.$primary-purple);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
       .material-icons {
-        font-size: 2rem;
+        font-size: 28px;
       }
-    }
-  }
 
-  &.prev-btn,
-  &.next-btn {
-    width: 48px;
-    height: 48px;
+      &:hover:not(:disabled) {
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        transform: scale(1.15);
+      }
 
-    .material-icons {
-      font-size: 1.75rem;
-    }
+      @include media.mobile-only {
+        width: 56px;
+        height: 56px;
 
-    @include media.mobile-only {
-      width: 44px;
-      height: 44px;
-
-      .material-icons {
-        font-size: 1.5rem;
+        .material-icons {
+          font-size: 32px;
+        }
       }
     }
   }
 }
 
-// ========================================
-// SECCIÓN DE VOLUMEN (ARREGLADA)
-// ========================================
-.volume-section {
-  min-width: 140px;
-  order: 4;
-  display: flex;
-  align-items: center;
-  gap: var.$spacing-md;
+// ============================================================================
+// PROGRESS SECTION
+// ============================================================================
 
-  @include media.mobile-only {
-    min-width: auto;
-    justify-content: center;
+.progress-section {
+  grid-area: progress;
+  width: 100%;
+
+  @include mix.flex-inline(var.$spacing-md, center);
+
+  @include media.desktop-up {
+    display: none;
   }
+
+  @include media.tablet-down {
+    padding-top: var.$spacing-sm;
+  }
+
+  .time {
+    font-size: var.$font-size-xs;
+    color: var.$text-muted;
+    font-weight: var.$font-weight-medium;
+    font-variant-numeric: tabular-nums;
+    min-width: 45px;
+    text-align: center;
+  }
+
+  .seek-container {
+    flex: 1;
+    position: relative;
+    height: 20px;
+
+    @include mix.flex-center;
+  }
+
+  .progress-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var.$radius-full;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var.$primary-blue, var.$primary-purple);
+    border-radius: var.$radius-full;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  }
+
+  .progress-handle {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: var.$radius-full;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity var.$transition-fast;
+    pointer-events: none;
+  }
+
+  .seek-bar {
+    width: 100%;
+    height: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 0;
+      height: 0;
+    }
+
+    &::-moz-range-thumb {
+      width: 0;
+      height: 0;
+      border: none;
+      background: transparent;
+    }
+
+    &:hover ~ .progress-track,
+    &:active ~ .progress-track {
+      .progress-handle {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// VOLUME SECTION
+// ============================================================================
+
+.volume-section {
+  grid-area: volume;
+  min-width: 140px;
+
+  @include mix.flex-inline(var.$spacing-sm, center);
 
   .volume-btn {
+    background: transparent;
+    border: none;
+    border-radius: var.$radius-full;
     width: 40px;
     height: 40px;
-    padding: 0;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+    color: var.$text-secondary;
     flex-shrink: 0;
 
+    @include mix.flex-center;
+
     .material-icons {
-      font-size: var.$font-size-xl;
+      font-size: 22px;
     }
 
-    @include media.mobile-only {
-      width: 36px;
-      height: 36px;
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var.$text-primary;
+    }
+  }
+
+  .volume-slider-container {
+    flex: 1;
+    position: relative;
+    height: 20px;
+
+    @include mix.flex-center;
+  }
+
+  .volume-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var.$radius-full;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .volume-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var.$primary-blue, var.$primary-purple);
+    border-radius: var.$radius-full;
+    transition: width 0.1s linear;
+  }
+
+  .volume-slider {
+    width: 100%;
+    height: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: var.$radius-full;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transition: all var.$transition-fast;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+
+    &::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: white;
+      border: none;
+      border-radius: var.$radius-full;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transition: all var.$transition-fast;
+
+      &:hover {
+        transform: scale(1.2);
+      }
     }
   }
 }
 
-// ========================================
-// BARRA DE VOLUMEN (ARREGLADA Y VISIBLE)
-// ========================================
-.volume-slider-container {
-  position: relative;
-  flex: 1;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  min-width: 100px;
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
 
-  @include media.mobile-only {
-    max-width: 180px;
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
   }
 }
 
-.volume-track {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: var.$radius-full;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.volume-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  background: var(--ytmusic-album-color, var.$dynamic-primary);
-  border-radius: var.$radius-full;
-  transition: width 0.1s ease;
-  box-shadow: 0 0 8px
-    color-mix(in srgb, var(--ytmusic-album-color) 50%, transparent);
-}
-
-.volume-slider {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 2;
-
-  &:hover ~ .volume-track {
-    height: 5px;
-    background: rgba(255, 255, 255, 0.25);
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-
-  &:hover ~ .volume-track .volume-fill {
-    box-shadow: 0 0 12px
-      color-mix(in srgb, var(--ytmusic-album-color) 70%, transparent);
+  to {
+    transform: rotate(360deg);
   }
 }
+
 
 @include media.reduce-motion {
-  * {
+  *,
+  *::before,
+  *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+@include media.high-contrast {
+  .player-container {
+    border-top: 2px solid white;
+  }
+
+  .control-btn,
+  .action-btn {
+    &:focus {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
   }
 }

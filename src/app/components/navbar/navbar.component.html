@@ -1,23 +1,38 @@
-<nav class="navbar" [class.scrolled]="isScrolled" role="navigation" aria-label="Main navigation">
+<nav class="navbar" 
+     [class.scrolled]="isScrolled" 
+     [class.sidebar-collapsed]="sidebarCollapsed"
+     role="navigation" 
+     aria-label="Main navigation">
   <div class="navbar-container">
-    <!-- Logo -->
-    <div class="navbar-brand">
-      <h1 class="app-logo">
-        <span class="logo-icon">🎵</span>
-        JifTube
-      </h1>
+    
+    <!-- Left section: Hamburger + Brand (mobile) -->
+    <div class="navbar-left">
+      <!-- Hamburger button (mobile/tablet only) -->
+      <button
+        class="hamburger-btn"
+        (click)="onToggleSidebar()"
+        aria-label="Abrir menú">
+        <span class="material-icons">menu</span>
+      </button>
+
+      <!-- Logo (solo en mobile/tablet) -->
+      <div class="navbar-brand">
+        <h1 class="app-logo">
+          <span class="logo-icon">🎵</span>
+          <span>JifTube</span>
+        </h1>
+      </div>
     </div>
 
     <!-- Barra de búsqueda -->
     <div class="search-container" [class.focused]="isFocused()">
-      <form class="search-form" (ngSubmit)="searchSongs()" (keydown)="onSearchFormKeydown($event)" role="search">
+      <form class="search-form" (ngSubmit)="searchSongs()" role="search">
         <div class="search-input-wrapper">
           <button
             type="button"
             class="search-icon-btn"
             aria-label="Search"
-            tabindex="-1"
-          >
+            tabindex="-1">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"></circle>
               <path d="m21 21-4.35-4.35"></path>
@@ -34,17 +49,14 @@
             (keydown)="onSearchKeydown($event)"
             placeholder="Buscar música, soundtracks, covers..."
             class="search-input"
-            role="searchbox"
-            autocomplete="off"
-          />
+            autocomplete="off" />
 
           @if (searchQuery()) {
             <button
               type="button"
               class="clear-btn"
               (click)="clearSearch()"
-              aria-label="Clear search"
-            >
+              aria-label="Clear search">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -56,8 +68,7 @@
             type="submit"
             class="search-btn"
             [disabled]="!searchQuery().trim()"
-            aria-label="Search"
-          >
+            aria-label="Search">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -70,15 +81,14 @@
     <!-- Área de acciones de usuario -->
     <div class="navbar-actions">
       @if (currentUser()) {
-        <!-- Usuario autenticado: Dropdown -->
+        <!-- Usuario autenticado -->
         <div class="user-menu-container">
           <button
             type="button"
             class="user-btn"
             (click)="toggleUserMenu()"
             aria-label="User menu"
-            [attr.aria-expanded]="isUserMenuOpen()"
-          >
+            [attr.aria-expanded]="isUserMenuOpen()">
             <div class="user-avatar">
               {{ getUserInitials() }}
             </div>
@@ -91,8 +101,7 @@
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
-            >
+              stroke-width="2">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
@@ -112,7 +121,7 @@
               <div class="dropdown-divider"></div>
 
               <div class="dropdown-menu">
-                <button type="button" class="menu-item" (click)="isUserMenuOpen.set(false)">
+                <button type="button" class="menu-item" (click)="closeUserMenu()">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
@@ -120,29 +129,12 @@
                   <span>Perfil</span>
                 </button>
 
-                <button type="button" class="menu-item" (click)="isUserMenuOpen.set(false)">
+                <button type="button" class="menu-item" (click)="closeUserMenu()">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 1v6m0 6v6m5.2-13.2l-4.3 4.2m0 6l4.3 4.2M23 12h-6m-6 0H1m18.2 5.2l-4.2-4.3m-6 0l-4.3 4.3"></path>
+                    <path d="M12 1v6m0 6v6"></path>
                   </svg>
                   <span>Configuración</span>
-                </button>
-
-                <button type="button" class="menu-item" (click)="isUserMenuOpen.set(false)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                  <span>Historial</span>
-                </button>
-
-                <button type="button" class="menu-item" (click)="isUserMenuOpen.set(false)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                  </svg>
-                  <span>Ayuda</span>
                 </button>
               </div>
 
@@ -160,28 +152,26 @@
           }
         </div>
       } @else {
-        <!-- No autenticado: Botón de inicio de sesión -->
+        <!-- No autenticado -->
         <button
           type="button"
           class="login-btn"
           (click)="openAuthDialog()"
-          [disabled]="isLoadingUser()"
-        >
+          [disabled]="isLoadingUser()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
             <polyline points="10 17 15 12 10 7"></polyline>
             <line x1="15" y1="12" x2="3" y2="12"></line>
           </svg>
-          Iniciar sesión
+          <span>Iniciar sesión</span>
         </button>
       }
     </div>
   </div>
 </nav>
 
-<!-- Auth Dialog -->
 <app-auth-dialog
   [isOpen]="isAuthDialogOpen()"
   (close)="closeAuthDialog()"
-  (authSuccess)="onAuthSuccess()"
-/>
+  (authSuccess)="onAuthSuccess()">
+</app-auth-dialog>

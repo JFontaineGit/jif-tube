@@ -2,25 +2,25 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  Inject,
   PLATFORM_ID,
   signal,
   computed,
-  ViewChild,
   HostListener,
+  inject,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { LoggerService } from '../../services/core/logger.service';
+import { 
+  LoggerService, 
+  PlayerService, 
+  SearchService, 
+  LibraryService 
+} from '@services';
+import { Song } from '@interfaces';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { NavbarComponent } from '../navbar/navbar.component';
 import { PlayerComponent } from '../player/player.component';
-import { PlayerService } from '../../services/player.service';
-import { ThemeService } from '../../services/theme.service';
-import { YoutubeService } from '../../services/youtube.service';
-import { LibraryService } from '../../services/library.service';
-import { Song } from '../../models/song.model';
 
 @Component({
   selector: 'app-layout',
@@ -36,40 +36,49 @@ import { Song } from '../../models/song.model';
   styleUrls: ['./layout.component.scss'],
 })
 export class LayoutComponent implements OnInit, OnDestroy {
-  @ViewChild(PlayerComponent) playerComponent?: PlayerComponent;
+  private readonly playerService = inject(PlayerService);
+  private readonly searchService = inject(SearchService);
+  private readonly libraryService = inject(LibraryService);
+  private readonly router = inject(Router);
+  private readonly logger = inject(LoggerService);
+  private readonly platformId = inject(PLATFORM_ID);
 
-  private destroy$ = new Subject<void>();
-  private isBrowser: boolean;
+  private readonly destroy$ = new Subject<void>();
+  private readonly isBrowser: boolean;
 
-  // Sidebar states
-  isSidebarOpen = signal(false);
-  isSidebarCollapsed = signal(false);
-  isMobile = signal(false);
+  // =========================================================================
+  // SIDEBAR STATE
+  // =========================================================================
 
-  // Scroll state
-  isScrolled = signal(false);
+  readonly isSidebarOpen = signal(false);
+  readonly isSidebarCollapsed = signal(false);
+  readonly isMobile = signal(false);
 
-  // Player state
-  currentSong = signal<Song | null>(null);
-  isPlayerVisible = computed(() => !!this.currentSong());
+  // =========================================================================
+  // SCROLL STATE
+  // =========================================================================
 
-  constructor(
-    private playerService: PlayerService,
-    private themeService: ThemeService,
-    private youtubeService: YoutubeService,
-    private libraryService: LibraryService,
-    private router: Router,
-    private logger: LoggerService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
+  readonly isScrolled = signal(false);
+
+  // =========================================================================
+  // PLAYER STATE
+  // =========================================================================
+
+  readonly currentSong = signal<Song | null>(null);
+  readonly isPlayerVisible = computed(() => !!this.currentSong());
+
+  constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
   ngOnInit(): void {
-    if (!this.isBrowser) return;
+    if (!this.isBrowser) {
+      this.logger.warn('Layout: SSR mode, some features disabled');
+      return;
+    }
 
     this.checkMobile();
-    this.initializeSidebarState();
+    this.loadSidebarState();
     this.subscribeToPlayerState();
     this.initializePlayer();
   }
@@ -77,14 +86,21 @@ export class LayoutComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.themeService.destroy();
   }
+
+  // =========================================================================
+  // HOST LISTENERS
+  // =========================================================================
 
   @HostListener('window:resize')
   onResize(): void {
     if (!this.isBrowser) return;
     this.checkMobile();
-    this.initializeSidebarState();
+    
+    // Si cambiamos de mobile a desktop, cerrar el sidebar overlay
+    if (!this.isMobile() && this.isSidebarOpen()) {
+      this.isSidebarOpen.set(false);
+    }
   }
 
   @HostListener('window:scroll')
@@ -93,20 +109,36 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.isScrolled.set(window.scrollY > 20);
   }
 
+  // =========================================================================
+  // INITIALIZATION
+  // =========================================================================
+
   private checkMobile(): void {
     if (!this.isBrowser) return;
-    this.isMobile.set(window.innerWidth <= 768);
+    const isMobileView = window.innerWidth <= 768;
+    this.isMobile.set(isMobileView);
   }
 
-  private initializeSidebarState(): void {
-    if (this.isMobile()) {
-      // En móvil: sidebar cerrada por defecto
-      this.isSidebarOpen.set(false);
-      this.isSidebarCollapsed.set(false);
-    } else {
-      // En desktop: sidebar expandida por defecto
-      this.isSidebarOpen.set(true);
-      this.isSidebarCollapsed.set(false);
+  private loadSidebarState(): void {
+    if (!this.isBrowser) return;
+
+    try {
+      const saved = localStorage.getItem('sidebar-collapsed');
+      if (saved !== null && !this.isMobile()) {
+        this.isSidebarCollapsed.set(saved === 'true');
+      }
+    } catch (error) {
+      this.logger.error('Error cargando estado del sidebar', error);
+    }
+  }
+
+  private saveSidebarState(): void {
+    if (!this.isBrowser) return;
+
+    try {
+      localStorage.setItem('sidebar-collapsed', String(this.isSidebarCollapsed()));
+    } catch (error) {
+      this.logger.error('Error guardando estado del sidebar', error);
     }
   }
 
@@ -119,6 +151,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   private initializePlayer(): void {
+    this.logger.info('Inicializando player en layout');
+
     this.playerService.init('yt-player', {
       height: '0',
       width: '0',
@@ -130,69 +164,144 @@ export class LayoutComponent implements OnInit, OnDestroy {
         rel: 0,
       },
     }).subscribe({
-      next: () => this.logger.info('Player inicializado en layout'),
-      error: (err) => this.logger.error('Error inicializando player:', err),
+      next: () => {
+        this.logger.info('Player inicializado correctamente en layout');
+      },
+      error: (err) => {
+        this.logger.error('Error inicializando player en layout', err);
+      }
     });
   }
 
+  // =========================================================================
+  // SIDEBAR CONTROL
+  // =========================================================================
+
   onToggleSidebar(): void {
     if (this.isMobile()) {
-      // En móvil: toggle open/close
+      // Móvil: toggle open/close (overlay)
       this.isSidebarOpen.update(open => !open);
     } else {
-      // En desktop: toggle collapsed/expanded
+      // Desktop: toggle collapsed/expanded
       this.isSidebarCollapsed.update(collapsed => !collapsed);
-      this.isSidebarOpen.set(true);
+      this.saveSidebarState();
     }
   }
 
   onCloseSidebar(): void {
-    if (this.isMobile()) {
-      this.isSidebarOpen.set(false);
-    }
+    this.isSidebarOpen.set(false);
   }
+
+  // =========================================================================
+  // PLAYER CONTROL
+  // =========================================================================
 
   closePlayer(): void {
     this.playerService.pause();
     this.playerService.clearCurrentSong();
     this.currentSong.set(null);
+    this.logger.debug('Player cerrado desde layout');
   }
+
+  // =========================================================================
+  // SEARCH HANDLING
+  // =========================================================================
 
   onSearch(event: { query: string; tab: string }): void {
     const { query, tab } = event;
-    if (!query.trim()) return;
+    
+    if (!query.trim()) {
+      this.logger.warn('Búsqueda vacía');
+      return;
+    }
 
-    const handleSearchResults = (songs: Song[]) => {
-      this.router.navigate(['/search'], {
-        queryParams: { q: query, tab },
-        state: { query, tab, songs },
-      });
-    };
+    this.logger.info('Búsqueda iniciada', { query, tab });
+
+    // Cerrar sidebar en mobile después de buscar
+    if (this.isMobile()) {
+      this.onCloseSidebar();
+    }
 
     if (tab === 'library') {
-      this.libraryService
-        .searchInLibrary(query)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: handleSearchResults,
-          error: (err) => console.error('Error en búsqueda de biblioteca:', err),
-        });
+      this.searchInLibrary(query);
     } else {
-      this.youtubeService
-        .searchVideos(query)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: handleSearchResults,
-          error: (err) => console.error('Error en búsqueda de YouTube:', err),
-        });
+      this.searchInYoutube(query);
     }
   }
 
+  private searchInYoutube(query: string): void {
+    this.searchService.search({
+      q: query,
+      max_results: 20,
+      region_code: 'AR'
+    }).subscribe({
+      next: (results) => {
+        this.logger.info('Resultados de búsqueda', { count: results.length });
+        
+        this.router.navigate(['/search'], {
+          queryParams: { q: query, tab: 'youtube' },
+          state: { 
+            query, 
+            tab: 'youtube', 
+            results 
+          }
+        });
+      },
+      error: (err) => {
+        this.logger.error('Error en búsqueda de YouTube', err);
+      }
+    });
+  }
+
+  private searchInLibrary(query: string): void {
+    this.libraryService.getLibrary().subscribe({
+      next: (items) => {
+        const filteredItems = items.filter(item => {
+          const song = item.song;
+          if (!song) return false;
+
+          const searchTerm = query.toLowerCase();
+          return (
+            song.title.toLowerCase().includes(searchTerm) ||
+            song.channel_title?.toLowerCase().includes(searchTerm)
+          );
+        });
+
+        const results = filteredItems.map(item => item.song!);
+
+        this.logger.info('Resultados en biblioteca', { count: results.length });
+
+        this.router.navigate(['/search'], {
+          queryParams: { q: query, tab: 'library' },
+          state: { 
+            query, 
+            tab: 'library', 
+            results 
+          }
+        });
+      },
+      error: (err) => {
+        this.logger.error('Error buscando en biblioteca', err);
+      }
+    });
+  }
+
+  // =========================================================================
+  // PUBLIC API (para otros componentes)
+  // =========================================================================
+
   playSong(song: Song): void {
-    if (this.playerComponent) {
-      this.playerComponent.loadSong(song);
-    } else {
-      console.warn('PlayerComponent no disponible aún');
-    }
+    this.logger.info('Reproduciendo canción desde layout', { title: song.title });
+    
+    this.playerService.loadAndPlay(song.id, { 
+      autoplay: true 
+    }).subscribe({
+      next: () => {
+        this.logger.debug('Canción cargada exitosamente');
+      },
+      error: (err) => {
+        this.logger.error('Error cargando canción', err);
+      }
+    });
   }
 }

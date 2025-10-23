@@ -20,7 +20,6 @@ interface NavItem {
   icon: string;
   route: string;
   active: boolean;
-  badge?: number;
 }
 
 @Component({
@@ -114,7 +113,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   onNavItemClick(): void {
-    // En móvil, cerrar sidebar al hacer clic en un item
     if (this.isBrowser && window.innerWidth <= 768) {
       this.close.emit();
     }
@@ -124,18 +122,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.toggleSidebar.emit();
   }
 
-  navigateTo(route: string): void {
-    this.router.navigate([route]);
-    this.onNavItemClick();
-  }
-
-  getNavItemClasses(item: NavItem): string {
-    const classes = ['nav-link'];
-    if (item.active) classes.push('active');
-    return classes.join(' ');
-  }
-
-  trackByRoute(index: number, item: NavItem): string {
-    return item.route;
+  onClose(): void {
+    this.close.emit();
   }
 }

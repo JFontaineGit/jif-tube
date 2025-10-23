@@ -1,19 +1,86 @@
 <div class="settings-page">
   <!-- Header -->
   <header class="page-header">
-    <h1 class="page-title">Configuración</h1>
-    <p class="page-subtitle">Personaliza tu experiencia</p>
+    <div class="header-content">
+      <h1 class="page-title">
+        <span class="material-icons">settings</span>
+        Configuración
+      </h1>
+      <p class="page-subtitle">Personaliza tu experiencia</p>
+    </div>
   </header>
+
+  <!-- Success Banner -->
+  @if (successMessage()) {
+    <div class="success-banner" role="status">
+      <span class="material-icons">check_circle</span>
+      <span>{{ successMessage() }}</span>
+      <button 
+        class="close-btn"
+        (click)="clearSuccess()"
+        aria-label="Cerrar mensaje">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  }
 
   <!-- Error Banner -->
   @if (error()) {
     <div class="error-banner" role="alert">
       <span class="material-icons">error_outline</span>
       <span>{{ error() }}</span>
+      <button 
+        class="close-btn"
+        (click)="clearError()"
+        aria-label="Cerrar mensaje de error">
+        <span class="material-icons">close</span>
+      </button>
     </div>
   }
 
   <div class="settings-container">
+    <!-- Sección: Estadísticas -->
+    <section class="settings-section stats-section">
+      <h2>
+        <span class="material-icons">analytics</span>
+        Estadísticas
+      </h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="material-icons">library_music</span>
+          <div class="stat-content">
+            <span class="stat-value">{{ libraryCount() }}</span>
+            <span class="stat-label">Favoritos</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <span class="material-icons">history</span>
+          <div class="stat-content">
+            <span class="stat-value">{{ historyCount() }}</span>
+            <span class="stat-label">Historial</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <span class="material-icons">queue_music</span>
+          <div class="stat-content">
+            <span class="stat-value">{{ queueCount() }}</span>
+            <span class="stat-label">En cola</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <span class="material-icons">storage</span>
+          <div class="stat-content">
+            <span class="stat-value">{{ getEstimatedStorageUsage() }}</span>
+            <span class="stat-label">Almacenamiento</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Sección: Apariencia -->
     <section class="settings-section">
       <h2>
@@ -26,7 +93,7 @@
           <span class="material-icons">color_lens</span>
           <div>
             <h3>Tema Dinámico</h3>
-            <p>Los colores cambian automáticamente según la carátula del álbum que estés reproduciendo</p>
+            <p>Los colores cambian según la carátula del álbum</p>
           </div>
         </div>
         <span class="badge">Activo</span>
@@ -40,31 +107,15 @@
         Reproducción
       </h2>
 
+      <!-- Volumen -->
       <div class="setting-item">
         <div class="setting-label">
-          <span class="material-icons">queue_music</span>
+          <span class="material-icons">
+            {{ isMuted() ? 'volume_off' : volume() > 50 ? 'volume_up' : 'volume_down' }}
+          </span>
           <div>
-            <h3>Reproducción automática</h3>
-            <p>Reproduce automáticamente cuando seleccionas una canción</p>
-          </div>
-        </div>
-
-        <label class="toggle" [attr.aria-label]="'Toggle autoplay'">
-          <input 
-            type="checkbox" 
-            [checked]="autoplay()" 
-            (change)="toggleAutoplay()" 
-          />
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="setting-item">
-        <div class="setting-label">
-          <span class="material-icons">volume_up</span>
-          <div>
-            <h3>Volumen predeterminado</h3>
-            <p>{{ volume() }}%</p>
+            <h3>Volumen</h3>
+            <p>{{ isMuted() ? 'Silenciado' : Math.round(volume()) + '%' }}</p>
           </div>
         </div>
 
@@ -77,11 +128,80 @@
             min="0"
             max="100"
             step="1"
+            [disabled]="isMuted()"
             aria-label="Ajustar volumen"
           />
+          <button 
+            class="icon-btn"
+            (click)="toggleMute()"
+            [attr.aria-label]="isMuted() ? 'Activar audio' : 'Silenciar audio'">
+            <span class="material-icons">
+              {{ isMuted() ? 'volume_off' : 'volume_up' }}
+            </span>
+          </button>
         </div>
       </div>
+
+      <!-- Repeat Mode -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <span class="material-icons">{{ getRepeatIcon() }}</span>
+          <div>
+            <h3>Modo de repetición</h3>
+            <p>{{ getRepeatText() }}</p>
+          </div>
+        </div>
+
+        <button 
+          class="icon-btn"
+          (click)="cycleRepeatMode()"
+          [class.active]="repeatMode() !== 'off'"
+          aria-label="Cambiar modo de repetición">
+          <span class="material-icons">{{ getRepeatIcon() }}</span>
+        </button>
+      </div>
+
+      <!-- Shuffle -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <span class="material-icons">shuffle</span>
+          <div>
+            <h3>Reproducción aleatoria</h3>
+            <p>{{ shuffle() ? 'Activado' : 'Desactivado' }}</p>
+          </div>
+        </div>
+
+        <button 
+          class="icon-btn"
+          (click)="toggleShuffle()"
+          [class.active]="shuffle()"
+          aria-label="Toggle shuffle">
+          <span class="material-icons">shuffle</span>
+        </button>
+      </div>
     </section>
+
+    <!-- Sección: Reproducción Actual -->
+    @if (currentSong()) {
+      <section class="settings-section">
+        <h2>
+          <span class="material-icons">music_note</span>
+          Reproduciendo ahora
+        </h2>
+
+        <div class="setting-item now-playing-card">
+          <div class="setting-label">
+            <span class="material-icons" [class.playing]="isPlaying()">
+              {{ isPlaying() ? 'graphic_eq' : 'pause_circle' }}
+            </span>
+            <div>
+              <h3>{{ currentSong()!.title }}</h3>
+              <p>{{ currentSong()!.channel_title || 'Canal desconocido' }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
 
     <!-- Sección: Datos -->
     <section class="settings-section danger-section">
@@ -90,6 +210,7 @@
         Gestión de Datos
       </h2>
 
+      <!-- Exportar -->
       <div class="setting-item">
         <div class="setting-label">
           <span class="material-icons">file_download</span>
@@ -108,12 +229,13 @@
         </button>
       </div>
 
+      <!-- Importar -->
       <div class="setting-item">
         <div class="setting-label">
           <span class="material-icons">file_upload</span>
           <div>
             <h3>Importar datos</h3>
-            <p>Restaura tu biblioteca desde un archivo</p>
+            <p>Restaura tu biblioteca desde un archivo JSON</p>
           </div>
         </div>
 
@@ -126,6 +248,7 @@
         </button>
       </div>
 
+      <!-- Eliminar todo -->
       <div class="setting-item danger-item">
         <div class="setting-label">
           <span class="material-icons">delete_forever</span>
@@ -137,7 +260,7 @@
 
         <button 
           class="danger-button" 
-          (click)="clearData()"
+          (click)="clearAllData()"
           aria-label="Eliminar todos los datos">
           <span class="material-icons">delete</span>
           Eliminar todo
@@ -147,10 +270,15 @@
 
     <!-- Info Section -->
     <section class="settings-section info-section">
+      <h2>
+        <span class="material-icons">info</span>
+        Información
+      </h2>
+
       <div class="app-info">
         <div class="info-row">
           <span>Versión</span>
-          <span class="value">1.0.0</span>
+          <span class="value">{{ appVersion }}</span>
         </div>
         <div class="info-row">
           <span>Plataforma</span>
@@ -159,6 +287,10 @@
         <div class="info-row">
           <span>Autor</span>
           <span class="value">Just Fontaine</span>
+        </div>
+        <div class="info-row">
+          <span>Framework</span>
+          <span class="value">Angular 18 + Signals</span>
         </div>
       </div>
     </section>

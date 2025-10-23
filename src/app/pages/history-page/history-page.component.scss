@@ -2,147 +2,372 @@
 @use '../../../styles/_mixins.scss' as mix;
 @use '../../../styles/_media-queries.scss' as media;
 
+// ========================================
+// HISTORY PAGE
+// ========================================
+
 .history-page {
   padding: var.$spacing-3xl var.$spacing-2xl;
-  min-height: calc(100vh - var.$navbar-height);
+  min-height: calc(100vh - var.$navbar-height - var.$player-height);
   gap: var.$spacing-3xl;
+
   @include mix.flex-column;
+  @include media.container-responsive;
 
-  .page-header {
-    gap: var.$spacing-xl;
-    flex-wrap: wrap;
-    @include mix.flex-between;
-
-    .header-content {
-      flex: 1;
-      min-width: 200px;
-
-      .page-title {
-        margin-bottom: var.$spacing-sm;
-        @include mix.heading-primary;
-      }
-
-      .page-subtitle {
-        color: var.$text-secondary;
-        font-size: var.$font-size-base;
-        margin: 0;
-      }
-    }
-
-    .clear-button {
-      padding: var.$spacing-md var.$spacing-xl;
-      color: #ef4444;
-      border-color: #ef4444;
-      @include mix.button-secondary;
-      @include mix.flex-inline(var.$spacing-sm);
-
-      .material-icons {
-        font-size: var.$font-size-lg;
-      }
-
-      &:hover:not(:disabled) {
-        background: color-mix(in srgb, #ef4444 10%, transparent);
-        border-color: #ef4444;
-      }
-    }
-  }
-
-  .error-banner {
-    background: color-mix(in srgb, #ef4444 20%, transparent);
-    border: 1px solid #ef4444;
-    color: #fee;
-    padding: var.$spacing-md var.$spacing-lg;
-    border-radius: var.$radius-lg;
-    @include mix.flex-inline(var.$spacing-sm);
-
-    .material-icons {
-      font-size: var.$font-size-xl;
-    }
-  }
-
-  .songs-grid {
-    @include media.cards-grid-responsive;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: var.$spacing-4xl;
-    gap: var.$spacing-lg;
-    @include mix.flex-column-center;
-
-    .material-icons {
-      font-size: 5rem;
-      color: var.$text-tertiary;
-      opacity: 0.5;
-    }
-
-    h3 {
-      font-size: var.$font-size-2xl;
-      font-weight: var.$font-weight-semibold;
-      color: var.$text-primary;
-      margin: 0;
-    }
-
-    p {
-      font-size: var.$font-size-base;
-      color: var.$text-secondary;
-      margin: 0;
-    }
+  @include media.mobile-only {
+    padding: var.$spacing-xl var.$spacing-md;
+    gap: var.$spacing-2xl;
   }
 }
 
-@include media.mobile-only {
-  .history-page {
-    padding: var.$spacing-xl var.$spacing-md;
+// ========================================
+// HEADER
+// ========================================
 
-    .page-header {
-      .header-content {
-        .page-title {
-          font-size: var.$font-size-2xl;
-        }
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var.$spacing-xl;
+  padding-bottom: var.$spacing-xl;
+  border-bottom: 1px solid var.$border-color-light;
+  flex-wrap: wrap;
 
-        .page-subtitle {
-          font-size: var.$font-size-sm;
-        }
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var.$spacing-lg;
+  }
+
+  .header-content {
+    flex: 1;
+    min-width: 200px;
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-md;
+      margin: 0 0 var.$spacing-sm;
+      font-size: var.$font-size-3xl;
+      font-weight: var.$font-weight-bold;
+      line-height: var.$line-height-tight;
+
+      @include mix.gradient-text(var.$dynamic-primary, var.$dynamic-secondary);
+
+      @include media.mobile-only {
+        font-size: var.$font-size-2xl;
       }
 
-      .clear-button {
-        width: 100%;
-        justify-content: center;
+      .material-icons {
+        font-size: 2.5rem;
+        color: var.$dynamic-primary;
 
-        span:not(.material-icons) {
-          display: inline;
+        @include media.mobile-only {
+          font-size: 2rem;
         }
       }
     }
 
-    .empty-state {
-      padding: var.$spacing-3xl var.$spacing-md;
+    .page-subtitle {
+      color: var.$text-secondary;
+      font-size: var.$font-size-base;
+      margin: 0;
 
-      .material-icons {
-        font-size: 4rem;
-      }
-
-      h3 {
-        font-size: var.$font-size-xl;
-      }
-
-      p {
+      @include media.mobile-only {
         font-size: var.$font-size-sm;
       }
     }
   }
+
+  .clear-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var.$spacing-sm;
+    padding: var.$spacing-md var.$spacing-xl;
+    background: var.$bg-secondary;
+    color: var.$error;
+    border: 1px solid var.$error;
+    border-radius: var.$radius-lg;
+    font-weight: var.$font-weight-semibold;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+
+    @include mix.focus-ring(var.$error);
+
+    @include media.mobile-only {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .material-icons {
+      font-size: var.$font-size-lg;
+    }
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var.$error 15%, var.$bg-secondary);
+      transform: translateY(-2px);
+      box-shadow: var.$shadow-md;
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
 }
 
-@include media.dark-mode {
-  .history-page {
-    .page-header {
-      .page-title {
-        @include mix.gradient-text(
-          var(--ytmusic-album-color, var.$dynamic-primary),
-          var(--ytmusic-album-color-dark, var.$dynamic-secondary)
-        );
+// ========================================
+// ERROR BANNER
+// ========================================
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: var.$spacing-lg;
+  padding: var.$spacing-lg var.$spacing-xl;
+  background: color-mix(in srgb, var.$error 15%, transparent);
+  border: 1px solid var.$error;
+  border-radius: var.$radius-xl;
+  animation: slideDown 0.3s ease;
+
+  @include media.mobile-only {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var.$spacing-md var.$spacing-lg;
+  }
+
+  > .material-icons {
+    font-size: var.$font-size-2xl;
+    color: var.$error;
+    flex-shrink: 0;
+  }
+
+  .error-content {
+    flex: 1;
+    color: var.$text-primary;
+    font-size: var.$font-size-sm;
+  }
+
+  .close-error-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    border-radius: var.$radius-sm;
+    color: var.$text-secondary;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+    flex-shrink: 0;
+
+    @include mix.flex-center;
+
+    .material-icons {
+      font-size: var.$font-size-lg;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.2);
+      color: var.$text-primary;
+    }
+  }
+}
+
+// ========================================
+// SONGS GRID
+// ========================================
+
+.songs-grid {
+  @include media.cards-grid-responsive;
+
+  .song-card-wrapper {
+    position: relative;
+    animation: cardFadeIn 0.4s ease backwards;
+
+    @for $i from 1 through 20 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.05}s;
       }
     }
+
+    .played-badge {
+      position: absolute;
+      top: var.$spacing-md;
+      left: var.$spacing-md;
+      display: flex;
+      align-items: center;
+      gap: var.$spacing-xs;
+      padding: var.$spacing-xs var.$spacing-sm;
+      background: rgba(0, 0, 0, 0.8);
+      color: var.$text-primary;
+      border-radius: var.$radius-md;
+      font-size: var.$font-size-xs;
+      font-weight: var.$font-weight-medium;
+      z-index: 2;
+      backdrop-filter: var.$blur-sm;
+      -webkit-backdrop-filter: var.$blur-sm;
+
+      .material-icons {
+        font-size: 1rem;
+        color: var.$dynamic-primary;
+      }
+    }
+  }
+}
+
+// ========================================
+// EMPTY STATE
+// ========================================
+
+.empty-state {
+  text-align: center;
+  padding: var.$spacing-4xl var.$spacing-2xl;
+  gap: var.$spacing-2xl;
+  min-height: 400px;
+
+  @include mix.flex-column-center;
+
+  @include media.mobile-only {
+    padding: var.$spacing-3xl var.$spacing-md;
+    min-height: 300px;
+  }
+
+  .empty-icon {
+    width: 120px;
+    height: 120px;
+    background: var.$bg-secondary;
+    border-radius: var.$radius-full;
+    margin-bottom: var.$spacing-lg;
+
+    @include mix.flex-center;
+
+    @include media.mobile-only {
+      width: 100px;
+      height: 100px;
+    }
+
+    .material-icons {
+      font-size: 5rem;
+      color: var.$text-tertiary;
+      opacity: 0.6;
+
+      @include media.mobile-only {
+        font-size: 4rem;
+      }
+    }
+  }
+
+  h3 {
+    font-size: var.$font-size-2xl;
+    font-weight: var.$font-weight-bold;
+    color: var.$text-primary;
+    margin: 0;
+
+    @include media.mobile-only {
+      font-size: var.$font-size-xl;
+    }
+  }
+
+  p {
+    font-size: var.$font-size-base;
+    color: var.$text-secondary;
+    margin: 0 0 var.$spacing-xl;
+    max-width: 400px;
+
+    @include media.mobile-only {
+      font-size: var.$font-size-sm;
+    }
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var.$spacing-sm;
+    padding: var.$spacing-md var.$spacing-2xl;
+    background: linear-gradient(135deg, var.$dynamic-primary, var.$dynamic-secondary);
+    color: white;
+    border: none;
+    border-radius: var.$radius-xl;
+    font-size: var.$font-size-base;
+    font-weight: var.$font-weight-semibold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var.$transition-fast;
+
+    .material-icons {
+      font-size: var.$font-size-lg;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var.$shadow-lg;
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+// ========================================
+// ANIMATIONS
+// ========================================
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ========================================
+// ACCESSIBILITY
+// ========================================
+
+@include media.reduce-motion {
+  .history-page {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+@include media.high-contrast {
+  .error-banner {
+    border-width: 2px;
+    background: var.$bg-secondary;
+  }
+
+  .clear-button {
+    border-width: 2px;
+  }
+}
+
+@include media.touch-device {
+  .clear-button:hover {
+    transform: none;
+  }
+
+  .primary-btn:hover {
+    transform: none;
   }
 }
