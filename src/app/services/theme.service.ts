@@ -6,6 +6,17 @@ import Color, { type ColorInstance } from 'color';
 const COLOR_KEY = '--ytmusic-album-color';
 const DARK_COLOR_KEY = '--ytmusic-album-color-dark';
 const RATIO_KEY = '--ytmusic-album-color-ratio';
+const BASE_GRADIENT =
+  'linear-gradient(135deg, #0b1120 0%, #111827 45%, #030712 100%)';
+const SURFACE_SOLID = 'rgba(15, 23, 42, 0.94)';
+const SURFACE_MUTED = 'rgba(13, 20, 32, 0.88)';
+const SURFACE_SOFT = 'rgba(8, 13, 23, 0.92)';
+const SURFACE_CARD = 'rgba(17, 25, 40, 0.78)';
+const SURFACE_OVERLAY = 'rgba(10, 15, 25, 0.7)';
+const SURFACE_GLASS = 'rgba(17, 25, 40, 0.55)';
+const NAVBAR_SOLID = 'rgba(15, 23, 42, 0.95)';
+const NAVBAR_BLUR = 'rgba(15, 23, 42, 0.6)';
+const PLAYER_GLOW = 'rgba(15, 23, 42, 0.55)';
 
 declare global {
   interface DocumentEventMap {
@@ -104,6 +115,7 @@ export class ThemeService {
 
       const alpha = (await this.getAlpha()) ?? 1;
       this.updateColor(alpha);
+      this.applyDynamicSurfaces(palette);
       console.log('Color dominante extraído de thumbnail:', palette.hex);
       return palette;
     } catch (err) {
@@ -166,14 +178,6 @@ export class ThemeService {
       '--yt-spec-black-3': '#161616',
       '--yt-spec-black-4': '#0d0d0d',
       '--yt-spec-black-pure': '#000',
-      '--yt-spec-black-pure-alpha-5': 'rgba(0,0,0,0.05)',
-      '--yt-spec-black-pure-alpha-10': 'rgba(0,0,0,0.1)',
-      '--yt-spec-black-pure-alpha-15': 'rgba(0,0,0,0.15)',
-      '--yt-spec-black-pure-alpha-30': 'rgba(0,0,0,0.3)',
-      '--yt-spec-black-pure-alpha-60': 'rgba(0,0,0,0.6)',
-      '--yt-spec-black-pure-alpha-80': 'rgba(0,0,0,0.8)',
-      '--yt-spec-black-1-alpha-98': 'rgba(40,40,40,0.98)',
-      '--yt-spec-black-1-alpha-95': 'rgba(40,40,40,0.95)',
     };
 
     Object.entries(variableMap).forEach(([variable, baseColor]) => {
@@ -252,6 +256,7 @@ export class ThemeService {
     this.activeThumbnail = null;
     document.documentElement.style.setProperty(COLOR_KEY, '0, 0, 0');
     document.documentElement.style.setProperty(DARK_COLOR_KEY, '0, 0, 0');
+    this.resetDynamicSurfaces();
   }
 
   private normalizeThumbnailUrl(url: string): string {
@@ -269,5 +274,68 @@ export class ThemeService {
     } catch {
       return url.replace('http://', 'https://');
     }
+  }
+
+  private applyDynamicSurfaces(palette: ThemePalette): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const gradient = `linear-gradient(135deg, color-mix(in srgb, rgba(${palette.rgb}, 0.35) 60%, #0b1120 40%) 0%, color-mix(in srgb, rgba(${palette.darkRgb}, 0.45) 65%, #111827 35%) 45%, color-mix(in srgb, rgba(${palette.darkRgb}, 0.65) 70%, #030712 30%) 100%)`;
+
+    document.documentElement.style.setProperty('--app-dynamic-gradient', gradient);
+    document.documentElement.style.setProperty(
+      '--app-surface-solid',
+      `color-mix(in srgb, rgba(${palette.darkRgb}, 0.85) 65%, ${SURFACE_SOLID} 35%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-surface-muted',
+      `color-mix(in srgb, rgba(${palette.rgb}, 0.75) 55%, ${SURFACE_MUTED} 45%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-surface-soft',
+      `color-mix(in srgb, rgba(${palette.darkRgb}, 0.7) 60%, ${SURFACE_SOFT} 40%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-card-surface',
+      `color-mix(in srgb, rgba(${palette.rgb}, 0.65) 55%, ${SURFACE_CARD} 45%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-overlay',
+      `color-mix(in srgb, rgba(${palette.darkRgb}, 0.6) 55%, ${SURFACE_OVERLAY} 45%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-glass',
+      `color-mix(in srgb, rgba(${palette.rgb}, 0.55) 60%, ${SURFACE_GLASS} 40%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-navbar-solid',
+      `color-mix(in srgb, rgba(${palette.darkRgb}, 0.8) 60%, ${NAVBAR_SOLID} 40%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-navbar-blur',
+      `color-mix(in srgb, rgba(${palette.darkRgb}, 0.55) 60%, ${NAVBAR_BLUR} 40%)`
+    );
+    document.documentElement.style.setProperty(
+      '--app-player-glow',
+      `color-mix(in srgb, rgba(${palette.rgb}, 0.58) 60%, ${PLAYER_GLOW} 40%)`
+    );
+  }
+
+  private resetDynamicSurfaces(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    document.documentElement.style.setProperty('--app-dynamic-gradient', BASE_GRADIENT);
+    document.documentElement.style.setProperty('--app-surface-solid', SURFACE_SOLID);
+    document.documentElement.style.setProperty('--app-surface-muted', SURFACE_MUTED);
+    document.documentElement.style.setProperty('--app-surface-soft', SURFACE_SOFT);
+    document.documentElement.style.setProperty('--app-card-surface', SURFACE_CARD);
+    document.documentElement.style.setProperty('--app-overlay', SURFACE_OVERLAY);
+    document.documentElement.style.setProperty('--app-glass', SURFACE_GLASS);
+    document.documentElement.style.setProperty('--app-navbar-solid', NAVBAR_SOLID);
+    document.documentElement.style.setProperty('--app-navbar-blur', NAVBAR_BLUR);
+    document.documentElement.style.setProperty('--app-player-glow', PLAYER_GLOW);
   }
 }

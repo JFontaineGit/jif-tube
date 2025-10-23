@@ -16,7 +16,7 @@
   transition: all var.$transition-normal;
 
   @include mix.glassmorphism(0.05);
-  @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
+  @include mix.focus-ring();
 
   @include media.mobile-only {
     max-width: 200px;
@@ -25,8 +25,8 @@
   &:hover,
   &:focus-visible {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 12px 40px color-mix(in srgb, var(--ytmusic-album-color) 30%, rgba(0, 0, 0, 0.4));
-    border-color: color-mix(in srgb, var(--ytmusic-album-color) 50%, transparent);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.16);
 
     .play-overlay {
       opacity: 1;
@@ -41,7 +41,7 @@
 
     .song-info {
       .song-title {
-        color: var(--ytmusic-album-color, var.$dynamic-primary);
+        color: var.$text-primary;
       }
     }
   }
@@ -114,11 +114,7 @@
   .play-button {
     width: 64px;
     height: 64px;
-    background: linear-gradient(
-      135deg,
-      var(--ytmusic-album-color, var.$dynamic-primary),
-      color-mix(in srgb, var(--ytmusic-album-color, var.$dynamic-secondary) 80%, black)
-    );
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.9), rgba(129, 140, 248, 0.92));
     border-radius: var.$radius-full;
     transform: scale(0.85);
     transition: all var.$transition-fast;
@@ -420,11 +416,7 @@
   left: 50%;
   width: 30px;
   height: 30px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--ytmusic-album-color) 60%, transparent) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.55) 0%, transparent 70%);
   border-radius: 50%;
   transform: translate(-50%, -50%) scale(0);
   pointer-events: none;
@@ -453,7 +445,7 @@
 
     &:hover,
     &:focus-visible {
-      border-color: var(--ytmusic-album-color, var.$dynamic-primary);
+      border-color: rgba(56, 189, 248, 0.65);
       background: var.$bg-secondary;
     }
 
