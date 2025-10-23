@@ -1,93 +1,65 @@
-    @if (isOpen()) {
-      <div 
-        class="menu-backdrop"
-        (click)="close()"
-        aria-hidden="true">
-      </div>
+@if (isOpen()) {
+  <div class="menu-backdrop" (click)="close()" aria-hidden="true"></div>
 
-      <div
-        #menuElement
-        class="options-menu"
-        [style.top.px]="position().top"
-        [style.left.px]="position().left"
-        role="menu"
-        [attr.aria-label]="'Opciones para ' + song.title">
+  <div
+    #menuElement
+    class="options-menu"
+    (click)="$event.stopPropagation()"
+    [style.top.px]="!isMobileLayout() ? position().top : null"
+    [style.left.px]="!isMobileLayout() ? position().left : null"
+    role="menu"
+    [attr.aria-label]="'Opciones para ' + song.title">
 
-        <div class="menu-header">
-          <h4 class="menu-title">{{ song.title }}</h4>
-          @if (song.channel_title) {
-            <p class="menu-subtitle">{{ formatChannel(song.channel_title) }}</p>
-          }
-        </div>
+    <div class="menu-header">
+      <h4 class="menu-title">{{ song.title }}</h4>
+      @if (song.channel_title) {
+        <p class="menu-subtitle">{{ formatChannel(song.channel_title) }}</p>
+      }
+    </div>
 
-        <div class="menu-divider"></div>
+    <div class="menu-items">
+      <button class="menu-item" (click)="onAddToQueue()" role="menuitem">
+        <span class="material-icons">queue_music</span>
+        <span class="menu-item-text">Agregar a la cola</span>
+      </button>
 
-        <div class="menu-items">
-          <!-- Add to Queue -->
-          <button
-            class="menu-item"
-            (click)="onAddToQueue()"
-            role="menuitem">
-            <span class="material-icons">queue_music</span>
-            <span class="menu-item-text">Agregar a la cola</span>
-          </button>
+      <button class="menu-item" (click)="onPlayNext()" role="menuitem">
+        <span class="material-icons">playlist_play</span>
+        <span class="menu-item-text">Reproducir siguiente</span>
+      </button>
 
-          <!-- Play Next -->
-          <button
-            class="menu-item"
-            (click)="onPlayNext()"
-            role="menuitem">
-            <span class="material-icons">playlist_play</span>
-            <span class="menu-item-text">Reproducir siguiente</span>
-          </button>
+      <div class="menu-divider"></div>
 
-          <div class="menu-divider"></div>
+      <button
+        class="menu-item"
+        [class.active]="isFavorite()"
+        (click)="onToggleFavorite()"
+        role="menuitem">
+        @if (isFavorite()) {
+          <span class="material-icons">favorite</span>
+          <span class="menu-item-text">Quitar de favoritos</span>
+        } @else {
+          <span class="material-icons">favorite_border</span>
+          <span class="menu-item-text">Agregar a favoritos</span>
+        }
+      </button>
 
-          <!-- Toggle Favorite -->
-          <button
-            class="menu-item"
-            [class.active]="isFavorite()"
-            (click)="onToggleFavorite()"
-            role="menuitem">
-            @if (isFavorite()) {
-              <span class="material-icons">favorite</span>
-              <span class="menu-item-text">Quitar de favoritos</span>
-            } @else {
-              <span class="material-icons">favorite_border</span>
-              <span class="menu-item-text">Agregar a favoritos</span>
-            }
-          </button>
+      <div class="menu-divider"></div>
 
-          <div class="menu-divider"></div>
+      <button class="menu-item" (click)="onShare()" role="menuitem">
+        <span class="material-icons">share</span>
+        <span class="menu-item-text">Compartir</span>
+      </button>
 
-          <!-- Share -->
-          <button
-            class="menu-item"
-            (click)="onShare()"
-            role="menuitem">
-            <span class="material-icons">share</span>
-            <span class="menu-item-text">Compartir</span>
-          </button>
+      <button class="menu-item" (click)="onOpenInYouTube()" role="menuitem">
+        <span class="material-icons">open_in_new</span>
+        <span class="menu-item-text">Ver en YouTube</span>
+      </button>
 
-          <!-- Open in YouTube -->
-          <button
-            class="menu-item"
-            (click)="onOpenInYouTube()"
-            role="menuitem">
-            <span class="material-icons">open_in_new</span>
-            <span class="menu-item-text">Ver en YouTube</span>
-          </button>
-
-          <div class="menu-divider"></div>
-
-          <!-- Copy Link -->
-          <button
-            class="menu-item"
-            (click)="onCopyLink()"
-            role="menuitem">
-            <span class="material-icons">content_copy</span>
-            <span class="menu-item-text">Copiar enlace</span>
-          </button>
-        </div>
-      </div>
-    }
+      <button class="menu-item" (click)="onCopyLink()" role="menuitem">
+        <span class="material-icons">content_copy</span>
+        <span class="menu-item-text">Copiar enlace</span>
+      </button>
+    </div>
+  </div>
+}
