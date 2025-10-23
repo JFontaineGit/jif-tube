@@ -41,6 +41,7 @@ export class ThemeService {
   private initialized = false;
   private listenerRef: ((event: CustomEvent) => Promise<void>) | null = null;
   private paletteCache = new Map<string, ThemePalette>();
+  private activeThumbnail: string | null = null;
   private requestId = 0;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
@@ -73,15 +74,20 @@ export class ThemeService {
     }
 
     const apply = options.apply ?? true;
+    const normalizedUrl = this.normalizeThumbnailUrl(thumbnailUrl);
     const currentRequest = apply ? ++this.requestId : this.requestId;
 
     try {
-      const palette = await this.extractPalette(thumbnailUrl);
+      const palette = await this.extractPalette(normalizedUrl);
       if (!palette) {
         return null;
       }
 
       if (!apply) {
+        return palette;
+      }
+
+      if (this.activeThumbnail === normalizedUrl && this.color) {
         return palette;
       }
 
@@ -91,6 +97,7 @@ export class ThemeService {
 
       this.color = palette.color;
       this.darkColor = palette.darkColor;
+      this.activeThumbnail = normalizedUrl;
 
       document.documentElement.style.setProperty(COLOR_KEY, palette.rgb);
       document.documentElement.style.setProperty(DARK_COLOR_KEY, palette.darkRgb);
@@ -242,7 +249,25 @@ export class ThemeService {
   private resetPalette(): void {
     this.color = undefined;
     this.darkColor = undefined;
+    this.activeThumbnail = null;
     document.documentElement.style.setProperty(COLOR_KEY, '0, 0, 0');
     document.documentElement.style.setProperty(DARK_COLOR_KEY, '0, 0, 0');
+  }
+
+  private normalizeThumbnailUrl(url: string): string {
+    if (!url) {
+      return url;
+    }
+
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.protocol === 'http:') {
+        parsed.protocol = 'https:';
+      }
+      parsed.hash = '';
+      return parsed.toString();
+    } catch {
+      return url.replace('http://', 'https://');
+    }
   }
 }

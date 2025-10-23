@@ -187,15 +187,53 @@ export class SongService {
   getBestThumbnail(thumbnails: Record<string, any> | null): string | null {
     if (!thumbnails) return null;
 
-    // Orden de preferencia: maxres > high > medium > default
-    const priorities = ['maxres', 'high', 'medium', 'default'];
-    
+    const priorities = ['maxresdefault', 'maxres', 'sddefault', 'standard', 'high', 'medium', 'default'];
+
     for (const priority of priorities) {
-      if (thumbnails[priority]?.url) {
-        return thumbnails[priority].url;
+      const candidate = thumbnails[priority];
+      const url = this.resolveThumbnail(candidate);
+      if (url) {
+        return url;
+      }
+    }
+
+    for (const key of Object.keys(thumbnails)) {
+      const url = this.resolveThumbnail(thumbnails[key]);
+      if (url) {
+        return url;
       }
     }
 
     return null;
+  }
+
+  private resolveThumbnail(entry: any): string | null {
+    if (!entry) {
+      return null;
+    }
+
+    if (typeof entry === 'string') {
+      return this.normalizeThumbnailUrl(entry);
+    }
+
+    if (typeof entry === 'object') {
+      if ('url' in entry && typeof entry.url === 'string' && entry.url) {
+        return this.normalizeThumbnailUrl(entry.url);
+      }
+
+      if ('src' in entry && typeof entry.src === 'string' && entry.src) {
+        return this.normalizeThumbnailUrl(entry.src);
+      }
+    }
+
+    return null;
+  }
+
+  private normalizeThumbnailUrl(url: string): string {
+    if (!url) {
+      return url;
+    }
+
+    return url.replace('http://', 'https://');
   }
 }
