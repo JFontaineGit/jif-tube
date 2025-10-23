@@ -8,6 +8,7 @@ import {
   computed,
   inject,
   effect,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerService, QueueService, LibraryService, ThemeService } from '@services';
@@ -40,6 +41,7 @@ export class SongCardComponent {
   private readonly queueService = inject(QueueService);
   private readonly libraryService = inject(LibraryService);
   private readonly themeService = inject(ThemeService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // =========================================================================
   // INPUTS & OUTPUTS
@@ -265,6 +267,7 @@ export class SongCardComponent {
     }
 
     this._isMenuOpen.set(true);
+    this.cdr.markForCheck();
   }
 
   /**
@@ -308,6 +311,7 @@ export class SongCardComponent {
   onOptionsMenuClosed(): void {
     this._isMenuOpen.set(false);
     this._menuAnchorRect.set(null);
+    this.cdr.markForCheck();
   }
 
   onOptionsMenuAction(action: string): void {

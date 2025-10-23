@@ -11,6 +11,8 @@ import {
   ViewChild,
   AfterViewInit,
   HostListener,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { QueueService, LibraryService } from '@services';
@@ -31,7 +33,7 @@ interface AnchorRect {
   styleUrls: ['./song-menu.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SongOptionsMenuComponent implements AfterViewInit {
+export class SongOptionsMenuComponent implements AfterViewInit, OnChanges {
   private readonly queueService = inject(QueueService);
   private readonly libraryService = inject(LibraryService);
   private readonly isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
@@ -56,6 +58,13 @@ export class SongOptionsMenuComponent implements AfterViewInit {
     if (!this.isBrowser) return;
     this.updateViewport();
     queueMicrotask(() => this.calculatePosition());
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!this.isBrowser) return;
+    if (changes['anchorRect'] && !changes['anchorRect'].firstChange) {
+      queueMicrotask(() => this.calculatePosition());
+    }
   }
 
   @HostListener('window:resize')

@@ -10,7 +10,13 @@
   position: fixed;
   inset: 0;
   z-index: var.$z-dropdown - 1;
-  background: transparent;
+  background: color-mix(
+    in srgb,
+    rgba(var(--ytmusic-album-color, 16, 16, 16), 0.55) 65%,
+    rgba(0, 0, 0, 0.65) 35%
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .options-menu {
