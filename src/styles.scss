@@ -35,8 +35,8 @@ body {
    ======================================== */
 :root {
   /* Colores dinámicos del plugin (inyectados por JS) */
-  --ytmusic-album-color: rgb(0, 0, 0);
-  --ytmusic-album-color-dark: rgb(0, 0, 0);
+  --ytmusic-album-color: 0, 0, 0;
+  --ytmusic-album-color-dark: 0, 0, 0;
   --ytmusic-album-color-ratio: 50%;
 
   /* Gradiente base y superficies predeterminadas */
