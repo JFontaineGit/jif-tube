@@ -18,7 +18,8 @@ import { SearchService } from '../search/search.service';
 import { SongService } from '../songs/song.service';
 import { YoutubePlayerCoreService } from '../youtube-player-core.service';
 import { YoutubeApiLoaderService } from '../youtube-api-loader.service';
-import { Song, PlayerState, PlayOptions } from '@interfaces';
+import { Song, PlayerState, PlayOptions, getBestThumbnail } from '@interfaces';
+import { ThemeService } from '../theme.service';
 
 /**
  * Servicio principal del reproductor de música.
@@ -39,6 +40,7 @@ export class PlayerService implements OnDestroy {
   private readonly songService = inject(SongService);
   private readonly playerCore = inject(YoutubePlayerCoreService);
   private readonly apiLoader = inject(YoutubeApiLoaderService);
+  private readonly themeService = inject(ThemeService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -156,11 +158,11 @@ export class PlayerService implements OnDestroy {
     return this.playerCore.initializePlayer(elementId, options).pipe(
       tap(() => {
         this.startPolling();
-        
+
         // Aplicar settings guardados
         const savedVolume = this._volume();
         const savedMuted = this._isMuted();
-        
+
         this.playerCore.setVolume(savedVolume);
         if (savedMuted) {
           this.playerCore.mute();
@@ -171,6 +173,11 @@ export class PlayerService implements OnDestroy {
           isMuted: savedMuted,
           error: null,
         });
+
+        const playerInstance = this.playerCore.getPlayer();
+        if (playerInstance) {
+          this.themeService.init(playerInstance);
+        }
 
         this.logger.info('Player inicializado correctamente');
       }),
@@ -342,7 +349,7 @@ export class PlayerService implements OnDestroy {
         const startSeconds = options.startSeconds ?? 0;
         
         this.playerCore.loadVideoById(videoId, startSeconds);
-        
+
         this.updateState({
           videoId,
           currentSong: song,
@@ -351,6 +358,8 @@ export class PlayerService implements OnDestroy {
           error: null,
           isBuffering: true,
         });
+
+        this.applyDynamicTheme(song);
 
         this.logger.info('Video cargado', {
           videoId,
@@ -416,6 +425,23 @@ export class PlayerService implements OnDestroy {
     this.updateState({ currentSong: null, videoId: null });
     this.stop();
     this.logger.info('Canción actual limpiada');
+  }
+
+  private applyDynamicTheme(song: Song | null): void {
+    if (!this.isBrowser || !song) return;
+
+    if (!song.thumbnails) {
+      this.logger.warn('Canción sin thumbnails para tema dinámico', { id: song.id });
+      return;
+    }
+
+    const thumbnailUrl = getBestThumbnail(song.thumbnails);
+    if (!thumbnailUrl) {
+      this.logger.warn('Sin thumbnail disponible para tema dinámico', { id: song.id });
+      return;
+    }
+
+    void this.themeService.updateFromThumbnail(thumbnailUrl);
   }
 
   /**

@@ -23,7 +23,7 @@ html {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--ytmusic-background, #030303);
+  background: var(--app-dynamic-gradient, var(--app-base-gradient));
   color: #fff;
   overflow-x: hidden;
   min-height: 100vh;
@@ -38,7 +38,20 @@ body {
   --ytmusic-album-color: rgb(0, 0, 0);
   --ytmusic-album-color-dark: rgb(0, 0, 0);
   --ytmusic-album-color-ratio: 50%;
-  
+
+  /* Gradiente base y superficies predeterminadas */
+  --app-base-gradient: linear-gradient(135deg, #0b1120 0%, #111827 45%, #030712 100%);
+  --app-dynamic-gradient: var(--app-base-gradient);
+  --app-surface-solid: rgba(15, 23, 42, 0.94);
+  --app-surface-muted: rgba(13, 20, 32, 0.88);
+  --app-surface-soft: rgba(8, 13, 23, 0.92);
+  --app-card-surface: rgba(17, 25, 40, 0.78);
+  --app-overlay: rgba(10, 15, 25, 0.7);
+  --app-glass: rgba(17, 25, 40, 0.55);
+  --app-navbar-solid: rgba(15, 23, 42, 0.95);
+  --app-navbar-blur: rgba(15, 23, 42, 0.6);
+  --app-player-glow: rgba(15, 23, 42, 0.55);
+
   /* Colores base fallback (mezclados dinámicamente via JS) */
   --bg-primary: var(--ytmusic-color-black1, #212121);
   --bg-secondary: var(--yt-spec-general-background-a, #181818);
@@ -88,16 +101,16 @@ p {
 }
 
 a {
-  color: var(--ytmusic-album-color, #4f46e5);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   transition: color var(--transition-fast);
-  
+
   &:hover {
-    color: var(--ytmusic-album-color-dark, #3730a3);
+    color: #fff;
   }
-  
+
   &:focus-visible {
-    outline: 2px solid var(--ytmusic-album-color, #4f46e5);
+    outline: 2px solid rgba(255, 255, 255, 0.35);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -132,7 +145,7 @@ input, textarea, select {
 }
 
 .text-gradient {
-  @include mix.gradient-text(var(--ytmusic-album-color, #4f46e5), var(--ytmusic-album-color-dark, #3730a3));
+  @include mix.gradient-text(#38bdf8, #818cf8);
 }
 
 .fade-in {

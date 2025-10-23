@@ -385,7 +385,7 @@
 // ========================================
 // ESTADOS DE FOCUS Y ACCESIBILIDAD
 // ========================================
-@mixin focus-ring($color: var.$dynamic-primary) {
+@mixin focus-ring($color: rgba(255, 255, 255, 0.35)) {
   &:focus-visible {
     outline: 2px solid $color;
     outline-offset: 2px;

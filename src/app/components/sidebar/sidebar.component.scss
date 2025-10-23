@@ -13,10 +13,10 @@
   overflow-x: hidden;
   transition: all var.$transition-normal;
   z-index: var.$z-sidebar;
-  background: rgba(0, 0, 0, 0.95);
+  background: var.$bg-primary;
   backdrop-filter: var.$blur-lg;
   -webkit-backdrop-filter: var.$blur-lg;
-  //border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: none;
 
   @include media.desktop-up {
     &.collapsed {
@@ -74,7 +74,6 @@
 
 .sidebar-header {
   padding: var.$spacing-xl;
-  //border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -115,7 +114,7 @@
   }
 
   .hamburger-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: var.$bg-glass;
     border: none;
     border-radius: var.$radius-lg;
     width: 40px;
@@ -131,7 +130,7 @@
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: color-mix(in srgb, var.$bg-glass 70%, rgba(255, 255, 255, 0.14) 30%);
       transform: scale(1.05);
     }
 
@@ -142,7 +141,7 @@
   }
 
   .collapse-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: var.$bg-glass;
     border: none;
     border-radius: var.$radius-lg;
     width: 40px;
@@ -157,7 +156,7 @@
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: color-mix(in srgb, var.$bg-glass 70%, rgba(255, 255, 255, 0.14) 30%);
       transform: scale(1.05);
     }
 
