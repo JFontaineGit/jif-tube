@@ -32,7 +32,7 @@
     rgba(var(--ytmusic-album-color, 24, 24, 24), 0.82) 65%,
     rgba(10, 10, 10, 0.85) 35%
   );
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
   backdrop-filter: var.$blur-lg;
   -webkit-backdrop-filter: var.$blur-lg;
   animation: menuAppear var.$transition-fast ease;

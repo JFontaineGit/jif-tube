@@ -79,6 +79,20 @@ export class SongOptionsMenuComponent implements AfterViewInit, OnChanges {
     this.close();
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.isBrowser) return;
+    const menuEl = this.menuElement?.nativeElement;
+    if (!menuEl) {
+      this.close();
+      return;
+    }
+
+    if (!menuEl.contains(event.target as Node)) {
+      this.close();
+    }
+  }
+
   close(): void {
     if (!this.isOpen()) return;
     this.isOpen.set(false);
