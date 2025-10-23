@@ -18,6 +18,18 @@ interface PluginConfig {
   ratio: number;
 }
 
+interface ThemePalette {
+  color: ColorInstance;
+  darkColor: ColorInstance;
+  rgb: string;
+  darkRgb: string;
+  hex: string;
+}
+
+interface UpdateOptions {
+  apply?: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -28,6 +40,9 @@ export class ThemeService {
   private config: PluginConfig = { enabled: true, ratio: 0.5 };
   private initialized = false;
   private listenerRef: ((event: CustomEvent) => Promise<void>) | null = null;
+  private paletteCache = new Map<string, ThemePalette>();
+  private activeThumbnail: string | null = null;
+  private requestId = 0;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
@@ -40,7 +55,7 @@ export class ThemeService {
     this.setRatio(this.config.ratio);
 
     const handler = async (event: CustomEvent) => {
-      if (event.detail.name !== 'dataloaded') return;
+      if (event.detail?.name !== 'dataloaded') return;
 
       const playerResponse = playerApi.getPlayerResponse();
       const thumbnail = playerResponse?.videoDetails?.thumbnail?.thumbnails?.at(0);
@@ -53,47 +68,51 @@ export class ThemeService {
     document.addEventListener('videodatachange', handler);
   }
 
-  async updateFromThumbnail(thumbnailUrl: string): Promise<void> {
-    if (!isPlatformBrowser(this.platformId) || !thumbnailUrl) return;
+  async updateFromThumbnail(thumbnailUrl: string, options: UpdateOptions = {}): Promise<ThemePalette | null> {
+    if (!isPlatformBrowser(this.platformId) || !thumbnailUrl) {
+      return null;
+    }
 
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = async () => {
-      try {
-        const albumColor = await this.fac.getColorAsync(img);
-        if (albumColor) {
-          const target = Color(albumColor.hex);
-          this.darkColor = target.darken(0.3).rgb();
-          this.color = target.darken(0.15).rgb();
+    const apply = options.apply ?? true;
+    const normalizedUrl = this.normalizeThumbnailUrl(thumbnailUrl);
+    const currentRequest = apply ? ++this.requestId : this.requestId;
 
-          while (this.color?.luminosity()! > 0.5) {
-            this.color = this.color.darken(0.05);
-            this.darkColor = this.darkColor?.darken(0.05);
-          }
-
-          document.documentElement.style.setProperty(
-            COLOR_KEY,
-            `${Math.round(this.color.red())}, ${Math.round(this.color.green())}, ${Math.round(this.color.blue())}`
-          );
-          document.documentElement.style.setProperty(
-            DARK_COLOR_KEY,
-            `${Math.round(this.darkColor!.red())}, ${Math.round(this.darkColor!.green())}, ${Math.round(this.darkColor!.blue())}`
-          );
-
-          const alpha = await this.getAlpha() ?? 1;
-          this.updateColor(alpha);
-          console.log('Color dominante extraído de thumbnail:', albumColor.hex);
-        }
-      } catch (err) {
-        console.error('Error extracting color from thumbnail:', err);
-        document.documentElement.style.setProperty(COLOR_KEY, '0, 0, 0');
-        document.documentElement.style.setProperty(DARK_COLOR_KEY, '0, 0, 0');
+    try {
+      const palette = await this.extractPalette(normalizedUrl);
+      if (!palette) {
+        return null;
       }
-    };
-    img.onerror = () => {
-      console.warn('Error loading thumbnail for color extraction:', thumbnailUrl);
-    };
-    img.src = thumbnailUrl;
+
+      if (!apply) {
+        return palette;
+      }
+
+      if (this.activeThumbnail === normalizedUrl && this.color) {
+        return palette;
+      }
+
+      if (apply && currentRequest < this.requestId) {
+        return palette;
+      }
+
+      this.color = palette.color;
+      this.darkColor = palette.darkColor;
+      this.activeThumbnail = normalizedUrl;
+
+      document.documentElement.style.setProperty(COLOR_KEY, palette.rgb);
+      document.documentElement.style.setProperty(DARK_COLOR_KEY, palette.darkRgb);
+
+      const alpha = (await this.getAlpha()) ?? 1;
+      this.updateColor(alpha);
+      console.log('Color dominante extraído de thumbnail:', palette.hex);
+      return palette;
+    } catch (err) {
+      if (apply) {
+        this.resetPalette();
+      }
+      console.error('Error extracting color from thumbnail:', err);
+      return null;
+    }
   }
 
   setConfig(newConfig: Partial<PluginConfig>): void {
@@ -162,7 +181,11 @@ export class ThemeService {
     });
 
     document.body.style.setProperty('background', this.getMixedColor('rgba(3, 3, 3)', DARK_COLOR_KEY, alpha), 'important');
-    document.documentElement.style.setProperty('--ytmusic-background', this.getMixedColor('rgba(3, 3, 3)', DARK_COLOR_KEY, alpha), 'important');
+    document.documentElement.style.setProperty(
+      '--ytmusic-background',
+      this.getMixedColor('rgba(3, 3, 3)', DARK_COLOR_KEY, alpha),
+      'important'
+    );
   }
 
   async getAlpha(): Promise<number | null> {
@@ -175,6 +198,76 @@ export class ThemeService {
     if (this.listenerRef) {
       document.removeEventListener('videodatachange', this.listenerRef);
       this.listenerRef = null;
+    }
+  }
+
+  private async extractPalette(thumbnailUrl: string): Promise<ThemePalette | null> {
+    if (this.paletteCache.has(thumbnailUrl)) {
+      return this.paletteCache.get(thumbnailUrl)!;
+    }
+
+    const albumColor = await new Promise<{ hex: string }>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = async () => {
+        try {
+          const result = await this.fac.getColorAsync(img);
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      img.onerror = () => reject(new Error(`Error loading thumbnail for color extraction: ${thumbnailUrl}`));
+      img.src = thumbnailUrl;
+    });
+
+    if (!albumColor?.hex) {
+      return null;
+    }
+
+    let primary = Color(albumColor.hex).rgb();
+    let dark = primary.darken(0.3).rgb();
+    primary = primary.darken(0.15).rgb();
+
+    while (primary.luminosity() > 0.5) {
+      primary = primary.darken(0.05);
+      dark = dark.darken(0.05);
+    }
+
+    const palette: ThemePalette = {
+      color: primary,
+      darkColor: dark,
+      rgb: `${Math.round(primary.red())}, ${Math.round(primary.green())}, ${Math.round(primary.blue())}`,
+      darkRgb: `${Math.round(dark.red())}, ${Math.round(dark.green())}, ${Math.round(dark.blue())}`,
+      hex: albumColor.hex,
+    };
+
+    this.paletteCache.set(thumbnailUrl, palette);
+    return palette;
+  }
+
+  private resetPalette(): void {
+    this.color = undefined;
+    this.darkColor = undefined;
+    this.activeThumbnail = null;
+    document.documentElement.style.setProperty(COLOR_KEY, '0, 0, 0');
+    document.documentElement.style.setProperty(DARK_COLOR_KEY, '0, 0, 0');
+  }
+
+  private normalizeThumbnailUrl(url: string): string {
+    if (!url) {
+      return url;
+    }
+
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.protocol === 'http:') {
+        parsed.protocol = 'https:';
+      }
+      parsed.hash = '';
+      return parsed.toString();
+    } catch {
+      return url.replace('http://', 'https://');
     }
   }
 }

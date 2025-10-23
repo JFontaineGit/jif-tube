@@ -64,25 +64,10 @@
       </h2>
       
       <div class="best-result">
-        <app-song-card 
-          [song]="bestResult()!" 
+        <app-song-card
+          [song]="bestResult()!"
           [size]="'large'"
           (selected)="playSong($event)">
-          
-          <!-- Custom Action Button (usando ng-content) -->
-          <button 
-            class="save-button" 
-            (click)="saveSong(bestResult()!, $event)" 
-            [disabled]="isSongSaved(bestResult()!)"
-            [class.saved]="isSongSaved(bestResult()!)"
-            [attr.aria-label]="isSongSaved(bestResult()!) ? 'Canción ya guardada' : 'Guardar canción'">
-            <span class="material-icons">
-              {{ isSongSaved(bestResult()!) ? 'check_circle' : 'add_circle_outline' }}
-            </span>
-            <span class="button-text">
-              {{ isSongSaved(bestResult()!) ? 'Guardado' : 'Guardar' }}
-            </span>
-          </button>
         </app-song-card>
       </div>
     </section>
@@ -98,24 +83,9 @@
       
       <div class="song-list">
         @for (song of filteredSongs(); track trackBySongId($index, song)) {
-          <app-song-card 
-            [song]="song" 
+          <app-song-card
+            [song]="song"
             (selected)="playSong($event)">
-            
-            <!-- Save Button -->
-            <button 
-              class="save-button" 
-              (click)="saveSong(song, $event)" 
-              [disabled]="isSongSaved(song)"
-              [class.saved]="isSongSaved(song)"
-              [attr.aria-label]="isSongSaved(song) ? 'Canción ya guardada' : 'Guardar canción'">
-              <span class="material-icons">
-                {{ isSongSaved(song) ? 'check_circle' : 'add_circle_outline' }}
-              </span>
-              <span class="button-text">
-                {{ isSongSaved(song) ? 'Guardado' : 'Guardar' }}
-              </span>
-            </button>
           </app-song-card>
         }
       </div>
