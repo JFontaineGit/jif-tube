@@ -38,16 +38,11 @@ $dynamic-accent: var(--dynamic-accent, #{$accent-orange});
 // ========================================
 // FONDOS Y SUPERFICIES
 // ========================================
-$bg-gradient: var(
-  --app-dynamic-gradient,
-  linear-gradient(135deg, #0b1120 0%, #111827 45%, #030712 100%)
-);
-$bg-primary: var(--app-surface-solid, rgba(15, 23, 42, 0.94));
-$bg-secondary: var(--app-surface-muted, rgba(13, 20, 32, 0.88));
-$bg-tertiary: var(--app-surface-soft, rgba(8, 13, 23, 0.92));
-$bg-card: var(--app-card-surface, rgba(17, 25, 40, 0.78));
-$bg-overlay: var(--app-overlay, rgba(10, 15, 25, 0.7));
-$bg-glass: var(--app-glass, rgba(17, 25, 40, 0.55));
+$bg-primary: var(--yt-spec-general-background-a, #0a0a0a);
+$bg-secondary: var(--yt-spec-general-background-b, #1a1a1a);
+$bg-tertiary: var(--yt-spec-general-background-c, #2a2a2a);
+$bg-card: color-mix(in srgb, rgba(var(--ytmusic-album-color, 26, 26, 26), 0.55) 60%, rgba(9, 9, 9, 0.75) 40%);
+$bg-overlay: rgba(var(--ytmusic-album-color, 12, 12, 12), 0.7);
 
 // ========================================
 // TEXTO

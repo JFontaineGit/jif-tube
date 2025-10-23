@@ -10,7 +10,11 @@
   position: fixed;
   inset: 0;
   z-index: var.$z-dropdown - 1;
-  background: color-mix(in srgb, rgba(0, 0, 0, 0.6) 40%, var.$bg-overlay 60%);
+  background: color-mix(
+    in srgb,
+    rgba(var(--ytmusic-album-color, 16, 16, 16), 0.55) 65%,
+    rgba(0, 0, 0, 0.65) 35%
+  );
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -23,8 +27,12 @@
   overflow: hidden;
   z-index: var.$z-dropdown;
   border: none;
-  background: color-mix(in srgb, var.$bg-secondary 70%, rgba(0, 0, 0, 0.85) 30%);
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55);
+  background: color-mix(
+    in srgb,
+    rgba(var(--ytmusic-album-color, 24, 24, 24), 0.82) 65%,
+    rgba(10, 10, 10, 0.85) 35%
+  );
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
   backdrop-filter: var.$blur-lg;
   -webkit-backdrop-filter: var.$blur-lg;
   animation: menuAppear var.$transition-fast ease;
@@ -38,7 +46,11 @@
 
 .menu-header {
   padding: var.$spacing-lg var.$spacing-xl;
-  background: var.$bg-secondary;
+  background: color-mix(
+    in srgb,
+    rgba(var(--ytmusic-album-color, 32, 32, 32), 0.6) 55%,
+    rgba(0, 0, 0, 0.75) 45%
+  );
 
   .menu-title {
     margin: 0;
@@ -80,7 +92,11 @@
   color: var.$text-secondary;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 30, 30, 30), 0.6) 60%,
+      rgba(0, 0, 0, 0.75) 40%
+    );
     color: var.$text-primary;
   }
 

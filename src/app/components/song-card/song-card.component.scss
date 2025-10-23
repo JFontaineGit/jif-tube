@@ -247,7 +247,11 @@
   gap: var.$spacing-sm;
   padding: var.$spacing-xs;
   border-radius: var.$radius-2xl;
-  background: var.$bg-glass;
+  background: color-mix(
+    in srgb,
+    rgba(var(--ytmusic-album-color, 26, 26, 26), 0.6) 65%,
+    rgba(0, 0, 0, 0.75) 35%
+  );
   backdrop-filter: var.$blur-md;
   -webkit-backdrop-filter: var.$blur-md;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -266,7 +270,7 @@
     transition: all var.$transition-fast;
     position: relative;
     overflow: hidden;
-    @include mix.focus-ring();
+    @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
 
     @include media.mobile-only {
       width: 38px;
@@ -285,14 +289,18 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), transparent);
+      background: color-mix(
+        in srgb,
+        var(--ytmusic-album-color, var.$dynamic-primary) 60%,
+        transparent 40%
+      );
       opacity: 0;
       transition: opacity var.$transition-fast;
     }
 
     &:hover {
       transform: translateY(-1px) scale(1.05);
-      border-color: rgba(255, 255, 255, 0.22);
+      border-color: color-mix(in srgb, var(--ytmusic-album-color) 55%, transparent);
       color: var.$text-primary;
 
       &::after {
@@ -306,12 +314,20 @@
   }
 
   .favorite-btn {
-    background: rgba(255, 255, 255, 0.14);
+    background: color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 255, 255, 255), 0.12) 60%,
+      rgba(0, 0, 0, 0.55) 40%
+    );
     color: var.$text-primary;
-    border-color: rgba(255, 255, 255, 0.24);
+    border-color: color-mix(in srgb, rgba(var(--ytmusic-album-color, 255, 255, 255), 0.3) 70%, transparent);
 
     &.active {
-      background: linear-gradient(135deg, rgba(236, 72, 153, 0.92), rgba(244, 114, 182, 0.88));
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, rgba(var(--ytmusic-album-color, 255, 128, 128), 0.9) 75%, rgba(255, 255, 255, 0.15) 25%),
+        color-mix(in srgb, rgba(var(--ytmusic-album-color, 255, 64, 64), 0.85) 70%, rgba(0, 0, 0, 0.1) 30%)
+      );
       color: white;
       border-color: transparent;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);

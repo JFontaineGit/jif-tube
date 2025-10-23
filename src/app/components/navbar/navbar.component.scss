@@ -30,7 +30,11 @@
   }
 
   &.scrolled {
-    background: var(--app-navbar-solid, rgba(15, 23, 42, 0.95));
+    background: color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 24, 24, 24), 0.85) 60%,
+      rgba(12, 12, 12, 0.88) 40%
+    );
     backdrop-filter: var.$blur-lg;
     -webkit-backdrop-filter: var.$blur-lg;
     box-shadow: var.$shadow-lg;
@@ -59,7 +63,11 @@
 }
 
 .hamburger-btn {
-  background: var.$bg-glass;
+  background: color-mix(
+    in srgb,
+    rgba(var(--ytmusic-album-color, 30, 30, 30), 0.65) 55%,
+    rgba(255, 255, 255, 0.1) 45%
+  );
   border: none;
   border-radius: var.$radius-lg;
   width: 44px;
@@ -80,7 +88,11 @@
   }
 
   &:hover {
-    background: color-mix(in srgb, var.$bg-glass 70%, rgba(255, 255, 255, 0.12) 30%);
+    background: color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 30, 30, 30), 0.75) 60%,
+      rgba(255, 255, 255, 0.16) 40%
+    );
     transform: scale(1.05);
   }
 
@@ -168,8 +180,16 @@
 
   .search-input-wrapper {
     position: relative;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 32, 32, 32), 0.55) 60%,
+      rgba(255, 255, 255, 0.08) 40%
+    );
+    border: 1px solid color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 32, 32, 32), 0.6) 65%,
+      rgba(255, 255, 255, 0.25) 35%
+    );
     border-radius: var.$radius-3xl;
     padding: var.$spacing-sm var.$spacing-lg;
     transition: all var.$transition-normal;
@@ -183,8 +203,16 @@
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.28);
+      background: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 32, 32, 32), 0.65) 60%,
+        rgba(255, 255, 255, 0.15) 40%
+      );
+      border-color: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 32, 32, 32), 0.65) 70%,
+        rgba(255, 255, 255, 0.3) 30%
+      );
     }
   }
 
@@ -305,7 +333,11 @@
     cursor: pointer;
     transition: transform var.$transition-fast, box-shadow var.$transition-fast;
     white-space: nowrap;
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.85), rgba(129, 140, 248, 0.9));
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, rgba(var(--ytmusic-album-color, 120, 120, 255), 0.75) 65%, rgba(255, 255, 255, 0.22) 35%),
+      rgba(255, 255, 255, 0.12)
+    );
 
     @include mix.flex-inline(var.$spacing-sm);
 
