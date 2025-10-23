@@ -203,11 +203,19 @@ export class SongCardComponent {
   // =========================================================================
 
   constructor() {
-    // Effect: Log cuando cambia el estado de reproducción
     effect(() => {
-      if (this.isPlaying()) {
-        console.log(`🎵 Reproduciendo: ${this.song?.title}`);
+      if (!this.isPlaying()) {
+        return;
       }
+
+      console.log(`🎵 Reproduciendo: ${this.song?.title}`);
+
+      const thumbnailUrl = this.thumbnailUrl();
+      if (!thumbnailUrl || thumbnailUrl === '/assets/images/default-thumbnail.jpg') {
+        return;
+      }
+
+      void this.themeService.updateFromThumbnail(thumbnailUrl);
     });
   }
 
@@ -396,15 +404,10 @@ export class SongCardComponent {
     }
 
     try {
-      await this.themeService.updateFromThumbnail(thumbnailUrl);
-      
-      const color = getComputedStyle(document.documentElement)
-        .getPropertyValue('--ytmusic-album-color')
-        .trim();
-      
-      if (color) {
-        // Convertir de "R, G, B" a "rgb(R, G, B)"
-        this._dominantColor.set(`rgb(${color})`);
+      const palette = await this.themeService.updateFromThumbnail(thumbnailUrl, { apply: false });
+
+      if (palette?.rgb) {
+        this._dominantColor.set(`rgb(${palette.rgb})`);
       }
     } catch (error) {
       console.warn('Error extracting dominant color:', error);
