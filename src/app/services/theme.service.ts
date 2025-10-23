@@ -184,8 +184,12 @@ export class ThemeService {
       document.documentElement.style.setProperty(variable, this.getMixedColor(baseColor, COLOR_KEY, alpha), 'important');
     });
 
-    document.body.style.setProperty('background', `var(--app-dynamic-gradient, ${BASE_GRADIENT})`, 'important');
-    document.documentElement.style.setProperty('--ytmusic-background', `var(--app-dynamic-gradient, ${BASE_GRADIENT})`, 'important');
+    document.body.style.setProperty('background', this.getMixedColor('rgba(3, 3, 3)', DARK_COLOR_KEY, alpha), 'important');
+    document.documentElement.style.setProperty(
+      '--ytmusic-background',
+      this.getMixedColor('rgba(3, 3, 3)', DARK_COLOR_KEY, alpha),
+      'important'
+    );
   }
 
   async getAlpha(): Promise<number | null> {

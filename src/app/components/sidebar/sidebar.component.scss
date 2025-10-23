@@ -13,7 +13,11 @@
   overflow-x: hidden;
   transition: all var.$transition-normal;
   z-index: var.$z-sidebar;
-  background: var.$bg-primary;
+  background: color-mix(
+    in srgb,
+    rgba(var(--ytmusic-album-color, 26, 26, 26), 0.78) 60%,
+    rgba(8, 8, 8, 0.85) 40%
+  );
   backdrop-filter: var.$blur-lg;
   -webkit-backdrop-filter: var.$blur-lg;
   border-right: none;
@@ -136,7 +140,11 @@
   }
 
   .hamburger-btn {
-    background: var.$bg-glass;
+    background: color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 30, 30, 30), 0.65) 55%,
+      rgba(255, 255, 255, 0.12) 45%
+    );
     border: none;
     border-radius: var.$radius-lg;
     width: 40px;
@@ -152,7 +160,11 @@
     }
 
     &:hover {
-      background: color-mix(in srgb, var.$bg-glass 70%, rgba(255, 255, 255, 0.14) 30%);
+      background: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 30, 30, 30), 0.75) 60%,
+        rgba(255, 255, 255, 0.16) 40%
+      );
       transform: scale(1.05);
     }
 
@@ -163,7 +175,11 @@
   }
 
   .collapse-btn {
-    background: var.$bg-glass;
+    background: color-mix(
+      in srgb,
+      rgba(var(--ytmusic-album-color, 30, 30, 30), 0.65) 55%,
+      rgba(255, 255, 255, 0.12) 45%
+    );
     border: none;
     border-radius: var.$radius-lg;
     width: 40px;
@@ -178,7 +194,11 @@
     }
 
     &:hover {
-      background: color-mix(in srgb, var.$bg-glass 70%, rgba(255, 255, 255, 0.14) 30%);
+      background: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 30, 30, 30), 0.75) 60%,
+        rgba(255, 255, 255, 0.16) 40%
+      );
       transform: scale(1.05);
     }
 

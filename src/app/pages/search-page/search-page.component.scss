@@ -52,8 +52,12 @@
       width: 46px;
       height: 46px;
       border-radius: var.$radius-full;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid color-mix(in srgb, var(--ytmusic-album-color, var.$dynamic-primary) 50%, transparent);
+      background: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 32, 32, 32), 0.85) 65%,
+        rgba(0, 0, 0, 0.75) 35%
+      );
       color: var.$text-primary;
       display: inline-flex;
       align-items: center;
@@ -63,7 +67,7 @@
       backdrop-filter: var.$blur-sm;
       -webkit-backdrop-filter: var.$blur-sm;
 
-      @include mix.focus-ring();
+      @include mix.focus-ring(var(--ytmusic-album-color, var.$dynamic-primary));
 
       @include media.mobile-only {
         width: 42px;
@@ -73,7 +77,7 @@
       &:hover:not(:disabled) {
         transform: translateY(-1px) scale(1.05);
         box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
-        border-color: rgba(255, 255, 255, 0.32);
+        border-color: color-mix(in srgb, var(--ytmusic-album-color, var.$dynamic-primary) 70%, transparent);
       }
 
       &:active:not(:disabled) {
@@ -109,8 +113,16 @@
 
     app-song-card {
       display: block;
-      background: var.$bg-card;
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 30, 30, 30), 0.72) 65%,
+        rgba(6, 6, 6, 0.86) 35%
+      );
+      border: 1px solid color-mix(
+        in srgb,
+        rgba(var(--ytmusic-album-color, 255, 255, 255), 0.25) 55%,
+        rgba(255, 255, 255, 0.1) 45%
+      );
       border-radius: var.$radius-2xl;
       padding: var.$spacing-2xl;
       transition: all var.$transition-normal;
@@ -134,7 +146,7 @@
         bottom: 0;
         background: linear-gradient(
           135deg,
-          rgba(56, 189, 248, 0.18) 0%,
+          color-mix(in srgb, rgba(var(--ytmusic-album-color, 255, 255, 255), 0.25) 40%, transparent) 0%,
           transparent 55%
         );
         pointer-events: none;
@@ -144,7 +156,11 @@
 
       &:hover {
         transform: translateY(-4px);
-        border-color: rgba(255, 255, 255, 0.28);
+        border-color: color-mix(
+          in srgb,
+          rgba(var(--ytmusic-album-color, 255, 255, 255), 0.35) 60%,
+          rgba(255, 255, 255, 0.15) 40%
+        );
         box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
 
         &::before {

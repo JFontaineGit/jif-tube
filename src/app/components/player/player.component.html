@@ -1,12 +1,11 @@
 <!-- Sólo mostrar el reproductor si hay una canción -->
 @if (currentSong()) {
-  @if (!showMobileOverlay()) {
-    <div class="player-wrapper"
-         [class.minimized]="isMinimized()"
-         [class.sidebar-collapsed]="sidebarCollapsed">
-      <div class="player-container"
-           [class.playing]="isPlaying()"
-           [class.has-error]="hasError()">
+  <div class="player-wrapper" 
+       [class.minimized]="isMinimized()"
+       [class.sidebar-collapsed]="sidebarCollapsed">
+    <div class="player-container" 
+         [class.playing]="isPlaying()" 
+         [class.has-error]="hasError()">
 
       <!-- Toggle minimize button (desktop) -->
       @if (!isMobileView()) {
@@ -166,6 +165,134 @@
       </div>
     </div>
   }
+
+  @if (showMobileOverlay()) {
+    <div class="mobile-expanded-backdrop" (click)="closeMobileExpanded()">
+      <div class="mobile-expanded-container" (click)="onMobileContainerClick($event)">
+        <div class="mobile-expanded-header">
+          <button
+            type="button"
+            class="mobile-collapse-btn"
+            (click)="closeMobileExpanded()"
+            aria-label="Cerrar reproductor">
+            <span class="material-icons">expand_more</span>
+          </button>
+
+          <div class="mobile-header-info">
+            <span class="title" [title]="getSongTitle()">{{ getSongTitle() }}</span>
+            <span class="artist" [title]="getSongArtist()">{{ getSongArtist() }}</span>
+          </div>
+
+          <div class="mobile-menu">
+            <button
+              type="button"
+              class="mobile-menu-btn"
+              (click)="toggleMobileMenu($event)"
+              aria-haspopup="true"
+              [attr.aria-expanded]="isMobileMenuOpen()">
+              <span class="material-icons">more_vert</span>
+            </button>
+
+            @if (isMobileMenuOpen()) {
+              <div class="mobile-menu-dropdown" role="menu" (click)="$event.stopPropagation()">
+                <button type="button" (click)="closeMobileExpanded()">Volver al mini reproductor</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="mobile-artwork">
+          <img
+            [src]="getThumbnailUrl()"
+            [alt]="getSongTitle()"
+            loading="lazy" />
+        </div>
+
+        <div class="mobile-track-details">
+          <div class="mobile-track-texts">
+            <h3 class="title">{{ getSongTitle() }}</h3>
+            <p class="artist">{{ getSongArtist() }}</p>
+          </div>
+
+          <button
+            type="button"
+            class="mobile-like-btn"
+            [class.active]="isLiked()"
+            (click)="onLikeToggle()"
+            [disabled]="!currentSong()"
+            [attr.aria-label]="isLiked() ? 'Quitar me gusta' : 'Me gusta'">
+            <span class="material-icons">{{ isLiked() ? 'favorite' : 'favorite_border' }}</span>
+          </button>
+        </div>
+
+        <div class="mobile-progress">
+          <span class="time">{{ timeElapsed() }}</span>
+          <input
+            type="range"
+            class="mobile-seek"
+            [value]="progress()"
+            [disabled]="!currentSong()"
+            (input)="onSeek($event)"
+            min="0"
+            max="100"
+            step="0.1"
+            aria-label="Barra de progreso móvil" />
+          <span class="time">{{ timeTotal() }}</span>
+        </div>
+
+        <div class="mobile-controls">
+          <button
+            type="button"
+            class="control-btn prev-btn"
+            (click)="onPrevious()"
+            [disabled]="!hasPrevious()"
+            aria-label="Anterior">
+            <span class="material-icons">skip_previous</span>
+          </button>
+
+          <button
+            type="button"
+            class="control-btn play-pause"
+            (click)="onPlayPause()"
+            [disabled]="!currentSong()"
+            [attr.aria-label]="isPlaying() ? 'Pausar' : 'Reproducir'">
+            <span class="material-icons">{{ isPlaying() ? 'pause' : 'play_arrow' }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="control-btn next-btn"
+            (click)="onNext()"
+            [disabled]="!hasNext()"
+            aria-label="Siguiente">
+            <span class="material-icons">skip_next</span>
+          </button>
+        </div>
+
+        <div class="mobile-volume">
+          <button
+            type="button"
+            class="volume-btn"
+            (click)="onMuteToggle()"
+            [attr.aria-label]="isMuted() ? 'Activar sonido' : 'Silenciar'">
+            <span class="material-icons">
+              {{ isMuted() ? 'volume_off' : volume() > 50 ? 'volume_up' : 'volume_down' }}
+            </span>
+          </button>
+
+          <input
+            type="range"
+            class="volume-slider"
+            [value]="volume()"
+            (input)="onVolumeChange($event)"
+            min="0"
+            max="100"
+            step="1"
+            aria-label="Volumen" />
+        </div>
+      </div>
+    </div>
+  </div>
 
   @if (showMobileOverlay()) {
     <div class="mobile-expanded-backdrop" (click)="closeMobileExpanded()">
