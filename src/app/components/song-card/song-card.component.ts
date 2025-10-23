@@ -8,10 +8,12 @@ import {
   computed,
   inject,
   effect,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerService, QueueService, LibraryService, ThemeService } from '@services';
 import { Song } from '@interfaces';
+import { SongOptionsMenuComponent } from './song-menu/song-menu.component';
 
 /**
  * Componente SongCard - Tarjeta de canción con thumbnail, info y acciones
@@ -29,7 +31,7 @@ import { Song } from '@interfaces';
 @Component({
   selector: 'app-song-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SongOptionsMenuComponent],
   templateUrl: './song-card.component.html',
   styleUrls: ['./song-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +41,7 @@ export class SongCardComponent {
   private readonly queueService = inject(QueueService);
   private readonly libraryService = inject(LibraryService);
   private readonly themeService = inject(ThemeService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // =========================================================================
   // INPUTS & OUTPUTS
@@ -63,10 +66,19 @@ export class SongCardComponent {
   private readonly _imageError = signal(false);
   private readonly _isHovered = signal(false);
   private readonly _dominantColor = signal<string | null>(null);
+  private readonly _isMenuOpen = signal(false);
+  private readonly _menuAnchorRect = signal<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } | null>(null);
 
   readonly imageLoaded = this._imageLoaded.asReadonly();
   readonly imageError = this._imageError.asReadonly();
   readonly dominantColor = this._dominantColor.asReadonly();
+  readonly isMenuOpen = this._isMenuOpen.asReadonly();
+  readonly menuAnchorRect = this._menuAnchorRect.asReadonly();
 
   // =========================================================================
   // COMPUTED SIGNALS
@@ -235,6 +247,27 @@ export class SongCardComponent {
 
     console.log(`⚙️ Opciones para: ${this.song.title}`);
     this.optionsClick.emit({ song: this.song, event });
+
+    const target = event.currentTarget as HTMLElement | null;
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      this._menuAnchorRect.set({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      });
+    } else {
+      this._menuAnchorRect.set({
+        top: event.clientY,
+        left: event.clientX,
+        width: 0,
+        height: 0,
+      });
+    }
+
+    this._isMenuOpen.set(true);
+    this.cdr.markForCheck();
   }
 
   /**
@@ -273,6 +306,16 @@ export class SongCardComponent {
 
     this.queueService.addToQueue(this.song);
     console.log(`➕ Agregado a la cola: ${this.song.title}`);
+  }
+
+  onOptionsMenuClosed(): void {
+    this._isMenuOpen.set(false);
+    this._menuAnchorRect.set(null);
+    this.cdr.markForCheck();
+  }
+
+  onOptionsMenuAction(action: string): void {
+    console.log(`[SongCard] Acción de menú ejecutada: ${action}`);
   }
 
   /**
