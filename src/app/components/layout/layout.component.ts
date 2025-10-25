@@ -11,11 +11,12 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterOutlet, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { 
-  LoggerService, 
-  PlayerService, 
-  SearchService, 
-  LibraryService 
+import {
+  LoggerService,
+  PlayerService,
+  SearchService,
+  LibraryService,
+  QueueService,
 } from '@services';
 import { Song } from '@interfaces';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -43,6 +44,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   private readonly libraryService = inject(LibraryService);
   private readonly router = inject(Router);
   private readonly logger = inject(LoggerService);
+  private readonly queueService = inject(QueueService);
   private readonly platformId = inject(PLATFORM_ID);
 
   private readonly destroy$ = new Subject<void>();
@@ -292,18 +294,32 @@ export class LayoutComponent implements OnInit, OnDestroy {
   // PUBLIC API (para otros componentes)
   // =========================================================================
 
-  playSong(song: Song): void {
-    this.logger.info('Reproduciendo canción desde layout', { title: song.title });
-    
-    this.playerService.loadAndPlay(song.id, { 
-      autoplay: true 
+  playSong(song: Song, index: number = 0, songs: Song[] = [song]): void {
+    if (!song?.id) {
+      this.logger.error('Layout: intento de reproducir canción sin ID válido', song);
+      return;
+    }
+
+    const playlist = Array.isArray(songs) && songs.length > 0 ? songs : [song];
+    const startIndex = Math.max(0, Math.min(index, playlist.length - 1));
+
+    this.queueService.setQueue(playlist, startIndex);
+
+    this.logger.info('Reproduciendo canción desde layout', {
+      title: song.title,
+      startIndex,
+      queueSize: playlist.length,
+    });
+
+    this.playerService.loadAndPlay(song.id, {
+      autoplay: true,
     }).subscribe({
       next: () => {
         this.logger.debug('Canción cargada exitosamente');
       },
       error: (err) => {
         this.logger.error('Error cargando canción', err);
-      }
+      },
     });
   }
 }

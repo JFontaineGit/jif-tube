@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
-import { 
-  PlayerService, 
-  LibraryService, 
+import {
+  PlayerService,
+  LibraryService,
   SearchService,
-  LoggerService 
+  LoggerService,
+  QueueService,
 } from '@services';
 import { Song, SongSearchResult } from '@interfaces';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
@@ -36,6 +37,7 @@ export class SearchPageComponent implements OnInit, OnDestroy {
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly queueService = inject(QueueService);
   
   private readonly destroy$ = new Subject<void>();
 
@@ -197,7 +199,7 @@ export class SearchPageComponent implements OnInit, OnDestroy {
   /**
    * Reproduce una canción
    */
-  playSong(song: Song): void {
+  playSong(song: Song, index: number, songs: Song[]): void {
     if (!song?.id) {
       this.logger.error('Canción sin ID válido:', song);
       this._error.set('No se puede reproducir esta canción');
@@ -206,7 +208,12 @@ export class SearchPageComponent implements OnInit, OnDestroy {
 
     this.logger.info(`▶️ Reproduciendo: ${song.title} (${song.id})`);
     this._error.set(null);
-    
+
+    const playlist = Array.isArray(songs) && songs.length > 0 ? songs : [song];
+    const startIndex = Math.max(0, Math.min(index, playlist.length - 1));
+
+    this.queueService.setQueue(playlist, startIndex);
+
     // Reproducir con PlayerService
     this.playerService.loadAndPlay(song.id, { autoplay: true }).subscribe({
       next: () => {

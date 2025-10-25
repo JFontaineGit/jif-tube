@@ -84,7 +84,7 @@
               [showActions]="true"
               [showDuration]="true"
               [showArtist]="true"
-              (selected)="onSongSelected($event)">
+              (selected)="onSongSelected(song, $index, songs())">
             </app-song-card>
             <button 
               class="remove-button" 

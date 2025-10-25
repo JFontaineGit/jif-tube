@@ -67,7 +67,7 @@
         <app-song-card
           [song]="bestResult()!"
           [size]="'large'"
-          (selected)="playSong($event)">
+          (selected)="playSong(bestResult()!, 0, songs())">
         </app-song-card>
       </div>
     </section>
@@ -85,7 +85,7 @@
         @for (song of filteredSongs(); track trackBySongId($index, song)) {
           <app-song-card
             [song]="song"
-            (selected)="playSong($event)">
+            (selected)="playSong(song, $index + 1, songs())">
           </app-song-card>
         }
       </div>

@@ -98,7 +98,7 @@ export class HistoryPageComponent implements OnInit, OnDestroy {
   /**
    * Reproduce una canción del historial
    */
-  onSongSelected(song: Song): void {
+  onSongSelected(song: Song, index: number, songs: Song[]): void {
     if (!song?.id) {
       this.logger.error('Canción sin ID válido:', song);
       this._error.set('No se puede reproducir esta canción');
@@ -107,6 +107,11 @@ export class HistoryPageComponent implements OnInit, OnDestroy {
 
     this.logger.info(`▶️ Reproduciendo desde historial: ${song.title}`);
     this._error.set(null);
+
+    const playlist = Array.isArray(songs) && songs.length > 0 ? songs : [song];
+    const startIndex = Math.max(0, Math.min(index, playlist.length - 1));
+
+    this.queueService.setQueue(playlist, startIndex);
 
     // Reproducir con PlayerService
     this.playerService.loadAndPlay(song.id, { autoplay: true }).subscribe({
