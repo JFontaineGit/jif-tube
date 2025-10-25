@@ -110,12 +110,4 @@
   <!-- Slot for custom content -->
   <ng-content></ng-content>
 
-  @if (showActions && isMenuOpen() && menuAnchorRect()) {
-    <app-song-options-menu
-      [song]="song"
-      [anchorRect]="menuAnchorRect()!"
-      (closed)="onOptionsMenuClosed()"
-      (actionExecuted)="onOptionsMenuAction($event)">
-    </app-song-options-menu>
-  }
 </article>

@@ -18,7 +18,7 @@ import { CommonModule } from '@angular/common';
 import { QueueService, LibraryService } from '@services';
 import { Song } from '@interfaces';
 
-interface AnchorRect {
+export interface AnchorRect {
   top: number;
   left: number;
   width: number;
@@ -39,6 +39,7 @@ export class SongOptionsMenuComponent implements AfterViewInit, OnChanges {
   private readonly isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
 
   @ViewChild('menuElement') menuElement?: ElementRef<HTMLDivElement>;
+  @ViewChild('firstMenuItem') firstMenuItem?: ElementRef<HTMLButtonElement>;
 
   @Input({ required: true }) song!: Song;
   @Input() anchorRect?: AnchorRect | null;
@@ -57,7 +58,10 @@ export class SongOptionsMenuComponent implements AfterViewInit, OnChanges {
   ngAfterViewInit(): void {
     if (!this.isBrowser) return;
     this.updateViewport();
-    queueMicrotask(() => this.calculatePosition());
+    queueMicrotask(() => {
+      this.calculatePosition();
+      this.focusFirstItem();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -195,8 +199,10 @@ export class SongOptionsMenuComponent implements AfterViewInit, OnChanges {
       return;
     }
 
-    let top = this.anchorRect.top + this.anchorRect.height + 8;
-    let left = this.anchorRect.left + this.anchorRect.width - menuWidth;
+    const anchorRect = this.anchorRect;
+
+    let top = anchorRect.top + anchorRect.height + 8;
+    let left = anchorRect.left + anchorRect.width - menuWidth;
 
     if (left + menuWidth > window.innerWidth - padding) {
       left = window.innerWidth - menuWidth - padding;
@@ -215,6 +221,14 @@ export class SongOptionsMenuComponent implements AfterViewInit, OnChanges {
     }
 
     this.position.set({ top, left });
+  }
+
+  private focusFirstItem(): void {
+    if (!this.isBrowser) return;
+    const firstItem = this.firstMenuItem?.nativeElement;
+    if (!firstItem) return;
+
+    firstItem.focus({ preventScroll: true });
   }
 
   private async copyToClipboard(text: string): Promise<void> {
