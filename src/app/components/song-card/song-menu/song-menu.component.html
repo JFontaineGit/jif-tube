@@ -18,7 +18,11 @@
     </div>
 
     <div class="menu-items">
-      <button class="menu-item" (click)="onAddToQueue()" role="menuitem">
+      <button
+        #firstMenuItem
+        class="menu-item"
+        (click)="onAddToQueue()"
+        role="menuitem">
         <span class="material-icons">queue_music</span>
         <span class="menu-item-text">Agregar a la cola</span>
       </button>

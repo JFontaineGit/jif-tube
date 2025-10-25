@@ -9,11 +9,12 @@ import {
   inject,
   effect,
   ChangeDetectorRef,
+  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerService, QueueService, LibraryService, ThemeService } from '@services';
 import { Song } from '@interfaces';
-import { SongOptionsMenuComponent } from './song-menu/song-menu.component';
+import { SongOptionsMenuOverlayService } from './song-menu/song-options-menu-overlay.service';
 
 /**
  * Componente SongCard - Tarjeta de canción con thumbnail, info y acciones
@@ -31,17 +32,18 @@ import { SongOptionsMenuComponent } from './song-menu/song-menu.component';
 @Component({
   selector: 'app-song-card',
   standalone: true,
-  imports: [CommonModule, SongOptionsMenuComponent],
+  imports: [CommonModule],
   templateUrl: './song-card.component.html',
   styleUrls: ['./song-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SongCardComponent {
+export class SongCardComponent implements OnDestroy {
   private readonly playerService = inject(PlayerService);
   private readonly queueService = inject(QueueService);
   private readonly libraryService = inject(LibraryService);
   private readonly themeService = inject(ThemeService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly songOptionsMenu = inject(SongOptionsMenuOverlayService);
 
   // =========================================================================
   // INPUTS & OUTPUTS
@@ -66,19 +68,10 @@ export class SongCardComponent {
   private readonly _imageError = signal(false);
   private readonly _isHovered = signal(false);
   private readonly _dominantColor = signal<string | null>(null);
-  private readonly _isMenuOpen = signal(false);
-  private readonly _menuAnchorRect = signal<{
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-  } | null>(null);
 
   readonly imageLoaded = this._imageLoaded.asReadonly();
   readonly imageError = this._imageError.asReadonly();
   readonly dominantColor = this._dominantColor.asReadonly();
-  readonly isMenuOpen = this._isMenuOpen.asReadonly();
-  readonly menuAnchorRect = this._menuAnchorRect.asReadonly();
 
   // =========================================================================
   // COMPUTED SIGNALS
@@ -257,24 +250,19 @@ export class SongCardComponent {
     this.optionsClick.emit({ song: this.song, event });
 
     const target = event.currentTarget as HTMLElement | null;
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      this._menuAnchorRect.set({
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-      });
-    } else {
-      this._menuAnchorRect.set({
-        top: event.clientY,
-        left: event.clientX,
-        width: 0,
-        height: 0,
-      });
-    }
+    const rect = target?.getBoundingClientRect();
+    const anchorRect = rect
+      ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+      : { top: event.clientY, left: event.clientX, width: 0, height: 0 };
 
-    this._isMenuOpen.set(true);
+    this.songOptionsMenu.open({
+      song: this.song,
+      anchorRect,
+      triggerElement: target ?? undefined,
+      onClosed: () => this.onOptionsMenuClosed(),
+      onActionExecuted: (action) => this.onOptionsMenuAction(action),
+    });
+
     this.cdr.markForCheck();
   }
 
@@ -317,13 +305,15 @@ export class SongCardComponent {
   }
 
   onOptionsMenuClosed(): void {
-    this._isMenuOpen.set(false);
-    this._menuAnchorRect.set(null);
     this.cdr.markForCheck();
   }
 
   onOptionsMenuAction(action: string): void {
     console.log(`[SongCard] Acción de menú ejecutada: ${action}`);
+  }
+
+  ngOnDestroy(): void {
+    this.songOptionsMenu.closeBySongId(this.song?.id);
   }
 
   /**
