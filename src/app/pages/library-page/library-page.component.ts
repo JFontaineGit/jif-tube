@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PlayerService, LibraryService, LoggerService, AuthService } from '@services';
+import { PlayerService, LibraryService, LoggerService, AuthService, QueueService } from '@services';
 import { Song } from '@interfaces';
 import { SongCardComponent } from '../../components/song-card/song-card.component';
 import { AuthDialogComponent } from '../../components/auth-dialog/auth-dialog.component';
@@ -28,6 +28,7 @@ export class LibraryPageComponent implements OnInit {
   private readonly libraryService = inject(LibraryService);
   private readonly logger = inject(LoggerService);
   private readonly auth = inject(AuthService);
+  private readonly queueService = inject(QueueService);
 
   // Controlar apertura/cierre del diálogo de autenticación
   public readonly isAuthDialogOpen = signal(false);
@@ -105,7 +106,7 @@ export class LibraryPageComponent implements OnInit {
   // ==========================
 
   /** Maneja la selección de una canción para reproducirla */
-  onSongSelected(song: Song): void {
+  onSongSelected(song: Song, index: number, songs: Song[]): void {
     if (!song?.id) {
       this.logger.error('Canción sin ID:', song);
       this._error.set('No se puede reproducir esta canción');
@@ -113,6 +114,11 @@ export class LibraryPageComponent implements OnInit {
     }
 
     this.logger.info(`▶️ Reproduciendo desde biblioteca: ${song.title}`);
+    const playlist = Array.isArray(songs) && songs.length > 0 ? songs : [song];
+    const startIndex = Math.max(0, Math.min(index, playlist.length - 1));
+
+    this.queueService.setQueue(playlist, startIndex);
+
     this.playerService.loadAndPlay(song.id, { autoplay: true }).subscribe({
       next: () => this.logger.info('✅ Canción cargada correctamente'),
       error: (err) => {

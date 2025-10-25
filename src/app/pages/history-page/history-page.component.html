@@ -52,7 +52,7 @@
             [showActions]="true"
             [showDuration]="true"
             [showArtist]="true"
-            (selected)="onSongSelected($event)">
+            (selected)="onSongSelected(song, $index, recentSongs())">
           </app-song-card>
           
           <!-- Time Badge (optional) -->
