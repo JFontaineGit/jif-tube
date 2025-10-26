@@ -1,6 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError, forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { LoggerService } from '@services';
 import { StorageKey, STORAGE_KEYS } from '@constants';
 
@@ -44,11 +45,21 @@ export class StorageService {
     return this.getItem<string>(STORAGE_KEYS.REFRESH_TOKEN);
   }
 
+  /**
+   * Guarda ambos tokens de forma asíncrona garantizando que se completen antes de continuar
+   */
   saveTokens(accessToken: string, refreshToken: string): Observable<void> {
-    this.setItemSync(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-    this.setItemSync(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-    this.logger.info('Tokens guardados en storage');
-    return of(void 0);
+    this.logger.debug('Guardando tokens en storage...');
+    
+    return forkJoin({
+      access: this.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken),
+      refresh: this.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
+    }).pipe(
+      map(() => {
+        this.logger.info('✓ Tokens guardados exitosamente en storage');
+        return void 0;
+      })
+    );
   }
 
   clearTokens(): Observable<void> {
@@ -127,6 +138,23 @@ export class StorageService {
   }
 
   // =========================================================================
+  // REMEMBER EMAIL (para login)
+  // =========================================================================
+
+  saveRememberedEmail(email: string): Observable<void> {
+    return this.setItem(STORAGE_KEYS.REMEMBER_EMAIL, email);
+  }
+
+  getRememberedEmail(): Observable<string | null> {
+    return this.getItem<string>(STORAGE_KEYS.REMEMBER_EMAIL);
+  }
+
+  clearRememberedEmail(): Observable<void> {
+    this.removeItemSync(STORAGE_KEYS.REMEMBER_EMAIL);
+    return of(void 0);
+  }
+
+  // =========================================================================
   // GENERIC METHODS (privados)
   // =========================================================================
 
@@ -137,7 +165,8 @@ export class StorageService {
     }
 
     try {
-      const serialized = JSON.stringify(value);
+      // Para strings primitivos (tokens), guardar directamente sin stringify
+      const serialized = typeof value === 'string' ? value : JSON.stringify(value);
       localStorage.setItem(key, serialized);
       this.logger.debug(`Storage: guardado ${key}`);
       return of(void 0);
@@ -160,9 +189,16 @@ export class StorageService {
         return of(null);
       }
 
-      const value = JSON.parse(serialized) as T;
-      this.logger.debug(`Storage: leído ${key}`);
-      return of(value);
+      // Intentar parsear como JSON, si falla devolver como string
+      try {
+        const value = JSON.parse(serialized) as T;
+        this.logger.debug(`Storage: leído ${key}`);
+        return of(value);
+      } catch {
+        // Si no es JSON válido, devolver como string (caso de tokens)
+        this.logger.debug(`Storage: leído ${key} (string)`);
+        return of(serialized as T);
+      }
     } catch (error) {
       this.logger.error(`Error leyendo ${key}`, error);
       return throwError(() => error);

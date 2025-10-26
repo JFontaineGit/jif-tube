@@ -16,9 +16,9 @@ type AuthView = 'login' | 'register' | 'forgot-password';
 })
 export class AuthDialogComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
-  private readonly storage = inject(StorageService);
-  private readonly logger = inject(LoggerService);
+  private readonly authService = inject(AuthService) as AuthService;
+  private readonly storage = inject(StorageService) as StorageService;
+  private readonly logger = inject(LoggerService) as LoggerService;
   private readonly router = inject(Router);
 
   @Input() isOpen: boolean = false;
@@ -51,7 +51,7 @@ export class AuthDialogComponent {
     this.registerForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      password: ['', [Validators.required, Validators.minLength(8), this.passwordStrengthValidator]],
       confirmPassword: ['', [Validators.required]]
     }, { 
       validators: this.passwordMatchValidator 
@@ -78,6 +78,41 @@ export class AuthDialogComponent {
     }
 
     return password === confirmPassword ? null : { passwordMismatch: true };
+  }
+
+  /**
+   * Validador de complejidad de contraseña
+   */
+  private passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.value;
+    
+    if (!password) {
+      return null;
+    }
+
+    const errors: ValidationErrors = {};
+
+    // Al menos una mayúscula
+    if (!/[A-Z]/.test(password)) {
+      errors['noUppercase'] = true;
+    }
+
+    // Al menos una minúscula
+    if (!/[a-z]/.test(password)) {
+      errors['noLowercase'] = true;
+    }
+
+    // Al menos un número
+    if (!/[0-9]/.test(password)) {
+      errors['noNumber'] = true;
+    }
+
+    // Al menos un caracter especial
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      errors['noSpecial'] = true;
+    }
+
+    return Object.keys(errors).length > 0 ? errors : null;
   }
 
   // =========================================================================
@@ -159,6 +194,58 @@ export class AuthDialogComponent {
     }
   }
 
+  /**
+   * Obtiene el mensaje de error de validación de contraseña
+   */
+  getPasswordErrorMessage(): string {
+    const passwordControl = this.registerForm.get('password');
+    
+    if (!passwordControl || !passwordControl.errors || !passwordControl.touched) {
+      return '';
+    }
+
+    const errors = passwordControl.errors;
+    const messages: string[] = [];
+
+    if (errors['required']) {
+      return 'La contraseña es requerida';
+    }
+
+    if (errors['minlength']) {
+      messages.push('mínimo 8 caracteres');
+    }
+
+    if (errors['noUppercase']) {
+      messages.push('una mayúscula');
+    }
+
+    if (errors['noLowercase']) {
+      messages.push('una minúscula');
+    }
+
+    if (errors['noNumber']) {
+      messages.push('un número');
+    }
+
+    if (errors['noSpecial']) {
+      messages.push('un carácter especial');
+    }
+
+    if (messages.length === 0) {
+      return '';
+    }
+
+    if (messages.length === 1 && messages[0] === 'mínimo 8 caracteres') {
+      return 'Debe tener ' + messages[0];
+    }
+
+    return `Debe contener: ${messages.join(', ')}`;
+  }
+
+  // =========================================================================
+  // AUTH ACTIONS
+  // =========================================================================
+
   onLogin(): void {
     if (this.loginForm.invalid || this.isSubmitting()) {
       this.logger.warn('Login form invalid or already submitting');
@@ -193,7 +280,7 @@ export class AuthDialogComponent {
         setTimeout(() => {
           this.authSuccess.emit();
           this.onClose();
-          this.router.navigate(['/home']); // O la ruta que prefieras
+          this.router.navigate(['/home']);
         }, 1000);
       },
       error: (error) => {
@@ -244,21 +331,9 @@ export class AuthDialogComponent {
       error: (error) => {
         this.logger.error('Error en registro', error);
         
-        let errorMsg = 'Error al crear cuenta. Intenta nuevamente.';
-        
-        // Normalizar errores comunes
-        if (error.message) {
-          errorMsg = error.message;
-        } else if (error?.error?.detail) {
-          const detail = error.error.detail;
-          
-          if (typeof detail === 'string') {
-            errorMsg = detail;
-          } else if (Array.isArray(detail)) {
-            // Error de validación de Pydantic
-            errorMsg = detail.map(e => e.msg).join(', ');
-          }
-        }
+        const errorMsg = this.normalizeErrorMessage(error, 
+          'Error al crear cuenta. Intenta nuevamente.'
+        );
 
         this.errorMessage.set(errorMsg);
         this.isSubmitting.set(false);
@@ -324,46 +399,52 @@ export class AuthDialogComponent {
         this.isSubmitting.set(false);
       }, 3000);
     }, 1000);
-
-    // Cuando tengas el endpoint real, descomentar esto:
-    /*
-    this.authService.requestPasswordReset(email).subscribe({
-      next: () => {
-        this.successMessage.set('Revisa tu email para restablecer tu contraseña.');
-        setTimeout(() => this.switchView('login'), 3000);
-      },
-      error: (error) => {
-        this.logger.error('Error en forgot password', error);
-        this.errorMessage.set('Error al enviar email. Intenta nuevamente.');
-        this.isSubmitting.set(false);
-      },
-      complete: () => {
-        this.isSubmitting.set(false);
-      }
-    });
-    */
   }
 
+  // =========================================================================
+  // REMEMBER EMAIL HELPERS
+  // =========================================================================
+
   private loadRememberedEmail(): void {
-    // TODO: Implementar cuando tengas los métodos en StorageService
-    // const savedEmail = this.storage.getRememberEmail();
-    // if (savedEmail) {
-    //   this.loginForm.patchValue({ username_or_email: savedEmail });
-    //   this.rememberEmail.set(true);
-    // }
+    this.storage.getRememberedEmail().subscribe({
+      next: (savedEmail) => {
+        if (savedEmail) {
+          this.loginForm.patchValue({ username_or_email: savedEmail });
+          this.rememberEmail.set(true);
+          this.logger.debug('Email recordado cargado', { email: savedEmail });
+        }
+      },
+      error: (err) => {
+        this.logger.warn('Error cargando email recordado', err);
+      }
+    });
   }
 
   private saveRememberedEmail(email: string): void {
-    // TODO: Implementar cuando tengas los métodos en StorageService
-    // this.storage.setRememberEmail(email);
-    this.logger.debug('Email guardado para recordar', { email });
+    this.storage.saveRememberedEmail(email).subscribe({
+      next: () => {
+        this.logger.debug('Email guardado para recordar', { email });
+      },
+      error: (err) => {
+        this.logger.warn('Error guardando email', err);
+      }
+    });
   }
 
   private clearRememberedEmail(): void {
-    // TODO: Implementar cuando tengas los métodos en StorageService
-    // this.storage.removeRememberEmail();
-    this.logger.debug('Email recordado eliminado');
+    this.storage.clearRememberedEmail().subscribe({
+      next: () => {
+        this.logger.debug('Email recordado eliminado');
+      },
+      error: (err) => {
+        this.logger.warn('Error eliminando email', err);
+      }
+    });
   }
+
+  // =========================================================================
+  // ERROR HANDLING
+  // =========================================================================
 
   /**
    * Normaliza mensajes de error de la API
@@ -377,11 +458,40 @@ export class AuthDialogComponent {
       const detail = error.error.detail;
       
       if (typeof detail === 'string') {
+        // Manejar errores específicos de validación de contraseña del backend
+        if (detail.includes('uppercase')) {
+          return 'La contraseña debe contener al menos una letra mayúscula';
+        }
+        if (detail.includes('lowercase')) {
+          return 'La contraseña debe contener al menos una letra minúscula';
+        }
+        if (detail.includes('digit') || detail.includes('number')) {
+          return 'La contraseña debe contener al menos un número';
+        }
+        if (detail.includes('special character')) {
+          return 'La contraseña debe contener al menos un carácter especial';
+        }
+        if (detail.includes('8 characters')) {
+          return 'La contraseña debe tener al menos 8 caracteres';
+        }
+        
         return detail;
       }
       
       if (Array.isArray(detail)) {
-        return detail.map(e => e.msg || e.message).join('. ');
+        const messages = detail.map(e => {
+          const msg = e.msg || e.message;
+          
+          // Normalizar mensajes de Pydantic
+          if (msg.includes('uppercase')) return 'una mayúscula';
+          if (msg.includes('lowercase')) return 'una minúscula';
+          if (msg.includes('digit')) return 'un número';
+          if (msg.includes('special')) return 'un carácter especial';
+          
+          return msg;
+        });
+        
+        return `La contraseña debe contener: ${messages.join(', ')}`;
       }
     }
 

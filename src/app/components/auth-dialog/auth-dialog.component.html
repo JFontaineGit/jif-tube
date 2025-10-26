@@ -184,7 +184,7 @@
                   [type]="showPassword() ? 'text' : 'password'"
                   id="register-password"
                   formControlName="password"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                   class="form-input"
                   [class.form-input--error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
                   (input)="checkPasswordStrength()"
@@ -209,7 +209,8 @@
                 </button>
               </div>
 
-              @if (registerForm.get('password')?.value) {
+              <!-- Password Strength Indicator -->
+              @if (registerForm.get('password')?.value && !registerForm.get('password')?.errors) {
                 <div class="password-strength">
                   <div class="strength-bar">
                     <div class="strength-fill" [ngClass]="passwordStrengthClass()" [style.width.%]="passwordStrength()"></div>
@@ -220,8 +221,18 @@
                 </div>
               }
 
+              <!-- Validation Errors -->
               @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
-                <div class="error-message">La contraseña debe tener al menos 6 caracteres</div>
+                <div class="error-message">
+                  {{ getPasswordErrorMessage() }}
+                </div>
+              }
+
+              <!-- Requirements Hint (when not touched yet) -->
+              @if (!registerForm.get('password')?.touched && !registerForm.get('password')?.value) {
+                <div class="password-hint">
+                  Debe contener: mayúscula, minúscula, número y carácter especial
+                </div>
               }
             </div>
 

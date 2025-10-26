@@ -26,9 +26,9 @@ import {
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly api = inject(ApiService);
-  private readonly storage = inject(StorageService);
-  private readonly logger = inject(LoggerService);
+  private readonly api = inject(ApiService) as ApiService;
+  private readonly storage = inject(StorageService) as StorageService;
+  private readonly logger = inject(LoggerService) as LoggerService;
   private readonly router = inject(Router);
 
   private readonly _currentUser = signal<UserRead | null>(null);
