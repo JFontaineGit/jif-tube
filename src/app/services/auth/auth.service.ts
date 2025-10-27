@@ -12,16 +12,6 @@ import {
   TokenPayload,
 } from '@interfaces';
 
-/**
- * Servicio de autenticación.
- * 
- * Features:
- * - Login/Register/Logout
- * - Refresh token con anti-race condition
- * - Estado reactivo con Signals
- * - Manejo de scopes (roles/permisos)
- * - Type-safe completo
- */
 @Injectable({
   providedIn: 'root',
 })
@@ -47,17 +37,8 @@ export class AuthService {
     return user ? user.username : 'Guest';
   });
 
-  // =========================================================================
-  // REFRESH TOKEN MANAGEMENT (anti-race condition)
-  // =========================================================================
-
   private refreshTokenInProgress = false;
   private refreshTokenSubject = new BehaviorSubject<string | null>(null);
-
-  // =========================================================================
-  // LEGACY OBSERVABLE (para compatibilidad con guards/interceptors)
-  // =========================================================================
-
   private loginStatusSubject = new BehaviorSubject<boolean>(false);
   readonly loginStatus$ = this.loginStatusSubject.asObservable();
 
@@ -67,27 +48,80 @@ export class AuthService {
   }
 
   /**
-   * Inicializa auth al cargar la app
+   * ✅ Inicializa auth de forma segura - Fixed
    */
   private initializeAuth(): void {
+    this.logger.debug('Inicializando autenticación...');
+
+    // Primero intentar obtener ambos tokens
     this.storage.getAccessToken().subscribe({
-      next: (token) => {
-        if (token && !this.isTokenExpired(token)) {
-          this.logger.debug('Token válido encontrado, cargando perfil');
-          this.loadUserProfile().subscribe({
-            error: (err) => {
-              this.logger.warn('Falló restaurar sesión', err);
-              this.clearAuthState();
+      next: (accessToken) => {
+        if (!accessToken) {
+          this.logger.debug('No hay access token, usuario no autenticado');
+          return;
+        }
+
+        // ✅ Verificar si el access token está expirado
+        if (this.isTokenExpired(accessToken)) {
+          this.logger.debug('Access token expirado, intentando refresh');
+          
+          // Verificar si hay refresh token antes de intentar refresh
+          this.storage.getRefreshToken().subscribe({
+            next: (refreshToken) => {
+              if (!refreshToken) {
+                this.logger.warn('No hay refresh token disponible');
+                this.clearAuthState();
+                return;
+              }
+
+              // ✅ Verificar si el refresh token también está expirado
+              if (this.isTokenExpired(refreshToken)) {
+                this.logger.warn('Refresh token también expirado, limpiando sesión');
+                this.clearAuthState();
+                return;
+              }
+
+              // Intentar refresh
+              this.refreshAccessToken().subscribe({
+                next: () => {
+                  this.logger.info('Token refrescado exitosamente en init');
+                  // Después del refresh exitoso, cargar perfil
+                  this.loadUserProfile().subscribe({
+                    error: (err) => {
+                      this.logger.error('Error cargando perfil después de refresh', err);
+                      this.clearAuthState();
+                    }
+                  });
+                },
+                error: (err) => {
+                  this.logger.error('Error en refresh durante init', err);
+                  this.clearAuthState();
+                }
+              });
             },
+            error: (err) => {
+              this.logger.error('Error obteniendo refresh token', err);
+              this.clearAuthState();
+            }
           });
-        } else if (token) {
-          this.logger.debug('Token expirado, intentando refresh');
-          this.refreshAccessToken().subscribe({
-            error: () => this.clearAuthState(),
+        } else {
+          // Token válido, cargar perfil directamente
+          this.logger.debug('Access token válido, cargando perfil');
+          this.loadUserProfile().subscribe({
+            next: () => {
+              this.logger.info('Sesión restaurada exitosamente');
+            },
+            error: (err) => {
+              this.logger.warn('Error restaurando sesión', err);
+              this.clearAuthState();
+            }
           });
         }
       },
-      error: (err) => this.logger.error('Error leyendo token del storage', err),
+      error: (err) => {
+        this.logger.error('Error leyendo access token del storage', err);
+        this.clearAuthState();
+      }
     });
   }
 
@@ -95,9 +129,6 @@ export class AuthService {
   // AUTHENTICATION FLOW
   // =========================================================================
 
-  /**
-   * Register nuevo usuario
-   */
   register(userData: UserCreate): Observable<UserRead> {
     this.logger.info('Registrando usuario', { username: userData.username });
     this._loading.set(true);
@@ -114,9 +145,6 @@ export class AuthService {
     );
   }
 
-  /**
-   * Login con username/email + password
-   */
   login(credentials: LoginCredentials): Observable<Token> {
     this.logger.info('Intentando login', { username: credentials.username });
     this._loading.set(true);
@@ -127,17 +155,14 @@ export class AuthService {
         password: credentials.password,
       })
       .pipe(
-        // 1. Guardar tokens
         switchMap((tokens) =>
           this.storage.saveTokens(tokens.access_token, tokens.refresh_token).pipe(
             map(() => tokens)
           )
         ),
-        // 2. Cargar perfil
         switchMap((tokens) =>
           this.loadUserProfile().pipe(map(() => tokens))
         ),
-        // 3. Actualizar estado
         tap((tokens) => {
           this._isAuthenticated.set(true);
           this.loginStatusSubject.next(true);
@@ -151,9 +176,6 @@ export class AuthService {
       );
   }
 
-  /**
-   * Logout (invalida refresh token en backend)
-   */
   logout(): Observable<void> {
     this.logger.info('Cerrando sesión');
 
@@ -168,7 +190,6 @@ export class AuthService {
           return of(void 0);
         }
 
-        // Llamar backend para blacklistear
         return this.api
           .postForm<void>(AUTH_ENDPOINTS.LOGOUT, { refresh_token: refreshToken })
           .pipe(
@@ -184,10 +205,9 @@ export class AuthService {
   }
 
   /**
-   * Refresh access token (con anti-race condition)
+   * ✅ Refresh con mejor manejo de errores
    */
   refreshAccessToken(): Observable<string> {
-    // Si ya hay un refresh en progreso, esperar a ese
     if (this.refreshTokenInProgress) {
       this.logger.debug('Refresh ya en progreso, esperando...');
       return this.refreshTokenSubject.asObservable().pipe(
@@ -209,13 +229,17 @@ export class AuthService {
           throw new Error('No hay refresh token disponible');
         }
 
+        // ✅ Verificar si el refresh token está expirado antes de enviarlo
+        if (this.isTokenExpired(refreshToken)) {
+          throw new Error('Refresh token expirado');
+        }
+
         this.logger.debug('Refrescando access token');
 
         return this.api.postForm<Token>(AUTH_ENDPOINTS.REFRESH, {
           refresh_token: refreshToken,
         });
       }),
-      // Guardar nuevos tokens
       switchMap((tokens) =>
         this.storage.saveTokens(tokens.access_token, tokens.refresh_token).pipe(
           map(() => tokens.access_token)
@@ -231,10 +255,10 @@ export class AuthService {
         this.refreshTokenSubject.next(null);
         this.logger.error('Refresh token falló', error);
 
-        // Si falla, logout
         this.clearAuthState();
-        this.router.navigate(['/login']);
-
+        // ✅ No redirigir aquí si estamos en init, solo si es un refresh real
+        // El interceptor manejará la redirección
+        
         return throwError(() => error);
       })
     );
@@ -244,9 +268,6 @@ export class AuthService {
   // USER PROFILE
   // =========================================================================
 
-  /**
-   * Carga perfil del usuario autenticado
-   */
   loadUserProfile(): Observable<UserRead> {
     this.logger.debug('Cargando perfil de usuario');
 
@@ -282,9 +303,6 @@ export class AuthService {
   // HELPERS
   // =========================================================================
 
-  /**
-   * Limpia estado de autenticación
-   */
   private clearAuthState(): void {
     this.storage.clearTokens().subscribe();
     this._currentUser.set(null);
@@ -294,9 +312,6 @@ export class AuthService {
     this.logger.debug('Estado de auth limpiado');
   }
 
-  /**
-   * Decodifica JWT payload (sin verificar firma)
-   */
   decodeToken(token: string): TokenPayload | null {
     try {
       const base64Url = token.split('.')[1];
@@ -318,20 +333,29 @@ export class AuthService {
   }
 
   /**
-   * Verifica si el token está expirado
+   * ✅ Verifica expiración con mejor validación
    */
   isTokenExpired(token: string): boolean {
     const payload = this.decodeToken(token);
-    if (!payload) return true;
+    if (!payload || !payload.exp) {
+      this.logger.warn('Token sin payload válido o sin exp');
+      return true;
+    }
 
     const now = Math.floor(Date.now() / 1000);
-    const bufferSeconds = 30; // Buffer de 30s antes de expiración
-    return payload.exp < (now + bufferSeconds);
+    const bufferSeconds = 30;
+    const isExpired = payload.exp < (now + bufferSeconds);
+    
+    if (isExpired) {
+      this.logger.debug('Token expirado', {
+        exp: new Date(payload.exp * 1000).toISOString(),
+        now: new Date(now * 1000).toISOString()
+      });
+    }
+    
+    return isExpired;
   }
 
-  /**
-   * Normaliza errores de la API
-   */
   private normalizeError(error: any): Error {
     if (error?.message) {
       return new Error(error.message);
